@@ -1,0 +1,917 @@
+{
+  "source_file": "Subanen_Vocabulary_Starter_List.xlsx",
+  "sheet": "Vocabulary",
+  "header_row": 1,
+  "headers": {
+    "A": "No.",
+    "B": "Module / Topic",
+    "C": "Subanen Word",
+    "D": "Bisaya Meaning",
+    "E": "English Meaning",
+    "F": "Verification / Notes"
+  },
+  "rows": [
+    {
+      "row": 2,
+      "cells": {
+        "A": "1",
+        "B": "Basic expressions",
+        "C": "olo",
+        "D": "unsa",
+        "E": "what",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 3,
+      "cells": {
+        "A": "2",
+        "B": "Basic expressions",
+        "C": "sanu bok",
+        "D": "unsaon / giunsa",
+        "E": "how",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 4,
+      "cells": {
+        "A": "3",
+        "B": "Basic expressions",
+        "C": "nanu",
+        "D": "kanus-a",
+        "E": "when",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 5,
+      "cells": {
+        "A": "4",
+        "B": "Basic expressions",
+        "C": "ain",
+        "D": "asa",
+        "E": "where",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 6,
+      "cells": {
+        "A": "5",
+        "B": "Basic expressions",
+        "C": "sima",
+        "D": "kinsa",
+        "E": "who",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 7,
+      "cells": {
+        "A": "6",
+        "B": "Basic expressions",
+        "C": "konaq",
+        "D": "dili / dili mao",
+        "E": "no / not",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 8,
+      "cells": {
+        "A": "7",
+        "B": "Basic expressions",
+        "C": "bila",
+        "D": "kung",
+        "E": "if",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 9,
+      "cells": {
+        "A": "8",
+        "B": "People and family",
+        "C": "gotow",
+        "D": "tawo",
+        "E": "person / human being",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 10,
+      "cells": {
+        "A": "9",
+        "B": "People and family",
+        "C": "glaki",
+        "D": "lalaki",
+        "E": "man / male",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 11,
+      "cells": {
+        "A": "10",
+        "B": "People and family",
+        "C": "glibun",
+        "D": "babaye",
+        "E": "woman / female",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 12,
+      "cells": {
+        "A": "11",
+        "B": "People and family",
+        "C": "bataq",
+        "D": "bata / anak",
+        "E": "child",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 13,
+      "cells": {
+        "A": "12",
+        "B": "People and family",
+        "C": "gamaq",
+        "D": "amahan / papa",
+        "E": "father",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 14,
+      "cells": {
+        "A": "13",
+        "B": "People and family",
+        "C": "ginaq",
+        "D": "inahan / mama",
+        "E": "mother",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 15,
+      "cells": {
+        "A": "14",
+        "B": "People and family",
+        "C": "kodumanan",
+        "D": "kapikas / asawa",
+        "E": "spouse (listed for husband and wife)",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 16,
+      "cells": {
+        "A": "15",
+        "B": "People and family",
+        "C": "ngalan",
+        "D": "ngalan / pangalan",
+        "E": "name",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 17,
+      "cells": {
+        "A": "16",
+        "B": "Body parts",
+        "C": "gulu",
+        "D": "ulo",
+        "E": "head",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 18,
+      "cells": {
+        "A": "17",
+        "B": "Body parts",
+        "C": "mata",
+        "D": "mata",
+        "E": "eye",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 19,
+      "cells": {
+        "A": "18",
+        "B": "Body parts",
+        "C": "babaq",
+        "D": "baba",
+        "E": "mouth",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 20,
+      "cells": {
+        "A": "19",
+        "B": "Body parts",
+        "C": "sung",
+        "D": "ilong",
+        "E": "nose",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 21,
+      "cells": {
+        "A": "20",
+        "B": "Body parts",
+        "C": "to ling a",
+        "D": "dalunggan",
+        "E": "ear",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 22,
+      "cells": {
+        "A": "21",
+        "B": "Body parts",
+        "C": "ngisi",
+        "D": "ngipon",
+        "E": "tooth",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 23,
+      "cells": {
+        "A": "22",
+        "B": "Body parts",
+        "C": "dilaq",
+        "D": "dila",
+        "E": "tongue",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 24,
+      "cells": {
+        "A": "23",
+        "B": "Body parts",
+        "C": "tian",
+        "D": "tiyan",
+        "E": "belly / stomach",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 25,
+      "cells": {
+        "A": "24",
+        "B": "Body parts",
+        "C": "botis",
+        "D": "tiil / bitiis",
+        "E": "leg / foot",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 26,
+      "cells": {
+        "A": "25",
+        "B": "Body parts",
+        "C": "komot",
+        "D": "kamot",
+        "E": "hand",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 27,
+      "cells": {
+        "A": "26",
+        "B": "Body parts",
+        "C": "panit",
+        "D": "panit",
+        "E": "skin",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 28,
+      "cells": {
+        "A": "27",
+        "B": "Body parts",
+        "C": "duguq",
+        "D": "dugo",
+        "E": "blood",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 29,
+      "cells": {
+        "A": "28",
+        "B": "Body parts",
+        "C": "tulan",
+        "D": "bukog",
+        "E": "bone",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 30,
+      "cells": {
+        "A": "29",
+        "B": "Nature and environment",
+        "C": "glupaq",
+        "D": "yuta / lapok",
+        "E": "earth / soil",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 31,
+      "cells": {
+        "A": "30",
+        "B": "Nature and environment",
+        "C": "danow",
+        "D": "lanaw",
+        "E": "lake",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 32,
+      "cells": {
+        "A": "31",
+        "B": "Nature and environment",
+        "C": "dagat",
+        "D": "dagat",
+        "E": "sea",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 33,
+      "cells": {
+        "A": "32",
+        "B": "Nature and environment",
+        "C": "tubig",
+        "D": "tubig",
+        "E": "water",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 34,
+      "cells": {
+        "A": "33",
+        "B": "Nature and environment",
+        "C": "dupi",
+        "D": "ulan",
+        "E": "rain",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 35,
+      "cells": {
+        "A": "34",
+        "B": "Nature and environment",
+        "C": "gapoy",
+        "D": "kalayo",
+        "E": "fire",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 36,
+      "cells": {
+        "A": "35",
+        "B": "Nature and environment",
+        "C": "galuq",
+        "D": "hangin",
+        "E": "wind",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 37,
+      "cells": {
+        "A": "36",
+        "B": "Nature and environment",
+        "C": "glangit",
+        "D": "langit",
+        "E": "sky",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 38,
+      "cells": {
+        "A": "37",
+        "B": "Nature and environment",
+        "C": "bulan",
+        "D": "bulan",
+        "E": "moon",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 39,
+      "cells": {
+        "A": "38",
+        "B": "Nature and environment",
+        "C": "bitun",
+        "D": "bituon",
+        "E": "star",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 40,
+      "cells": {
+        "A": "39",
+        "B": "Nature and environment",
+        "C": "gondow",
+        "D": "adlaw",
+        "E": "day / sun",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 41,
+      "cells": {
+        "A": "40",
+        "B": "Nature and environment",
+        "C": "gobi",
+        "D": "gabii",
+        "E": "night",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 42,
+      "cells": {
+        "A": "41",
+        "B": "Nature and environment",
+        "C": "kayu",
+        "D": "kahoy",
+        "E": "wood / tree",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 43,
+      "cells": {
+        "A": "42",
+        "B": "Nature and environment",
+        "C": "daon",
+        "D": "dahon",
+        "E": "leaf",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 44,
+      "cells": {
+        "A": "43",
+        "B": "Nature and environment",
+        "C": "bulakbulak",
+        "D": "bulak",
+        "E": "flower",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 45,
+      "cells": {
+        "A": "44",
+        "B": "Nature and environment",
+        "C": "bunga nok kayu",
+        "D": "bunga sa kahoy",
+        "E": "fruit",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 46,
+      "cells": {
+        "A": "45",
+        "B": "Animals",
+        "C": "manukmanuk",
+        "D": "langgam",
+        "E": "bird",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 47,
+      "cells": {
+        "A": "46",
+        "B": "Animals",
+        "C": "gayam",
+        "D": "iro",
+        "E": "dog",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 48,
+      "cells": {
+        "A": "47",
+        "B": "Animals",
+        "C": "bolabow",
+        "D": "ilaga",
+        "E": "rat",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 49,
+      "cells": {
+        "A": "48",
+        "B": "Animals",
+        "C": "mamak",
+        "D": "bitin / halas",
+        "E": "snake",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 50,
+      "cells": {
+        "A": "49",
+        "B": "Animals",
+        "C": "kolomut",
+        "D": "lamok",
+        "E": "mosquito",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 51,
+      "cells": {
+        "A": "50",
+        "B": "Animals",
+        "C": "glowati",
+        "D": "ulod sa yuta",
+        "E": "earthworm",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 52,
+      "cells": {
+        "A": "51",
+        "B": "Numbers",
+        "C": "sala bok",
+        "D": "usa",
+        "E": "one",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 53,
+      "cells": {
+        "A": "52",
+        "B": "Numbers",
+        "C": "duaq",
+        "D": "duha",
+        "E": "two",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 54,
+      "cells": {
+        "A": "53",
+        "B": "Numbers",
+        "C": "tolu",
+        "D": "tulo",
+        "E": "three",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 55,
+      "cells": {
+        "A": "54",
+        "B": "Numbers",
+        "C": "pat",
+        "D": "upat",
+        "E": "four",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 56,
+      "cells": {
+        "A": "55",
+        "B": "Numbers",
+        "C": "lima",
+        "D": "lima",
+        "E": "five",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 57,
+      "cells": {
+        "A": "56",
+        "B": "Numbers",
+        "C": "gonom",
+        "D": "unom",
+        "E": "six",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 58,
+      "cells": {
+        "A": "57",
+        "B": "Numbers",
+        "C": "pitu",
+        "D": "pito",
+        "E": "seven",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 59,
+      "cells": {
+        "A": "58",
+        "B": "Numbers",
+        "C": "walu",
+        "D": "walo",
+        "E": "eight",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 60,
+      "cells": {
+        "A": "59",
+        "B": "Numbers",
+        "C": "siam",
+        "D": "siyam",
+        "E": "nine",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 61,
+      "cells": {
+        "A": "60",
+        "B": "Numbers",
+        "C": "sapuluq",
+        "D": "napulo",
+        "E": "ten",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 62,
+      "cells": {
+        "A": "61",
+        "B": "Numbers",
+        "C": "duaq puluq",
+        "D": "baynte / kawhaan",
+        "E": "twenty",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 63,
+      "cells": {
+        "A": "62",
+        "B": "Numbers",
+        "C": "sagatus",
+        "D": "usa ka gatos",
+        "E": "one hundred",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 64,
+      "cells": {
+        "A": "63",
+        "B": "Numbers",
+        "C": "sangibu",
+        "D": "usa ka libo",
+        "E": "one thousand",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 65,
+      "cells": {
+        "A": "64",
+        "B": "Colors and descriptions",
+        "C": "gitom",
+        "D": "itom",
+        "E": "black",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 66,
+      "cells": {
+        "A": "65",
+        "B": "Colors and descriptions",
+        "C": "ompula",
+        "D": "pula",
+        "E": "red",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 67,
+      "cells": {
+        "A": "66",
+        "B": "Colors and descriptions",
+        "C": "omputiq",
+        "D": "puti",
+        "E": "white",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 68,
+      "cells": {
+        "A": "67",
+        "B": "Colors and descriptions",
+        "C": "glunow",
+        "D": "berde / lunhaw",
+        "E": "green",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 69,
+      "cells": {
+        "A": "68",
+        "B": "Colors and descriptions",
+        "C": "dalag",
+        "D": "dilaw",
+        "E": "yellow",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 70,
+      "cells": {
+        "A": "69",
+        "B": "Colors and descriptions",
+        "C": "mosolag",
+        "D": "dako",
+        "E": "big",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 71,
+      "cells": {
+        "A": "70",
+        "B": "Colors and descriptions",
+        "C": "molintokon",
+        "D": "gamay",
+        "E": "small",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 72,
+      "cells": {
+        "A": "71",
+        "B": "Colors and descriptions",
+        "C": "bogu",
+        "D": "bag-o",
+        "E": "new",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 73,
+      "cells": {
+        "A": "72",
+        "B": "Colors and descriptions",
+        "C": "molayuq",
+        "D": "layo",
+        "E": "far",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 74,
+      "cells": {
+        "A": "73",
+        "B": "Colors and descriptions",
+        "C": "molani",
+        "D": "duol",
+        "E": "near",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 75,
+      "cells": {
+        "A": "74",
+        "B": "Colors and descriptions",
+        "C": "omba qis",
+        "D": "maayo",
+        "E": "good",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 76,
+      "cells": {
+        "A": "75",
+        "B": "Colors and descriptions",
+        "C": "motigdow",
+        "D": "bugnaw",
+        "E": "cold",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 77,
+      "cells": {
+        "A": "76",
+        "B": "Colors and descriptions",
+        "C": "minit",
+        "D": "init",
+        "E": "warm / hot",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 78,
+      "cells": {
+        "A": "77",
+        "B": "Everyday words",
+        "C": "baloy",
+        "D": "balay",
+        "E": "house",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 79,
+      "cells": {
+        "A": "78",
+        "B": "Everyday words",
+        "C": "bianan",
+        "D": "dalan / agianan",
+        "E": "road / path",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 80,
+      "cells": {
+        "A": "79",
+        "B": "Everyday words",
+        "C": "batu",
+        "D": "bato",
+        "E": "stone",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 81,
+      "cells": {
+        "A": "80",
+        "B": "Everyday words",
+        "C": "masin",
+        "D": "asin",
+        "E": "salt",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 82,
+      "cells": {
+        "A": "81",
+        "B": "Everyday words",
+        "C": "tali",
+        "D": "pisi",
+        "E": "rope",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    },
+    {
+      "row": 83,
+      "cells": {
+        "A": "82",
+        "B": "Everyday words",
+        "C": "gabu",
+        "D": "abo",
+        "E": "ash / dust",
+        "F": "Preliminary entry; confirm spelling and local dialect with a fluent Central Subanen speaker."
+      }
+    }
+  ]
+}

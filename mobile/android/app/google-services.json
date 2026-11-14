@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "593696228310",
+    "firebase_url": "https://learnlite-f1dd5-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "learnlite-f1dd5",
+    "storage_bucket": "learnlite-f1dd5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593696228310:android:1538c1fb05efbd67f8da77",
+        "android_client_info": {
+          "package_name": "com.example.learnlite"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfrdBxQFY4Uo3AraL31G8oQqiEuWSNn2w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

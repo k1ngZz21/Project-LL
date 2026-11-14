@@ -1,0 +1,116 @@
+Phase 1 — Complete Firebase Authentication
+Do this first
+Goal: Make registration, login, logout, and session persistence work.
+
+Tasks:
+1. Verify Firebase project learnlite-f1dd5.
+2. Enable Email/Password authentication in Firebase Console.
+3. Verify the Android app configuration and required Firebase build values.
+4. Connect Flutter's registration and login screens to Firebase Authentication.
+5. Implement logout.
+6. Restore the user's login session when reopening the app.
+7. Display understandable authentication errors.
+Completion criteria:
+- [ ] A new user can register.
+- [ ] A registered user can log in.
+- [ ] Incorrect credentials show an error.
+- [ ] Logout works.
+- [ ] Login session persists after restarting the app.
+- [ ] Firebase Console shows the registered user.
+Phase 2 — Finalize SQLite Database
+Goal: Make SQLite the primary database for offline learning.
+
+Tasks:
+1. Review the existing SQLite tables and relationships.
+2. Verify user-specific data separation.
+3. Verify vocabulary storage.
+4. Verify lessons and learning materials.
+5. Verify quiz questions, answers, and results.
+6. Verify progress tracking.
+7. Test database persistence after closing and reopening the app.
+Completion criteria:
+- [ ] Data is saved locally.
+- [ ] Data remains available offline.
+- [ ] Different users cannot access each other's private progress.
+- [ ] Existing user data is preserved.
+- [ ] Database migrations work correctly.
+Phase 3 — Connect Firebase Authentication to SQLite
+Goal: Connect online user identities to locally stored learning data.
+
+Tasks:
+1. Use the Firebase UID as the user identifier.
+2. Associate SQLite progress records with the correct UID.
+3. Handle login and logout without losing local data.
+4. Handle users who have no internet connection.
+5. Prevent one user's learning progress from appearing in another user's account.
+Completion criteria:
+- [ ] Firebase authentication works online.
+- [ ] Previously saved local lessons remain accessible offline.
+- [ ] User progress is correctly associated with the account.
+- [ ] No accidental deletion of local data.
+Phase 4 — Complete Offline Learning Modules
+Goal: Make LearnLite useful even without an internet connection.
+
+Tasks:
+1. Add complete, bundled lesson content.
+2. Add the vocabulary learning module.
+3. Add downloadable learning materials.
+4. Add quizzes and answer checking.
+5. Add progress tracking.
+6. Verify that the modules work in airplane mode.
+Completion criteria:
+- [ ] Users can open lessons offline.
+- [ ] Users can study vocabulary offline.
+- [ ] Users can answer quizzes offline.
+- [ ] Quiz results are saved locally.
+- [ ] Learning progress updates correctly.
+Phase 5 — Integrate and Test the AI Tutor
+Goal: Make the AI Tutor work with the existing local AI setup.
+
+Tasks:
+1. Review the existing Ollama integration.
+2. Keep the current local model configuration.
+3. Connect the Flutter AI Tutor interface to the existing local AI service.
+4. Handle unavailable AI service errors.
+5. Test educational questions and explanations.
+6. Verify that the core offline learning modules still work when AI is unavailable.
+Completion criteria:
+- [ ] AI Tutor responds when the local model is running.
+- [ ] The app handles AI service errors.
+- [ ] AI features do not break SQLite or Firebase Authentication.
+- [ ] No unnecessary changes to the existing model configuration.
+Phase 6 — UI/UX and Application Testing
+Goal: Make the complete application stable and user-friendly.
+
+Tasks:
+1. Review all application screens.
+2. Fix navigation and layout issues.
+3. Add loading indicators and error messages.
+4. Test registration, login, logout, and account persistence.
+5. Test offline and online scenarios.
+6. Test SQLite data persistence.
+7. Test on an actual Android phone.
+Completion criteria:
+- [ ] No critical Flutter analysis errors.
+- [ ] All automated tests pass.
+- [ ] No major navigation bugs.
+- [ ] No data loss after restarting.
+- [ ] Application works on a physical Android device.
+Phase 7 — Final Build and Documentation
+Goal: Prepare LearnLite for demonstration and submission.
+
+Tasks:
+1. Run Flutter analysis.
+2. Run all Flutter tests.
+3. Generate a release APK.
+4. Install and test the APK on Android.
+5. Document Firebase Authentication setup.
+6. Document SQLite database structure.
+7. Prepare screenshots and system documentation.
+Completion criteria:
+- [ ] Release APK builds successfully.
+- [ ] APK installs and launches.
+- [ ] Authentication works.
+- [ ] Offline learning works.
+- [ ] Database persistence is verified.
+- [ ] Documentation is complete.

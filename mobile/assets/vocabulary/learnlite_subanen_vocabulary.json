@@ -1,0 +1,2894 @@
+{
+  "source_file": "LearnLite-Subanen-Vocabulary.xlsx",
+  "sheet": "Vocabulary",
+  "header_row": 1,
+  "headers": {
+    "A": "No.",
+    "B": "Module",
+    "C": "Topic",
+    "D": "English",
+    "E": "Bisaya (Cebuano)",
+    "F": "Subanen",
+    "G": "Variety",
+    "H": "Other forms / spellings",
+    "I": "Source",
+    "J": "Seen in your module",
+    "K": "Status",
+    "L": "Notes"
+  },
+  "rows": [
+    {
+      "row": 2,
+      "cells": {
+        "A": "1",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Good day",
+        "E": "Maayong adlaw",
+        "F": "gempya gendao",
+        "G": "Not stated",
+        "H": "gempya gendaw (Southern/Central list); molongas, ombais, piag + gendao (other dialect forms)",
+        "I": "subanen.net; Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": "Daytime greeting."
+      }
+    },
+    {
+      "row": 3,
+      "cells": {
+        "A": "2",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Good morning",
+        "E": "Maayong buntag",
+        "F": "gempya seselem",
+        "G": "Not stated",
+        "H": "",
+        "I": "DA-MIADP",
+        "J": "Figs. 6, 7, 12, 16",
+        "K": "Pending review",
+        "L": "Listed as the Subanen greeting for Region IX."
+      }
+    },
+    {
+      "row": 4,
+      "cells": {
+        "A": "3",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Morning (time of day)",
+        "E": "Buntag",
+        "F": "siselem",
+        "G": "Southern & Central",
+        "H": "",
+        "I": "Scribd study (Southern/Central)",
+        "J": "Fig. 6",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 5,
+      "cells": {
+        "A": "4",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Early morning",
+        "E": "Sayo sa buntag",
+        "F": "siselem gupia",
+        "G": "Central",
+        "H": "dali gendaw (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: the source table was hard to read."
+      }
+    },
+    {
+      "row": 6,
+      "cells": {
+        "A": "5",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Good late morning / early afternoon",
+        "E": "Maayong udto",
+        "F": "gempya sisolom",
+        "G": "Not stated",
+        "H": "molongas, bais, ombais, piag + sisolom",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "Greeting for late morning to early afternoon."
+      }
+    },
+    {
+      "row": 7,
+      "cells": {
+        "A": "6",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Good noon",
+        "E": "Maayong udto",
+        "F": "gempya tasondo",
+        "G": "Not stated",
+        "H": "molongas tasendo; ombais tasondo; piag tasondo",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 8,
+      "cells": {
+        "A": "7",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Midday (time of day)",
+        "E": "Udto",
+        "F": "taasendaw",
+        "G": "Central",
+        "H": "thasendaw (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 9,
+      "cells": {
+        "A": "8",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Good afternoon (late afternoon / early evening)",
+        "E": "Maayong hapon",
+        "F": "gompya delabong",
+        "G": "Not stated",
+        "H": "molongas lalabong; ombais lalabong; piag delabong",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "subanen.net spells it 'gompya' here and 'gempya' in the other greetings."
+      }
+    },
+    {
+      "row": 10,
+      "cells": {
+        "A": "9",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Afternoon (time of day)",
+        "E": "Hapon",
+        "F": "delabung",
+        "G": "Central",
+        "H": "dlelabung (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 11,
+      "cells": {
+        "A": "10",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Good evening",
+        "E": "Maayong gabii",
+        "F": "gompya gobi",
+        "G": "Not stated",
+        "H": "molongas gobi; ombais gobi; piag gobi",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "subanen.net spells it 'gompya' here."
+      }
+    },
+    {
+      "row": 12,
+      "cells": {
+        "A": "11",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Evening (time of day)",
+        "E": "Gabii",
+        "F": "gebii",
+        "G": "Central",
+        "H": "gebi (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 13,
+      "cells": {
+        "A": "12",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Night",
+        "E": "Gabii",
+        "F": "medalem gebii",
+        "G": "Central",
+        "H": "gebi (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 14,
+      "cells": {
+        "A": "13",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Day",
+        "E": "Adlaw",
+        "F": "gondow",
+        "G": "Not stated",
+        "H": "gendao / gendaw (used in the greetings)",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 15,
+      "cells": {
+        "A": "14",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Yesterday",
+        "E": "Kagahapon",
+        "F": "labung",
+        "G": "Central",
+        "H": "halabong (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 16,
+      "cells": {
+        "A": "15",
+        "B": "1 · Basic Greetings",
+        "C": "Greetings by time of day",
+        "D": "Good day to a group of people",
+        "E": "Maayong adlaw kaninyong tanan",
+        "F": "gempya nog gendao sog glam niu",
+        "G": "Not stated",
+        "H": "molongas gendao sog glam niu; ombais gendao sog glam niu",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "Daytime greeting spoken to a group."
+      }
+    },
+    {
+      "row": 17,
+      "cells": {
+        "A": "16",
+        "B": "1 · Basic Greetings",
+        "C": "Meeting people",
+        "D": "Where are you going?",
+        "E": "Asa ka paingon?",
+        "F": "ayen ka pasungo?",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "Used as a greeting to someone going somewhere."
+      }
+    },
+    {
+      "row": 18,
+      "cells": {
+        "A": "17",
+        "B": "1 · Basic Greetings",
+        "C": "Meeting people",
+        "D": "Where are you coming from? (welcome greeting)",
+        "E": "Gikan ka asa?",
+        "F": "ayen ka tido?",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "Welcome greeting to someone arriving."
+      }
+    },
+    {
+      "row": 19,
+      "cells": {
+        "A": "18",
+        "B": "1 · Basic Greetings",
+        "C": "Polite words",
+        "D": "Thank you",
+        "E": "Salamat",
+        "F": "paladpalad",
+        "G": "Southern & Central (listed once)",
+        "H": "",
+        "I": "Scribd study (Southern/Central)",
+        "J": "Figs. 7, 12, 16",
+        "K": "Pending review",
+        "L": "CHECK: the source table layout is unclear."
+      }
+    },
+    {
+      "row": 20,
+      "cells": {
+        "A": "19",
+        "B": "1 · Basic Greetings",
+        "C": "Polite words",
+        "D": "Please forgive me / I'm sorry",
+        "E": "Pasayloa ko, palihug",
+        "F": "batha-batha ampon mo inan",
+        "G": "Not clear (Southern or Central)",
+        "H": "",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: the source table layout is unclear."
+      }
+    },
+    {
+      "row": 21,
+      "cells": {
+        "A": "20",
+        "B": "1 · Basic Greetings",
+        "C": "Polite words",
+        "D": "You're welcome",
+        "E": "Walay sapayan",
+        "F": "ampon mo inan",
+        "G": "Not clear (Southern or Central)",
+        "H": "",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: it appears next to 'You're welcome' in the source, but the match is not certain."
+      }
+    },
+    {
+      "row": 22,
+      "cells": {
+        "A": "21",
+        "B": "1 · Basic Greetings",
+        "C": "Polite words",
+        "D": "Yes, you may (permission)",
+        "E": "Oo, mahimo",
+        "F": "mayan hupa / mayan no",
+        "G": "Not clear (Southern or Central)",
+        "H": "",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: listed beside the Filipino 'Makikiraan po'."
+      }
+    },
+    {
+      "row": 23,
+      "cells": {
+        "A": "22",
+        "B": "1 · Basic Greetings",
+        "C": "Polite words",
+        "D": "Yes / all right",
+        "E": "Oo / Sige",
+        "F": "wa'a",
+        "G": "Not stated",
+        "H": "waa (Southern/Central list)",
+        "I": "subanen.net; Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": "subanen.net example sentences translate 'wa'a' as 'yes'; the Scribd list gives 'waa' for 'sige' (all right)."
+      }
+    },
+    {
+      "row": 24,
+      "cells": {
+        "A": "23",
+        "B": "1 · Basic Greetings",
+        "C": "Polite words",
+        "D": "No / not",
+        "E": "Dili",
+        "F": "konaq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 25,
+      "cells": {
+        "A": "24",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Family",
+        "E": "Pamilya",
+        "F": "pamilya",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "Figs. 6, 12, 16",
+        "K": "Pending review",
+        "L": "Borrowed word; it appears in 'mimbro ta pamilya'."
+      }
+    },
+    {
+      "row": 26,
+      "cells": {
+        "A": "25",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Members of the family",
+        "E": "Mga miyembro sa pamilya",
+        "F": "mimbro ta pamilya",
+        "G": "Central",
+        "H": "sahop ri pamilya (Southern)",
+        "I": "SIL Central Subanen reader; Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 27,
+      "cells": {
+        "A": "26",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Father",
+        "E": "Amahan / Tatay",
+        "F": "amay",
+        "G": "Central",
+        "H": "ama (Southern); ama' / gama' (Central reader examples); gamaq (subanen.net)",
+        "I": "SIL Central Subanen reader; Scribd study (Southern/Central); subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 28,
+      "cells": {
+        "A": "27",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Mother",
+        "E": "Inahan / Nanay",
+        "F": "inay",
+        "G": "Central",
+        "H": "ina (Southern); ginaq (subanen.net)",
+        "I": "SIL Central Subanen reader; Scribd study (Southern/Central); subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 29,
+      "cells": {
+        "A": "28",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Child",
+        "E": "Bata / Anak",
+        "F": "bata'",
+        "G": "Central",
+        "H": "bataq (subanen.net)",
+        "I": "SIL Central Subanen reader; subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 30,
+      "cells": {
+        "A": "29",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Brother or sister (sibling)",
+        "E": "Igsoon",
+        "F": "manong",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: the source lists 'manong' for brother/sister."
+      }
+    },
+    {
+      "row": 31,
+      "cells": {
+        "A": "30",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Older brother / older sister",
+        "E": "Kuya / Ate",
+        "F": "manang",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: the source lists 'manang' for older brother/sister."
+      }
+    },
+    {
+      "row": 32,
+      "cells": {
+        "A": "31",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Grandmother",
+        "E": "Lola",
+        "F": "lola",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "",
+        "K": "Pending review",
+        "L": "Same as the Filipino word."
+      }
+    },
+    {
+      "row": 33,
+      "cells": {
+        "A": "32",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Grandfather",
+        "E": "Lolo",
+        "F": "lolo",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "",
+        "K": "Pending review",
+        "L": "Same as the Filipino word."
+      }
+    },
+    {
+      "row": 34,
+      "cells": {
+        "A": "33",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Uncle",
+        "E": "Tiyo / Uyoan",
+        "F": "dadi",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 35,
+      "cells": {
+        "A": "34",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Aunt",
+        "E": "Tiya / Iyaan",
+        "F": "mami",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 36,
+      "cells": {
+        "A": "35",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Cousin",
+        "E": "Pinsan / Ig-agaw",
+        "F": "katagsa",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 37,
+      "cells": {
+        "A": "36",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Husband",
+        "E": "Bana",
+        "F": "kodumanan",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 38,
+      "cells": {
+        "A": "37",
+        "B": "2 · Family & Community",
+        "C": "Family members",
+        "D": "Man / male",
+        "E": "Lalaki",
+        "F": "glaki",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 39,
+      "cells": {
+        "A": "38",
+        "B": "2 · Family & Community",
+        "C": "In-laws and relatives",
+        "D": "Father-in-law",
+        "E": "Ugangan nga lalaki",
+        "F": "ugangan na mama",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 40,
+      "cells": {
+        "A": "39",
+        "B": "2 · Family & Community",
+        "C": "In-laws and relatives",
+        "D": "Mother-in-law",
+        "E": "Ugangan nga babaye",
+        "F": "ugangan na bai",
+        "G": "Central",
+        "H": "",
+        "I": "SIL Central Subanen reader",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 41,
+      "cells": {
+        "A": "40",
+        "B": "2 · Family & Community",
+        "C": "In-laws and relatives",
+        "D": "Relative",
+        "E": "Paryente",
+        "F": "megleguseba",
+        "G": "Central",
+        "H": "deylan (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 42,
+      "cells": {
+        "A": "41",
+        "B": "2 · Family & Community",
+        "C": "In-laws and relatives",
+        "D": "Teacher",
+        "E": "Magtutudlo / Maestro, Maestra",
+        "F": "mistra / mistro",
+        "G": "Central",
+        "H": "mhenintulu (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": "mistra/mistro are borrowed words."
+      }
+    },
+    {
+      "row": 43,
+      "cells": {
+        "A": "42",
+        "B": "2 · Family & Community",
+        "C": "Community and home",
+        "D": "House",
+        "E": "Balay",
+        "F": "baloy",
+        "G": "Not stated",
+        "H": "balay (Southern/Central list)",
+        "I": "subanen.net; Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 44,
+      "cells": {
+        "A": "43",
+        "B": "2 · Family & Community",
+        "C": "Community and home",
+        "D": "Town / territory",
+        "E": "Lungsod / Dapit",
+        "F": "benwa (also banwa)",
+        "G": "Not stated",
+        "H": "",
+        "I": "Wikipedia; Multidisciplinary Journal 2013",
+        "J": "",
+        "K": "Pending review",
+        "L": "Seen in place names like 'Benwa Sindangan'; 'banwa' is used for tribal territories."
+      }
+    },
+    {
+      "row": 45,
+      "cells": {
+        "A": "44",
+        "B": "2 · Family & Community",
+        "C": "Community and home",
+        "D": "Community (settlement unit)",
+        "E": "Komunidad / Katilingban",
+        "F": "sumbalay",
+        "G": "Not stated",
+        "H": "",
+        "I": "Bangsamoro summary (Scribd)",
+        "J": "Fig. 16",
+        "K": "Pending review",
+        "L": "CHECK: described as a community headed by its most senior male (the timuay or gukom)."
+      }
+    },
+    {
+      "row": 46,
+      "cells": {
+        "A": "45",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "1 (one)",
+        "E": "Usa",
+        "F": "sala bok",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: the source writes 'sala bok'; confirm the spelling."
+      }
+    },
+    {
+      "row": 47,
+      "cells": {
+        "A": "46",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "2 (two)",
+        "E": "Duha",
+        "F": "duak",
+        "G": "Not stated",
+        "H": "duaq",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 48,
+      "cells": {
+        "A": "47",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "3 (three)",
+        "E": "Tulo",
+        "F": "tolu",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 49,
+      "cells": {
+        "A": "48",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "4 (four)",
+        "E": "Upat",
+        "F": "pat",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 50,
+      "cells": {
+        "A": "49",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "5 (five)",
+        "E": "Lima",
+        "F": "lima",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 51,
+      "cells": {
+        "A": "50",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "6 (six)",
+        "E": "Unom",
+        "F": "gonom",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 52,
+      "cells": {
+        "A": "51",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "7 (seven)",
+        "E": "Pito",
+        "F": "pitu",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 53,
+      "cells": {
+        "A": "52",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "8 (eight)",
+        "E": "Walo",
+        "F": "walu",
+        "G": "Not stated",
+        "H": "oalu",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 54,
+      "cells": {
+        "A": "53",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "9 (nine)",
+        "E": "Siyam",
+        "F": "siam",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 55,
+      "cells": {
+        "A": "54",
+        "B": "3 · Numbers & Counting",
+        "C": "Numbers 1–10",
+        "D": "10 (ten)",
+        "E": "Napulo",
+        "F": "sapuluk",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 56,
+      "cells": {
+        "A": "55",
+        "B": "3 · Numbers & Counting",
+        "C": "Tens",
+        "D": "20 (twenty)",
+        "E": "Kaluhaan / Baynte",
+        "F": "duak puluk",
+        "G": "Not stated",
+        "H": "duaq puluq",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 57,
+      "cells": {
+        "A": "56",
+        "B": "3 · Numbers & Counting",
+        "C": "Tens",
+        "D": "30 (thirty)",
+        "E": "Katloan / Trayenta",
+        "F": "tolu puluk",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 58,
+      "cells": {
+        "A": "57",
+        "B": "3 · Numbers & Counting",
+        "C": "Tens",
+        "D": "40 (forty)",
+        "E": "Kap-atan / Kwarenta",
+        "F": "pat puluk",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 59,
+      "cells": {
+        "A": "58",
+        "B": "3 · Numbers & Counting",
+        "C": "Tens",
+        "D": "50 (fifty)",
+        "E": "Kalim-an / Singkwenta",
+        "F": "lima puluk",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 60,
+      "cells": {
+        "A": "59",
+        "B": "3 · Numbers & Counting",
+        "C": "Tens",
+        "D": "60 (sixty)",
+        "E": "Kan-uman / Sesenta",
+        "F": "gonom puluk",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "The source lists it as '6 – gonom puluk'; treated as 60."
+      }
+    },
+    {
+      "row": 61,
+      "cells": {
+        "A": "60",
+        "B": "3 · Numbers & Counting",
+        "C": "Tens",
+        "D": "70 (seventy)",
+        "E": "Kapitoan / Setenta",
+        "F": "pitu puluk",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 62,
+      "cells": {
+        "A": "61",
+        "B": "3 · Numbers & Counting",
+        "C": "Tens",
+        "D": "80 (eighty)",
+        "E": "Kawaloan / Otsenta",
+        "F": "oalu puluk",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 63,
+      "cells": {
+        "A": "62",
+        "B": "3 · Numbers & Counting",
+        "C": "Tens",
+        "D": "90 (ninety)",
+        "E": "Kasiyaman / Nobenta",
+        "F": "siam puluk",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 64,
+      "cells": {
+        "A": "63",
+        "B": "3 · Numbers & Counting",
+        "C": "Hundreds and thousands",
+        "D": "100 (one hundred)",
+        "E": "Usa ka gatos",
+        "F": "sagatus",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 65,
+      "cells": {
+        "A": "64",
+        "B": "3 · Numbers & Counting",
+        "C": "Hundreds and thousands",
+        "D": "200 (two hundred)",
+        "E": "Duha ka gatos",
+        "F": "duakgatus",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 66,
+      "cells": {
+        "A": "65",
+        "B": "3 · Numbers & Counting",
+        "C": "Hundreds and thousands",
+        "D": "300 (three hundred)",
+        "E": "Tulo ka gatos",
+        "F": "olugatus",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: source spelling 'olugatus'; confirm."
+      }
+    },
+    {
+      "row": 67,
+      "cells": {
+        "A": "66",
+        "B": "3 · Numbers & Counting",
+        "C": "Hundreds and thousands",
+        "D": "400 (four hundred)",
+        "E": "Upat ka gatos",
+        "F": "patgatus",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 68,
+      "cells": {
+        "A": "67",
+        "B": "3 · Numbers & Counting",
+        "C": "Hundreds and thousands",
+        "D": "500 (five hundred)",
+        "E": "Lima ka gatos",
+        "F": "limagatus",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 69,
+      "cells": {
+        "A": "68",
+        "B": "3 · Numbers & Counting",
+        "C": "Hundreds and thousands",
+        "D": "600 (six hundred)",
+        "E": "Unom ka gatos",
+        "F": "gonomgatus",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 70,
+      "cells": {
+        "A": "69",
+        "B": "3 · Numbers & Counting",
+        "C": "Hundreds and thousands",
+        "D": "1,000 (one thousand)",
+        "E": "Usa ka libo",
+        "F": "sangibu",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 71,
+      "cells": {
+        "A": "70",
+        "B": "3 · Numbers & Counting",
+        "C": "Hundreds and thousands",
+        "D": "10,000 (ten thousand)",
+        "E": "Napulo ka libo",
+        "F": "sapulukngibu",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 72,
+      "cells": {
+        "A": "71",
+        "B": "3 · Numbers & Counting",
+        "C": "Hundreds and thousands",
+        "D": "100,000 (one hundred thousand)",
+        "E": "Usa ka gatos ka libo",
+        "F": "sagatungibu",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 73,
+      "cells": {
+        "A": "72",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "What?",
+        "E": "Unsa?",
+        "F": "andun?",
+        "G": "Central",
+        "H": "alan? / alandon? (Southern); olo (subanen.net)",
+        "I": "Scribd study (Southern/Central); subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 74,
+      "cells": {
+        "A": "73",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "Where?",
+        "E": "Asa?",
+        "F": "ain",
+        "G": "Central",
+        "H": "adin (Southern)",
+        "I": "Scribd study (Southern/Central); subanen.net; Western Subanon grammar",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 75,
+      "cells": {
+        "A": "74",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "When?",
+        "E": "Kanus-a?",
+        "F": "nanu",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 76,
+      "cells": {
+        "A": "75",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "How?",
+        "E": "Unsaon?",
+        "F": "sanu bok",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 77,
+      "cells": {
+        "A": "76",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "What are you doing?",
+        "E": "Unsa imong ginabuhat?",
+        "F": "andu maig binaal mu?",
+        "G": "Central",
+        "H": "alan galebek mo? (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 78,
+      "cells": {
+        "A": "77",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "You (one person)",
+        "E": "Ikaw",
+        "F": "ya'a",
+        "G": "Southern & Central",
+        "H": "",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 79,
+      "cells": {
+        "A": "78",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "We (not including the listener)",
+        "E": "Kami",
+        "F": "ami",
+        "G": "Central",
+        "H": "yami (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 80,
+      "cells": {
+        "A": "79",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "We (including the listener)",
+        "E": "Kita",
+        "F": "ita",
+        "G": "Central",
+        "H": "yanta (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 81,
+      "cells": {
+        "A": "80",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "You (many)",
+        "E": "Kamo",
+        "F": "amu",
+        "G": "Central",
+        "H": "yamu (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 82,
+      "cells": {
+        "A": "81",
+        "B": "4 · Everyday Phrases",
+        "C": "Questions and pronouns",
+        "D": "His / hers / its",
+        "E": "Iya / Niya",
+        "F": "daniin",
+        "G": "Central",
+        "H": "danin (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 83,
+      "cells": {
+        "A": "82",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To eat",
+        "E": "Kaon",
+        "F": "aan",
+        "G": "Central",
+        "H": "kuman (subanen.net)",
+        "I": "Lobel & Hall paper; subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "'aan' also appears in subanen.net example sentences."
+      }
+    },
+    {
+      "row": 84,
+      "cells": {
+        "A": "83",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To drink",
+        "E": "Inom",
+        "F": "minum",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 85,
+      "cells": {
+        "A": "84",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To sleep",
+        "E": "Tulog",
+        "F": "motulug",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 86,
+      "cells": {
+        "A": "85",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To walk",
+        "E": "Lakaw",
+        "F": "ompanow",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 87,
+      "cells": {
+        "A": "86",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To go",
+        "E": "Adto",
+        "F": "mangay",
+        "G": "Southern & Central",
+        "H": "",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 88,
+      "cells": {
+        "A": "87",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To come",
+        "E": "Anhi",
+        "F": "mangoy",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 89,
+      "cells": {
+        "A": "88",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To work",
+        "E": "Trabaho",
+        "F": "moginang",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 90,
+      "cells": {
+        "A": "89",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To buy",
+        "E": "Palit",
+        "F": "sumaloy",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 91,
+      "cells": {
+        "A": "90",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To see",
+        "E": "Tan-aw",
+        "F": "moktongow",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 92,
+      "cells": {
+        "A": "91",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To hear",
+        "E": "Paminaw",
+        "F": "mokinongog",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 93,
+      "cells": {
+        "A": "92",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To sit",
+        "E": "Lingkod",
+        "F": "mogingkod",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 94,
+      "cells": {
+        "A": "93",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To stand",
+        "E": "Barog",
+        "F": "mogindog",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 95,
+      "cells": {
+        "A": "94",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To cook",
+        "E": "Luto",
+        "F": "misabu",
+        "G": "Not stated",
+        "H": "mogapoy",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 96,
+      "cells": {
+        "A": "95",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To cry",
+        "E": "Hilak",
+        "F": "moksogow",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 97,
+      "cells": {
+        "A": "96",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To laugh",
+        "E": "Katawa",
+        "F": "meketawa",
+        "G": "Central",
+        "H": "mhekhetawa (Southern); mokotawa (subanen.net)",
+        "I": "Scribd study (Southern/Central); subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 98,
+      "cells": {
+        "A": "97",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To know",
+        "E": "Hibalo",
+        "F": "sunan",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 99,
+      "cells": {
+        "A": "98",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To say",
+        "E": "Ingon / Isulti",
+        "F": "moktaluq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 100,
+      "cells": {
+        "A": "99",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To count",
+        "E": "Ihap",
+        "F": "mogitung",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 101,
+      "cells": {
+        "A": "100",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To give",
+        "E": "Hatag",
+        "F": "megbegay",
+        "G": "Central",
+        "H": "mhegbhegay (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 102,
+      "cells": {
+        "A": "101",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To die / be dead",
+        "E": "Mamatay / Patay",
+        "F": "matay",
+        "G": "Southern & Central",
+        "H": "patoy (subanen.net)",
+        "I": "Scribd study (Southern/Central); subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 103,
+      "cells": {
+        "A": "102",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To love",
+        "E": "Higugma",
+        "F": "mekpetail",
+        "G": "Central",
+        "H": "lumalam (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: the source table layout is unclear."
+      }
+    },
+    {
+      "row": 104,
+      "cells": {
+        "A": "103",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To look for",
+        "E": "Pangita",
+        "F": "menengaw",
+        "G": "Central",
+        "H": "mhenengaw (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 105,
+      "cells": {
+        "A": "104",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To hide",
+        "E": "Tago",
+        "F": "megeglud",
+        "G": "Central",
+        "H": "mhegeglud (Southern); moglogabong (subanen.net)",
+        "I": "Scribd study (Southern/Central); subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 106,
+      "cells": {
+        "A": "105",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To follow",
+        "E": "Sunod",
+        "F": "menumpat",
+        "G": "Central",
+        "H": "migunot (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 107,
+      "cells": {
+        "A": "106",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To be happy",
+        "E": "Malipayon",
+        "F": "piglaliag",
+        "G": "Central",
+        "H": "phedlelyag (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 108,
+      "cells": {
+        "A": "107",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To be sad",
+        "E": "Masulob-on / Masubo",
+        "F": "medemeng",
+        "G": "Central",
+        "H": "melibuleng; mheremeng (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 109,
+      "cells": {
+        "A": "108",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To plant",
+        "E": "Tanom",
+        "F": "momula",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 110,
+      "cells": {
+        "A": "109",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To swim",
+        "E": "Langoy",
+        "F": "lumangoy",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 111,
+      "cells": {
+        "A": "110",
+        "B": "4 · Everyday Phrases",
+        "C": "Common actions",
+        "D": "To think",
+        "E": "Hunahuna",
+        "F": "pikil",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 112,
+      "cells": {
+        "A": "111",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Good",
+        "E": "Maayo",
+        "F": "ombaqis",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 113,
+      "cells": {
+        "A": "112",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Bad / evil",
+        "E": "Daotan",
+        "F": "molaton",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 114,
+      "cells": {
+        "A": "113",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Big",
+        "E": "Dako",
+        "F": "mosolag",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 115,
+      "cells": {
+        "A": "114",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "New",
+        "E": "Bag-o",
+        "F": "bogu",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 116,
+      "cells": {
+        "A": "115",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Warm / hot",
+        "E": "Init",
+        "F": "minit",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 117,
+      "cells": {
+        "A": "116",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Cold",
+        "E": "Bugnaw",
+        "F": "motigdow",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 118,
+      "cells": {
+        "A": "117",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Dirty",
+        "E": "Hugaw",
+        "F": "miglud",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 119,
+      "cells": {
+        "A": "118",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Long",
+        "E": "Taas",
+        "F": "moyabaq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 120,
+      "cells": {
+        "A": "119",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Heavy",
+        "E": "Bug-at",
+        "F": "ombogat",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 121,
+      "cells": {
+        "A": "120",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Near",
+        "E": "Duol",
+        "F": "molani",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 122,
+      "cells": {
+        "A": "121",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Far",
+        "E": "Layo",
+        "F": "molayuq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 123,
+      "cells": {
+        "A": "122",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Wet",
+        "E": "Basa",
+        "F": "ombasaq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 124,
+      "cells": {
+        "A": "123",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Dry",
+        "E": "Uga",
+        "F": "kumongkag",
+        "G": "Not stated",
+        "H": "mimala",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 125,
+      "cells": {
+        "A": "124",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Thin",
+        "E": "Nipis",
+        "F": "monipis",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 126,
+      "cells": {
+        "A": "125",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "Narrow",
+        "E": "Pig-ot",
+        "F": "mosikoq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 127,
+      "cells": {
+        "A": "126",
+        "B": "4 · Everyday Phrases",
+        "C": "Describing things",
+        "D": "White",
+        "E": "Puti",
+        "F": "omputiq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 128,
+      "cells": {
+        "A": "127",
+        "B": "4 · Everyday Phrases",
+        "C": "Colors",
+        "D": "Black",
+        "E": "Itom",
+        "F": "gitom",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 129,
+      "cells": {
+        "A": "128",
+        "B": "4 · Everyday Phrases",
+        "C": "Colors",
+        "D": "Green",
+        "E": "Lunhaw",
+        "F": "glunow",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 130,
+      "cells": {
+        "A": "129",
+        "B": "4 · Everyday Phrases",
+        "C": "Colors",
+        "D": "Red",
+        "E": "Pula",
+        "F": "ompula",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 131,
+      "cells": {
+        "A": "130",
+        "B": "4 · Everyday Phrases",
+        "C": "Colors",
+        "D": "Yellow",
+        "E": "Dilaw",
+        "F": "dalag",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 132,
+      "cells": {
+        "A": "131",
+        "B": "4 · Everyday Phrases",
+        "C": "Everyday things",
+        "D": "Water",
+        "E": "Tubig",
+        "F": "tubig",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 133,
+      "cells": {
+        "A": "132",
+        "B": "4 · Everyday Phrases",
+        "C": "Everyday things",
+        "D": "Fire",
+        "E": "Kalayo",
+        "F": "gapoy",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 134,
+      "cells": {
+        "A": "133",
+        "B": "4 · Everyday Phrases",
+        "C": "Everyday things",
+        "D": "Rice (uncooked, hulled)",
+        "E": "Bugas",
+        "F": "begas",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 135,
+      "cells": {
+        "A": "134",
+        "B": "4 · Everyday Phrases",
+        "C": "Everyday things",
+        "D": "Fish",
+        "E": "Isda",
+        "F": "sodaq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 136,
+      "cells": {
+        "A": "135",
+        "B": "4 · Everyday Phrases",
+        "C": "Everyday things",
+        "D": "Name",
+        "E": "Ngalan",
+        "F": "ngalan",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 137,
+      "cells": {
+        "A": "136",
+        "B": "4 · Everyday Phrases",
+        "C": "Everyday things",
+        "D": "Moon",
+        "E": "Bulan",
+        "F": "bulan",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 138,
+      "cells": {
+        "A": "137",
+        "B": "4 · Everyday Phrases",
+        "C": "Everyday things",
+        "D": "Egg",
+        "E": "Itlog",
+        "F": "bulinga",
+        "G": "Not stated",
+        "H": "gumanuk (Southern/Central list)",
+        "I": "subanen.net; Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 139,
+      "cells": {
+        "A": "138",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Dog",
+        "E": "Iro",
+        "F": "ayam",
+        "G": "Central",
+        "H": "ghito (Southern); gayam (subanen.net)",
+        "I": "Scribd study (Southern/Central); subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 140,
+      "cells": {
+        "A": "139",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Cat",
+        "E": "Iring",
+        "F": "kuti",
+        "G": "Central",
+        "H": "kuting (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 141,
+      "cells": {
+        "A": "140",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Chicken",
+        "E": "Manok",
+        "F": "manok",
+        "G": "Southern & Central",
+        "H": "",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 142,
+      "cells": {
+        "A": "141",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Duck",
+        "E": "Pato",
+        "F": "pato",
+        "G": "Central",
+        "H": "phatu (Southern)",
+        "I": "Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 143,
+      "cells": {
+        "A": "142",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Bird",
+        "E": "Langgam",
+        "F": "manukmanuk",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 144,
+      "cells": {
+        "A": "143",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Head",
+        "E": "Ulo",
+        "F": "ulo",
+        "G": "Central",
+        "H": "gulo (Southern); gulu (subanen.net)",
+        "I": "Scribd study (Southern/Central); subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 145,
+      "cells": {
+        "A": "144",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Eye",
+        "E": "Mata",
+        "F": "mata",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 146,
+      "cells": {
+        "A": "145",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Ear",
+        "E": "Dalunggan",
+        "F": "tolinga",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 147,
+      "cells": {
+        "A": "146",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Mouth",
+        "E": "Baba",
+        "F": "babaq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 148,
+      "cells": {
+        "A": "147",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Nose",
+        "E": "Ilong",
+        "F": "sung",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 149,
+      "cells": {
+        "A": "148",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Hand",
+        "E": "Kamot",
+        "F": "komot",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 150,
+      "cells": {
+        "A": "149",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Tongue",
+        "E": "Dila",
+        "F": "dilaq",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 151,
+      "cells": {
+        "A": "150",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Tooth",
+        "E": "Ngipon",
+        "F": "ngisi",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 152,
+      "cells": {
+        "A": "151",
+        "B": "4 · Everyday Phrases",
+        "C": "Animals and body (extra)",
+        "D": "Neck",
+        "E": "Liog",
+        "F": "glig",
+        "G": "Not stated",
+        "H": "",
+        "I": "subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 153,
+      "cells": {
+        "A": "152",
+        "B": "5 · Culture & Traditions",
+        "C": "People and leaders",
+        "D": "Subanen people (their own word)",
+        "E": "Katawhan sa Subanen",
+        "F": "gbansa",
+        "G": "Not stated",
+        "H": "g'bansa (subanen.net)",
+        "I": "Multidisciplinary Journal 2013; subanen.net",
+        "J": "",
+        "K": "Pending review",
+        "L": "General term the Subanen use for their people."
+      }
+    },
+    {
+      "row": 154,
+      "cells": {
+        "A": "153",
+        "B": "5 · Culture & Traditions",
+        "C": "People and leaders",
+        "D": "Village chief / tribal leader (west of the peninsula)",
+        "E": "Pangulo sa baryo / lider sa tribu",
+        "F": "timuay",
+        "G": "Not stated",
+        "H": "",
+        "I": "Bangsamoro summary (Scribd); UNESCO / NCCA / news",
+        "J": "",
+        "K": "Pending review",
+        "L": "Leads the community and mediates conflicts; works with the balyan in rituals."
+      }
+    },
+    {
+      "row": 155,
+      "cells": {
+        "A": "154",
+        "B": "5 · Culture & Traditions",
+        "C": "People and leaders",
+        "D": "Tribal leader and mediator (east of the peninsula)",
+        "E": "Pangulo ug tigpataliwala sa tribu",
+        "F": "gukom",
+        "G": "Not stated",
+        "H": "gukum",
+        "I": "Bangsamoro summary (Scribd); Multidisciplinary Journal 2013",
+        "J": "",
+        "K": "Pending review",
+        "L": "Same role as the timuay in the eastern area."
+      }
+    },
+    {
+      "row": 156,
+      "cells": {
+        "A": "155",
+        "B": "5 · Culture & Traditions",
+        "C": "People and leaders",
+        "D": "Overall tribal leader",
+        "E": "Labing taas nga pangulo sa tribu",
+        "F": "gomotan",
+        "G": "Not stated",
+        "H": "",
+        "I": "Multidisciplinary Journal 2013",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 157,
+      "cells": {
+        "A": "156",
+        "B": "5 · Culture & Traditions",
+        "C": "People and leaders",
+        "D": "Ritual specialist / priest and healer",
+        "E": "Pari sa ritwal ug mananambal",
+        "F": "balyan",
+        "G": "Not stated",
+        "H": "balian; belyan (Southern); pari (Central, 'priest')",
+        "I": "UNESCO / NCCA / news; Multidisciplinary Journal 2013; Scribd study (Southern/Central)",
+        "J": "",
+        "K": "Pending review",
+        "L": "Performs the rituals."
+      }
+    },
+    {
+      "row": 158,
+      "cells": {
+        "A": "157",
+        "B": "5 · Culture & Traditions",
+        "C": "Rituals and festivals",
+        "D": "Thanksgiving ritual system (UNESCO-listed)",
+        "E": "Dako nga ritwal sa pagpasalamat",
+        "F": "buklog",
+        "G": "Not stated",
+        "H": "gbeklug",
+        "I": "UNESCO / NCCA / news; Multidisciplinary Journal 2013",
+        "J": "Fig. 13",
+        "K": "Pending review",
+        "L": "UNESCO inscribed it in December 2019 (DFA statement)."
+      }
+    },
+    {
+      "row": 159,
+      "cells": {
+        "A": "158",
+        "B": "5 · Culture & Traditions",
+        "C": "Rituals and festivals",
+        "D": "Buklog platform / structure",
+        "E": "Gipatayog nga entablado sa Buklog",
+        "F": "buklogan",
+        "G": "Not stated",
+        "H": "",
+        "I": "UNESCO / NCCA / news; Subanen tribe blog",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: sources describe the raised structure built for the ritual; confirm the exact meaning of 'buklogan'."
+      }
+    },
+    {
+      "row": 160,
+      "cells": {
+        "A": "159",
+        "B": "5 · Culture & Traditions",
+        "C": "Rituals and festivals",
+        "D": "Thanksgiving (festival word)",
+        "E": "Pagpasalamat",
+        "F": "pas'ungko",
+        "G": "Not stated",
+        "H": "pasungko",
+        "I": "Misamis Occidental tourism blog; Bangsamoro summary (Scribd)",
+        "J": "",
+        "K": "Pending review",
+        "L": "Name of the Misamis Occidental festival (Pas'ungko)."
+      }
+    },
+    {
+      "row": 161,
+      "cells": {
+        "A": "160",
+        "B": "5 · Culture & Traditions",
+        "C": "Rituals and festivals",
+        "D": "Thanksgiving ritual (general)",
+        "E": "Ritwal sa pagpasalamat",
+        "F": "samaya",
+        "G": "Not stated",
+        "H": "",
+        "I": "Multidisciplinary Journal 2013",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 162,
+      "cells": {
+        "A": "161",
+        "B": "5 · Culture & Traditions",
+        "C": "Rituals and festivals",
+        "D": "Ritual for the land spirits",
+        "E": "Ritwal alang sa mga espiritu sa yuta",
+        "F": "ghelet",
+        "G": "Not stated",
+        "H": "",
+        "I": "UNESCO / NCCA / news",
+        "J": "",
+        "K": "Pending review",
+        "L": "Part of the Buklog rituals."
+      }
+    },
+    {
+      "row": 163,
+      "cells": {
+        "A": "162",
+        "B": "5 · Culture & Traditions",
+        "C": "Rituals and festivals",
+        "D": "River ritual (offering by the balyan and timuay)",
+        "E": "Ritwal sa suba",
+        "F": "gampang",
+        "G": "Not stated",
+        "H": "",
+        "I": "Subanen tribe blog",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: described in one blog only."
+      }
+    },
+    {
+      "row": 164,
+      "cells": {
+        "A": "163",
+        "B": "5 · Culture & Traditions",
+        "C": "Rituals and festivals",
+        "D": "Gathering materials to build the buklogan",
+        "E": "Pagkolekta sa mga materyales sa pagtukod sa buklogan",
+        "F": "kanu gulangan",
+        "G": "Not stated",
+        "H": "",
+        "I": "Subanen tribe blog",
+        "J": "",
+        "K": "Pending review",
+        "L": "CHECK: described in one blog only."
+      }
+    },
+    {
+      "row": 165,
+      "cells": {
+        "A": "164",
+        "B": "5 · Culture & Traditions",
+        "C": "Rituals and festivals",
+        "D": "Spirit / deity",
+        "E": "Diwata / espiritu",
+        "F": "diwata",
+        "G": "Not stated",
+        "H": "migbebaya (listed beside Diwata)",
+        "I": "Bangsamoro summary (Scribd)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 166,
+      "cells": {
+        "A": "165",
+        "B": "5 · Culture & Traditions",
+        "C": "Rituals and festivals",
+        "D": "Other Subanen rituals (names only)",
+        "E": "Mga ngalan sa ubang ritwal sa Subanen",
+        "F": "guintalegan; galut; gatadan; salakad",
+        "G": "Not stated",
+        "H": "",
+        "I": "Multidisciplinary Journal 2013",
+        "J": "",
+        "K": "Pending review",
+        "L": "Listed in a 2013 study without meanings. Ask a speaker what each ritual is for."
+      }
+    },
+    {
+      "row": 167,
+      "cells": {
+        "A": "166",
+        "B": "5 · Culture & Traditions",
+        "C": "Places and names",
+        "D": "River",
+        "E": "Suba",
+        "F": "suba",
+        "G": "Not stated",
+        "H": "",
+        "I": "Wikipedia",
+        "J": "",
+        "K": "Pending review",
+        "L": "Same word in Bisaya. 'Subanen/Subanon' means 'people of the river'."
+      }
+    },
+    {
+      "row": 168,
+      "cells": {
+        "A": "167",
+        "B": "5 · Culture & Traditions",
+        "C": "Places and names",
+        "D": "Misamis Occidental (Subanen name)",
+        "E": "Kasadpang Misamis",
+        "F": "Sindepan Mis'samis",
+        "G": "Not stated",
+        "H": "",
+        "I": "Misamis Occidental wiki (Fandom)",
+        "J": "",
+        "K": "Pending review",
+        "L": ""
+      }
+    },
+    {
+      "row": 169,
+      "cells": {
+        "A": "168",
+        "B": "5 · Culture & Traditions",
+        "C": "Places and names",
+        "D": "Kuyamis (a kind of coconut; origin of the name Misamis)",
+        "E": "Klase sa lubi (kuyamis)",
+        "F": "kuyamis",
+        "G": "Not stated",
+        "H": "",
+        "I": "Misamis Occidental wiki (Fandom); Misamis Occidental tourism blog",
+        "J": "",
+        "K": "Pending review",
+        "L": "Misamis is said to come from this Subanen word."
+      }
+    },
+    {
+      "row": 170,
+      "cells": {
+        "A": "169",
+        "B": "5 · Culture & Traditions",
+        "C": "Language",
+        "D": "Subanen language",
+        "E": "Pinulongan sa Subanen",
+        "F": "sinubanen",
+        "G": "Central",
+        "H": "sinubanon (Western Subanon)",
+        "I": "SIL Central Subanen reader; Western Subanon grammar",
+        "J": "",
+        "K": "Pending review",
+        "L": "'Subanen/Subanon' is the people; 'Sinubanen/Sinubanon' is the language."
+      }
+    }
+  ]
+}

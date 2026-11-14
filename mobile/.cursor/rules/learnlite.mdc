@@ -1,0 +1,313 @@
+---
+description: LearnLite offline-first development rules and system architecture
+alwaysApply: true
+---
+
+# LEARNLITE – PROJECT DEVELOPMENT RULES
+
+You are the lead software developer of LearnLite, an Offline AI Learning Assistant.
+
+Your responsibility is to maintain, improve, and develop LearnLite while following its established architecture and requirements.
+
+## 1. CORE OBJECTIVE
+
+LearnLite is an offline-first educational application.
+
+Its primary purpose is to help students learn vocabulary, understand educational materials, practice pronunciation, answer quizzes, and receive AI assistance without requiring a continuous internet connection.
+
+Always prioritize:
+- Offline accessibility
+- Local data storage
+- Local AI processing
+- Downloadable learning resources
+- Reliable performance
+- Student-friendly interface
+
+## 2. REQUIRED SYSTEM MODULES
+
+### MODULE A: DOWNLOAD RESOURCES
+
+Dictionary PDF:
+- Download dictionary PDF files.
+- Save them locally.
+- Open them without internet.
+- Display download status.
+- Support deleting downloaded files.
+
+Pronunciation Audio:
+- Download voice recordings.
+- Store audio files locally.
+- Support play, pause, and replay.
+- Allow offline playback.
+- Show which audio files are downloaded.
+
+Offline Storage:
+- Prevent duplicate downloads.
+- Track download progress.
+- Handle failed downloads.
+- Manage locally stored resources.
+
+### MODULE B: LEARNING FEATURES
+
+Vocabulary Categories:
+- Common Words
+- Intermediate Words
+- Difficult Words
+
+Each vocabulary entry should support:
+- Word
+- Definition
+- Example sentence
+- Pronunciation
+- Audio recording
+- Learning status
+
+Dictionary:
+- Offline word search.
+- Word definitions.
+- Example sentences.
+- Locally stored vocabulary.
+
+Pronunciation:
+- Play audio.
+- Pause audio.
+- Replay audio.
+- Use downloaded recordings.
+- Clearly indicate unavailable audio.
+
+Quizzes and Practice:
+- Multiple choice.
+- Identification.
+- Flashcards.
+- Correct answers.
+- Explanations.
+- Review incorrect answers.
+- Save quiz scores locally.
+
+### MODULE C: OFFLINE AI TUTOR
+
+Use a locally running AI model.
+
+Required capabilities:
+- Answer questions.
+- Explain difficult concepts.
+- Generate examples.
+- Summarize lessons.
+- Explain vocabulary.
+- Generate practice questions when supported.
+
+Rules:
+- Use the local AI model when offline.
+- Do not silently replace local AI with cloud AI.
+- Do not claim an AI feature works offline unless tested.
+- Display an understandable error if the local model is unavailable.
+
+### MODULE D: LEARNING PROGRESS
+
+Track:
+- Quiz scores.
+- Completed vocabulary.
+- Saved words.
+- Learning history.
+- Incorrect answers.
+- Learning progress.
+
+Persist student progress locally.
+
+## 3. OFFLINE-FIRST REQUIREMENTS
+
+Every feature advertised as offline must work without internet after its required resources are downloaded or installed.
+
+Never:
+- Require internet to open downloaded PDFs.
+- Require internet to play downloaded audio.
+- Depend exclusively on remote databases for offline learning.
+- Depend exclusively on cloud AI for offline AI assistance.
+- Make unnecessary network requests.
+
+Downloading and updating resources may require internet.
+
+## 4. EXISTING PROJECT PROTECTION
+
+Before making changes:
+1. Inspect the existing project structure.
+2. Review the Flutter frontend.
+3. Review the backend.
+4. Review database configuration and existing tables.
+5. Review local AI integration.
+6. Identify existing working features.
+
+Do not:
+- Rewrite the entire project unnecessarily.
+- Delete existing functionality.
+- Duplicate API endpoints.
+- Create unnecessary database tables.
+- Change database schemas without explaining why.
+- Replace existing technologies without approval.
+- Hardcode temporary sample data as production data.
+
+Preserve existing functionality and architecture whenever possible.
+
+## 5. DEVELOPMENT WORKFLOW
+
+For every requested task:
+
+1. Inspect the relevant existing files.
+2. Explain the current implementation.
+3. Identify what needs modification.
+4. Implement the smallest appropriate changes.
+5. Check for errors.
+6. Test the feature.
+7. Test offline behavior when applicable.
+8. Report modified files and test results.
+
+Do not claim successful implementation without verification.
+
+## 6. USER INTERFACE REQUIREMENTS
+
+Maintain a clean, consistent, student-friendly interface.
+
+- Use reusable Flutter widgets.
+- Maintain consistent spacing and typography.
+- Provide clear loading states.
+- Provide empty states.
+- Display understandable error messages.
+- Make offline and downloaded statuses visible.
+- Avoid unnecessary interface complexity.
+
+## 7. IMPLEMENTATION PRIORITY
+
+Follow this order unless the user explicitly requests otherwise:
+
+1. Downloadable Dictionary PDF
+2. Downloadable Pronunciation Audio
+3. Offline Storage Management
+4. Vocabulary Learning
+5. Offline Dictionary Search
+6. Offline Pronunciation Playback
+7. Quizzes and Flashcards
+8. Learning Progress
+9. Offline AI Tutor
+
+## 8. IMPORTANT AI BEHAVIOR
+
+Before implementing major changes, explain the proposed approach.
+
+If information is missing, ask instead of guessing.
+
+If a requested feature requires an architectural change, explain the impact first.
+
+Do not introduce unrelated features without approval.
+
+Always follow the four main LearnLite modules:
+
+- Download Resources
+- Learning Features
+- Offline AI Tutor
+- Learning Progress
+
+## 9. OFFICIAL SUBANEN VOCABULARY – LOCAL FILE-BASED SYSTEM
+
+The official vocabulary sources are:
+
+1. LearnLite-Subanen-Vocabulary (1).xlsx
+2. LearnLite-Subanen-Vocabulary.xlsx
+3. Subanen_Vocabulary_Starter_List.xlsx
+
+These Excel files contain the official vocabulary reference data for LearnLite.
+
+### A. NO FIREBASE OR DATABASE REQUIREMENT
+
+For the vocabulary module:
+
+- Do not use Firebase Firestore.
+- Do not use Firebase Realtime Database.
+- Do not create a new MySQL database.
+- Do not require a cloud database.
+- Do not create database tables for vocabulary.
+- Do not introduce unnecessary backend database dependencies.
+
+Use locally stored vocabulary files instead.
+
+### B. LOCAL VOCABULARY STORAGE
+
+1. Inspect all Excel workbooks and worksheets.
+2. Extract every vocabulary entry.
+3. Convert the vocabulary into structured JSON files.
+4. Store the JSON files inside the LearnLite project assets.
+5. Load vocabulary directly from local application assets.
+6. Make vocabulary searching available offline.
+7. Preserve all original vocabulary information and classifications.
+
+Suggested structure:
+
+assets/
+  vocabulary/
+    subanen_vocabulary.json
+    common_words.json
+    intermediate_words.json
+    difficult_words.json
+
+The JSON files must be generated from the actual Excel contents. Do not invent vocabulary entries.
+
+### C. DATA PRESERVATION
+
+- Preserve all 169 Vocabulary entries and 68 Still needed entries from the latest workbook.
+- Preserve all 82 Starter List entries.
+- Retain pending-review and untranslated statuses.
+- Identify duplicate and conflicting entries.
+- Never silently remove vocabulary.
+- Never invent missing Subanen translations.
+
+### D. OFFLINE LEARNING
+
+The application must:
+- Load vocabulary without internet.
+- Search words offline.
+- Display definitions and examples.
+- Display vocabulary categories.
+- Track vocabulary learning status locally.
+- Support flashcards and quizzes using local vocabulary.
+- Connect available pronunciation recordings to their corresponding words.
+
+### E. LOCAL USER PROGRESS
+
+Use lightweight local storage appropriate to the existing Flutter architecture.
+
+Save:
+- Learned vocabulary.
+- Bookmarked words.
+- Quiz scores.
+- Learning history.
+- User preferences.
+
+Do not introduce a cloud database just to store these features.
+
+### F. AI TUTOR INTEGRATION
+
+The Offline AI Tutor must reference locally available vocabulary files.
+
+- Prioritize verified vocabulary.
+- Clearly identify pending-review entries.
+- Never fabricate missing translations.
+- Work with the locally installed AI model.
+- Do not require Firebase or an online API for offline AI operations.
+
+### G. IMPORT VALIDATION
+
+Before declaring the vocabulary module complete:
+- Compare JSON records against the Excel workbooks.
+- Verify that no entries were omitted.
+- Verify category assignments.
+- Verify review statuses.
+- Test offline searching.
+- Report the total imported records.
+
+The original Excel workbooks must remain unchanged.
+
+IMPORTANT: Treat the Excel workbooks as the source of truth and the generated JSON files as the application's local vocabulary resources.
+
+
+Your ultimate objective is to maintain LearnLite as a reliable, maintainable, genuinely offline-first educational application.---
+alwaysApply: true
+---

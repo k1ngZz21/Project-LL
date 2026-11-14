@@ -1,0 +1,1074 @@
+// This is a basic Flutter widget test.
+//
+// To perform an interaction with a widget in your test, use the WidgetTester
+// utility in the flutter_test package. For example, you can send tap and scroll
+// gestures. You can also use WidgetTester to find child widgets in the widget
+// tree, read text, and verify that the values of widget properties are correct.
+
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:learnlite/core/learning_snapshot.dart';
+import 'package:learnlite/features/auth/auth_gateway.dart';
+import 'package:learnlite/features/auth/avatar_creation_screen.dart';
+import 'package:learnlite/features/content/content_gateway.dart';
+import 'package:learnlite/features/content/local_vocabulary.dart';
+import 'package:learnlite/features/modules/lesson_screen.dart';
+import 'package:learnlite/main.dart';
+
+void main() {
+  test('auth sessions default to unverified', () {
+    expect(const AuthSession('test-session').emailVerified, isFalse);
+  });
+
+  test('empty snapshot starts without learner or learning data', () {
+    const snapshot = LearningSnapshot.empty;
+
+    expect(snapshot.fullName, isNull);
+    expect(snapshot.username, isNull);
+    expect(snapshot.avatarUrl, isNull);
+    expect(snapshot.userLevel, 0);
+    expect(snapshot.xp, 0);
+    expect(snapshot.streak, 0);
+    expect(snapshot.completedLessons, 0);
+    expect(snapshot.learningModules, isEmpty);
+    expect(snapshot.quizQuestions, isEmpty);
+    expect(snapshot.badges, isEmpty);
+    expect(snapshot.dictionaryEntries, isEmpty);
+    expect(snapshot.certificates, isEmpty);
+    expect(snapshot.recentSearches, isEmpty);
+    expect(snapshot.downloadedContent, isEmpty);
+  });
+
+  testWidgets('dashboard shows empty content and zero progress', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeAuthGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('LearnLite'), findsOneWidget);
+    expect(find.text('Welcome, Test Learner'), findsOneWidget);
+    expect(find.text('No learning modules are available yet.'), findsOneWidget);
+    expect(find.text('0'), findsNWidgets(4));
+    expect(find.text('Avery'), findsNothing);
+    expect(find.text('Subanen word'), findsNothing);
+  });
+
+  testWidgets('navigation opens the empty dictionary state', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeDictionaryGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Translate'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('AI Search and Translator'), findsOneWidget);
+    expect(
+      find.text('Translations come only from verified dictionary records.'),
+      findsOneWidget,
+    );
+    expect(find.text('Your learning journey'), findsNothing);
+  });
+
+  testWidgets('downloads navigation shows the empty offline-pack state', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeDictionaryGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Downloads'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Offline Content Packs'), findsOneWidget);
+    expect(find.text('No content packs available'), findsOneWidget);
+    expect(
+      find.textContaining('No learning modules are available'),
+      findsNothing,
+    );
+  });
+
+  testWidgets('wide layout keeps the mobile bottom navigation', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeAuthGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationRail), findsNothing);
+    expect(find.byType(NavigationBar), findsOneWidget);
+  });
+
+  testWidgets('new authenticated account opens empty avatar setup', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(
+        authGateway: _FakeAuthGateway(
+          authenticated: true,
+          avatarCompleted: false,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create Your Avatar'), findsOneWidget);
+    expect(find.text('Avatar designs are coming soon'), findsOneWidget);
+    expect(find.text('Your avatar'), findsOneWidget);
+    expect(find.text('Start Learning'), findsOneWidget);
+    expect(find.byType(TextFormField), findsOneWidget);
+    expect(
+      tester.widget<TextFormField>(find.byType(TextFormField)).controller?.text,
+      isEmpty,
+    );
+    expect(
+      find.text(
+        'Outfits and colors will unlock when customization items are available.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('avatar customization saves nickname without choosing fake art', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    LearnerProfile? savedProfile;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AvatarCreationScreen(
+          profile: const LearnerProfile(
+            username: 'test_user',
+            fullName: 'Test Learner',
+          ),
+          authGateway: gateway,
+          onSaved: (profile) => savedProfile = profile,
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextFormField), 'River');
+    await tester.ensureVisible(find.text('Start Learning'));
+    await tester.tap(find.text('Start Learning'));
+    await tester.pumpAndSettle();
+
+    expect(savedProfile?.nickname, 'River');
+    expect(savedProfile?.avatarId, isNull);
+    expect(savedProfile?.outfitColor, isNull);
+    expect(savedProfile?.avatarCompleted, isTrue);
+    expect(find.text('Avatar designs are coming soon'), findsOneWidget);
+  });
+
+  testWidgets('starting learning saves profile and opens the dashboard', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway(
+      authenticated: true,
+      avatarCompleted: false,
+    );
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'River');
+    await tester.ensureVisible(find.text('Start Learning'));
+    await tester.tap(find.text('Start Learning'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Welcome, River'), findsOneWidget);
+    expect(gateway.savedProfile?.nickname, 'River');
+    expect(gateway.savedProfile?.avatarCompleted, isTrue);
+  });
+
+  testWidgets('login screen starts with empty email and password fields', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: _FakeAuthGateway()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Email'), findsOneWidget);
+    expect(find.text('Password'), findsOneWidget);
+    expect(find.text('Forgot password?'), findsOneWidget);
+    expect(
+      find.text('Downloaded learning works offline; sign-in needs Internet.'),
+      findsOneWidget,
+    );
+    expect(find.text('Create an account'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNWidgets(2));
+    expect(
+      tester
+          .widget<TextFormField>(find.byType(TextFormField).first)
+          .controller
+          ?.text,
+      isEmpty,
+    );
+    expect(
+      tester
+          .widget<TextFormField>(find.byType(TextFormField).last)
+          .controller
+          ?.text,
+      isEmpty,
+    );
+    expect(_isObscured(tester, 'login-password'), isTrue);
+
+    await tester.tap(
+      find.byKey(const ValueKey('toggle-login-password-visibility')),
+    );
+    await tester.pump();
+    expect(_isObscured(tester, 'login-password'), isFalse);
+  });
+
+  testWidgets(
+    'registration starts with blank fields and no preference selected',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(LearnLiteApp(authGateway: _FakeAuthGateway()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Create an account'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Step 1 of 1'), findsOneWidget);
+      expect(find.text('Language'), findsOneWidget);
+      expect(find.text('Culture'), findsOneWidget);
+      expect(find.text('Both'), findsOneWidget);
+      expect(find.byType(TextFormField), findsNWidgets(5));
+      expect(
+        tester
+            .widgetList<ChoiceChip>(find.byType(ChoiceChip))
+            .every((chip) => !chip.selected),
+        isTrue,
+      );
+      expect(_isObscured(tester, 'registration-password'), isTrue);
+      expect(_isObscured(tester, 'registration-confirm-password'), isTrue);
+      await tester.tap(
+        find.byKey(const ValueKey('toggle-registration-password-visibility')),
+      );
+      await tester.pump();
+      expect(_isObscured(tester, 'registration-password'), isFalse);
+      expect(_isObscured(tester, 'registration-confirm-password'), isTrue);
+      expect(find.byType(Checkbox), findsOneWidget);
+      for (final field in tester.widgetList<TextFormField>(
+        find.byType(TextFormField),
+      )) {
+        expect(field.controller?.text, isEmpty);
+      }
+    },
+  );
+
+  testWidgets('login rejects missing credentials without attempting sign-in', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Log in'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter your email.'), findsOneWidget);
+    expect(find.text('Enter your password.'), findsOneWidget);
+    expect(gateway.signInAttempts, 0);
+  });
+
+  testWidgets('login rejects malformed email before attempting sign-in', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('login-username')),
+      'not-an-email@',
+    );
+    await tester.enterText(find.byKey(const ValueKey('login-password')), 'x');
+    await tester.tap(find.text('Log in'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter a valid email address.'), findsOneWidget);
+    expect(gateway.signInAttempts, 0);
+  });
+
+  testWidgets('password reset sends the requested email and confirms safely', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Forgot password?'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('password-reset-email')),
+      'learner@example.com',
+    );
+    await tester.tap(find.text('Send reset email'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.passwordResetEmails, ['learner@example.com']);
+    expect(
+      find.text(
+        'If an account matches that email, a password reset link is on its way.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('unverified email accounts are held at email verification', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway(
+      authenticated: true,
+      email: 'learner@example.com',
+      emailVerified: false,
+    );
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Verify your email'), findsOneWidget);
+    expect(find.textContaining('learner@example.com'), findsOneWidget);
+    expect(gateway.profileFetches, 0);
+
+    await tester.tap(find.text("I've verified my email"));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Verify your email'), findsNothing);
+    expect(find.text('Welcome, Test Learner'), findsOneWidget);
+    expect(gateway.profileFetches, 1);
+  });
+
+  testWidgets('unverified accounts remain restricted when Firebase says no', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway(
+      authenticated: true,
+      email: 'learner@example.com',
+      emailVerified: false,
+      verificationResult: false,
+    );
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text("I've verified my email"));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Verify your email'), findsOneWidget);
+    expect(find.text('Welcome, Test Learner'), findsNothing);
+    expect(gateway.profileFetches, 0);
+    expect(
+      find.text(
+        'Your email is not verified yet. Open the link in your inbox, then try again.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('verification email failures are shown without raw exceptions', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway(
+      authenticated: true,
+      email: 'learner@example.com',
+      emailVerified: false,
+      verificationFailure: const AuthFailure(
+        'Could not reach Firebase. Check your Internet connection and try again.',
+        isOffline: true,
+      ),
+    );
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Resend verification email'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.resendAttempts, 1);
+    expect(
+      find.text(
+        'Could not reach Firebase. Check your Internet connection and try again.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('learners can request another verification email', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway(
+      authenticated: true,
+      email: 'learner@example.com',
+      emailVerified: false,
+    );
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Resend verification email'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.resendAttempts, 1);
+    expect(
+      find.text('A new verification email has been sent.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('modules navigation shows a truthful empty state', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeAuthGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Learn'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Learning Modules'), findsOneWidget);
+    expect(find.text('No learning modules yet'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.textContaining('Module 1'), findsNothing);
+  });
+
+  testWidgets('rewards page starts with no earned badges or certificates', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeAuthGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Badges & certificates'));
+    await tester.tap(find.text('Badges & certificates'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Badges & Certificates'), findsOneWidget);
+    expect(find.text('0 of 4 earned'), findsOneWidget);
+    expect(find.text('No certificates yet'), findsOneWidget);
+    expect(
+      find.text(
+        'Complete every lesson in a published module to earn a completion certificate.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('First Steps'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Progress: 0 of 1'), findsOneWidget);
+  });
+
+  testWidgets('avatar customization tabs stay locked without approved assets', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeAuthGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('My Avatar'), findsOneWidget);
+    expect(find.text('Outfit'), findsOneWidget);
+    expect(find.text('Accessories'), findsOneWidget);
+    expect(find.text('Background'), findsOneWidget);
+    expect(find.text('Outfits are locked'), findsOneWidget);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -500));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Accessories'));
+    await tester.pumpAndSettle();
+    expect(find.text('Accessories are locked'), findsOneWidget);
+    expect(find.text('Current level'), findsOneWidget);
+    expect(find.text('Badges earned'), findsOneWidget);
+  });
+
+  testWidgets('dashboard displays data-backed empty daily quest and chest', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeAuthGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Daily Quests'), findsOneWidget);
+    expect(find.text('Complete a lesson today'), findsOneWidget);
+    expect(find.text('Weekly learning chest'), findsOneWidget);
+    expect(find.text('0 of 1 lessons'), findsOneWidget);
+    expect(find.text('0 of 5 lessons this week'), findsOneWidget);
+    expect(find.text('+5 XP earned'), findsNothing);
+    expect(find.text('+25 XP earned'), findsNothing);
+  });
+
+  testWidgets('lesson without supplied enrichments stays text-only', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ModuleLessonScreen(
+          gateway: gateway,
+          module: const LearningModule(
+            id: 1,
+            title: 'Uploaded module title',
+            description: 'Uploaded module description',
+            lessonCount: 1,
+            completedLessons: 0,
+            lessons: [
+              ModuleLesson(
+                index: 0,
+                title: 'Uploaded lesson title',
+                content: 'Uploaded lesson content only.',
+                completed: false,
+              ),
+            ],
+          ),
+          lesson: const ModuleLesson(
+            index: 0,
+            title: 'Uploaded lesson title',
+            content: 'Uploaded lesson content only.',
+            completed: false,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Uploaded lesson content only.'), findsOneWidget);
+    expect(find.text('Start Quiz'), findsNothing);
+    expect(find.text('Subanen word'), findsNothing);
+    expect(find.text('Cultural note'), findsNothing);
+    expect(find.text('Pronunciation:'), findsNothing);
+  });
+
+  testWidgets('quiz selection submits and reviews actual server results', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final lesson = ModuleLesson(
+      index: 0,
+      title: 'Administrator-provided title',
+      content: 'Administrator-provided lesson text.',
+      completed: false,
+      phrase: 'Administrator-provided phrase',
+      pronunciation: 'Administrator-provided guide',
+      culturalNote: 'Administrator-provided cultural note.',
+      keywords: const ['Administrator-provided keyword'],
+      quiz: const [
+        QuizQuestion(
+          question: 'Administrator-provided question?',
+          choices: ['Administrator choice one', 'Administrator choice two'],
+        ),
+      ],
+    );
+    final module = LearningModule(
+      id: 7,
+      title: 'Administrator-provided module',
+      description: 'Administrator-provided description',
+      lessonCount: 1,
+      completedLessons: 0,
+      lessons: [lesson],
+    );
+    gateway.moduleToReturn = module;
+    gateway.quizResultToReturn = QuizResult(
+      attemptId: 14,
+      score: 1,
+      totalQuestions: 1,
+      correctAnswers: 1,
+      incorrectAnswers: 0,
+      xpAwarded: 1,
+      lessonXpAwarded: 10,
+      totalXpAwarded: 11,
+      previousLevel: 0,
+      currentLevel: 0,
+      completedAt: DateTime.utc(2026, 11, 3),
+      questions: const [
+        QuizResultQuestion(
+          question: 'Administrator-provided question?',
+          choices: ['Administrator choice one', 'Administrator choice two'],
+          selectedAnswerIndex: 1,
+          correctAnswerIndex: 1,
+          explanation: 'Administrator-provided explanation.',
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ModuleLessonScreen(
+          gateway: gateway,
+          module: module,
+          lesson: lesson,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Administrator-provided phrase'), findsOneWidget);
+    expect(
+      find.text('Pronunciation: Administrator-provided guide'),
+      findsOneWidget,
+    );
+    expect(find.text('Administrator-provided cultural note.'), findsOneWidget);
+    expect(find.text('Administrator-provided keyword'), findsOneWidget);
+    await tester.tap(find.text('Start Quiz'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.textContaining('Earn 1 XP per correct answer'),
+    );
+    expect(find.text('Administrator-provided question?'), findsOneWidget);
+    expect(find.textContaining('Earn 1 XP per correct answer'), findsOneWidget);
+
+    await tester.tap(find.text('Check Answer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Select one answer for every question.'), findsOneWidget);
+    expect(gateway.quizSubmissions, 0);
+
+    await tester.ensureVisible(find.text('Administrator choice two'));
+    await tester.tap(find.text('Administrator choice two'));
+    await tester.tap(find.text('Check Answer'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.quizSubmissions, 1);
+    expect(gateway.lastQuizAnswers, [1]);
+    expect(find.text('Quiz complete'), findsOneWidget);
+    expect(find.text('1 / 1'), findsOneWidget);
+    expect(find.text('+11 XP'), findsOneWidget);
+    expect(find.text('Quiz XP: +1'), findsOneWidget);
+    expect(find.text('Lesson completion XP: +10'), findsOneWidget);
+    expect(find.textContaining('Level up!'), findsNothing);
+    expect(
+      find.textContaining('Outfit rewards are unavailable'),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(find.text('Review Answers'));
+    await tester.tap(find.text('Review Answers'));
+    await tester.pumpAndSettle();
+    expect(find.text('Administrator-provided explanation.'), findsOneWidget);
+    expect(find.textContaining('Administrator choice two'), findsWidgets);
+    expect(find.text('Administrator choice one'), findsNothing);
+  });
+
+  testWidgets('registration rejects required fields before account creation', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create an account'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Create Account').last);
+    await tester.tap(find.text('Create Account').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter your full name.'), findsOneWidget);
+    expect(find.text('Enter your email address.'), findsOneWidget);
+    expect(find.text('Choose a username.'), findsOneWidget);
+    expect(find.text('Create a password.'), findsOneWidget);
+    expect(find.text('Confirm your password.'), findsOneWidget);
+    expect(gateway.registrationAttempts, 0);
+  });
+}
+
+bool _isObscured(WidgetTester tester, String fieldKey) => tester
+    .widget<EditableText>(
+      find.descendant(
+        of: find.byKey(ValueKey(fieldKey)),
+        matching: find.byType(EditableText),
+      ),
+    )
+    .obscureText;
+
+class _FakeAuthGateway implements AuthGateway {
+  _FakeAuthGateway({
+    this.authenticated = false,
+    this.avatarCompleted = true,
+    this.email,
+    this.emailVerified = true,
+    this.verificationResult = true,
+    this.verificationFailure,
+  });
+
+  final bool authenticated;
+  final bool avatarCompleted;
+  final String? email;
+  final bool emailVerified;
+  final bool verificationResult;
+  final AuthFailure? verificationFailure;
+  LearnerProfile? savedProfile;
+  LearningModule? moduleToReturn;
+  QuizResult? quizResultToReturn;
+  int quizSubmissions = 0;
+  int profileFetches = 0;
+  List<int>? lastQuizAnswers;
+  final List<String> passwordResetEmails = [];
+  int resendAttempts = 0;
+
+  @override
+  Stream<AuthSession?> get authStateChanges => Stream.value(
+    authenticated
+        ? AuthSession(
+            'test-session',
+            email: email,
+            emailVerified: emailVerified,
+          )
+        : null,
+  );
+
+  @override
+  bool get isConfigured => true;
+
+  @override
+  String? get initializationError => null;
+
+  @override
+  Future<bool> isUsernameAvailable(String username) async => true;
+
+  @override
+  Future<LearnerProfile> fetchProfile() async {
+    profileFetches++;
+    return LearnerProfile(
+      username: 'test_user',
+      fullName: 'Test Learner',
+      avatarCompleted: avatarCompleted,
+    );
+  }
+
+  @override
+  Future<LearnerProfile> updateAvatarProfile(LearnerProfile profile) async {
+    savedProfile = profile;
+    return profile;
+  }
+
+  @override
+  Future<List<LearningModule>> fetchModules({String search = ''}) async =>
+      const [];
+
+  @override
+  Future<LearningModule> fetchModule(int moduleId) async =>
+      moduleToReturn ?? (throw const AuthFailure('Not found.'));
+
+  @override
+  Future<LearningModule> startModuleLesson(
+    int moduleId,
+    int lessonIndex,
+  ) async => moduleToReturn ?? (throw const AuthFailure('Not found.'));
+
+  @override
+  Future<LearningModule> completeModuleLesson(
+    int moduleId,
+    int lessonIndex,
+  ) async => moduleToReturn ?? (throw const AuthFailure('Not found.'));
+
+  @override
+  Future<QuizResult> submitLessonQuiz(
+    int moduleId,
+    int lessonIndex,
+    List<int> answers,
+  ) async {
+    quizSubmissions++;
+    lastQuizAnswers = answers;
+    return quizResultToReturn ??
+        (throw const AuthFailure('Quiz result unavailable.'));
+  }
+
+  @override
+  Future<List<QuizResult>> fetchLessonQuizAttempts(
+    int moduleId,
+    int lessonIndex,
+  ) async => const [];
+
+  @override
+  Future<RewardsOverview> fetchRewards() async => _emptyRewardsOverview();
+
+  @override
+  Future<Uint8List> fetchCertificatePdf(String certificateId) async =>
+      Uint8List(0);
+
+  @override
+  Future<void> register({
+    required String fullName,
+    required String username,
+    required String email,
+    required String password,
+    required String learningPreference,
+  }) async {
+    registrationAttempts++;
+  }
+
+  int signInAttempts = 0;
+  int registrationAttempts = 0;
+
+  @override
+  Future<void> signIn({
+    required String username,
+    required String password,
+  }) async {
+    signInAttempts++;
+  }
+
+  @override
+  Future<void> signOut() async {}
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    passwordResetEmails.add(email);
+  }
+
+  @override
+  Future<void> resendVerificationEmail() async {
+    resendAttempts++;
+    if (verificationFailure case final failure?) throw failure;
+  }
+
+  @override
+  Future<bool> refreshEmailVerification() async {
+    if (verificationFailure case final failure?) throw failure;
+    return verificationResult;
+  }
+}
+
+class _FakeDictionaryGateway extends _FakeAuthGateway
+    implements DictionaryGateway {
+  _FakeDictionaryGateway({super.authenticated});
+
+  @override
+  Future<LocalVocabularyCatalog> localVocabulary() async =>
+      const LocalVocabularyCatalog(
+        vocabulary: [],
+        starterList: [],
+        stillNeeded: [],
+        sourceRowCounts: {},
+      );
+
+  @override
+  Future<void> setVocabularyLearningStatus({
+    required int vocabularyId,
+    required bool learned,
+    required bool bookmarked,
+  }) async {}
+
+  @override
+  Future<List<DictionaryTranslation>> searchDictionary(
+    String query, {
+    String sourceLanguage = 'Subanen',
+    String targetLanguage = 'English',
+  }) async => const [];
+
+  @override
+  Future<List<String>> recentDictionarySearches() async => const [];
+
+  @override
+  Future<void> recordDictionarySearch(String query) async {}
+
+  @override
+  Future<List<ContentPackDescriptor>> availableContentPacks() async => const [];
+
+  @override
+  Future<void> downloadContentPack(String id) async {}
+
+  @override
+  Future<void> removeContentPack(String id) async {}
+
+  @override
+  Future<List<ContentPackDescriptor>> downloadedContentPacks() async =>
+      const [];
+
+  @override
+  Future<int> offlineStorageBytes() async => 0;
+
+  @override
+  Future<Uint8List?> cachedResource(String path) async => null;
+
+  @override
+  Future<Uint8List> fetchResourceBytes(String path) async => Uint8List(0);
+}
+
+RewardsOverview _emptyRewardsOverview() {
+  final today = DateTime.now();
+  final normalizedToday = DateTime(today.year, today.month, today.day);
+  final monday = normalizedToday.subtract(
+    Duration(days: normalizedToday.weekday - DateTime.monday),
+  );
+  return RewardsOverview(
+    timezone: 'UTC',
+    today: normalizedToday,
+    streak: 0,
+    longestStreak: 0,
+    activeDates: const [],
+    calendar: [
+      for (var offset = 0; offset < 7; offset++)
+        RewardCalendarDay(
+          date: monday.add(Duration(days: offset)),
+          weekday: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][offset],
+          active: false,
+          isToday: monday.add(Duration(days: offset)) == normalizedToday,
+          isFuture: monday.add(Duration(days: offset)).isAfter(normalizedToday),
+        ),
+    ],
+    dailyQuest: const DailyQuestStatus(
+      title: 'Complete a lesson today',
+      description: 'Finish one new lesson to earn the daily XP bonus.',
+      progress: 0,
+      target: 1,
+      completed: false,
+      xpReward: 5,
+      xpAwarded: 0,
+    ),
+    weeklyChest: WeeklyChestStatus(
+      title: 'Weekly learning chest',
+      description: 'Complete five lessons this week to unlock the chest.',
+      progress: 0,
+      target: 5,
+      unlocked: false,
+      xpReward: 25,
+      xpAwarded: 0,
+      weekStart: monday,
+    ),
+    badges: const [
+      RewardBadge(
+        id: 'first_lesson',
+        title: 'First Steps',
+        description: 'Complete your first learning lesson.',
+        earned: false,
+        progress: 0,
+        target: 1,
+      ),
+      RewardBadge(
+        id: 'five_lessons',
+        title: 'Learning Path',
+        description: 'Complete five learning lessons.',
+        earned: false,
+        progress: 0,
+        target: 5,
+      ),
+      RewardBadge(
+        id: 'perfect_quiz',
+        title: 'Perfect Recall',
+        description: 'Earn a perfect score on a quiz.',
+        earned: false,
+        progress: 0,
+        target: 1,
+      ),
+      RewardBadge(
+        id: 'seven_day_streak',
+        title: 'A Week of Learning',
+        description: 'Learn on seven consecutive days.',
+        earned: false,
+        progress: 0,
+        target: 7,
+      ),
+    ],
+    certificates: const [],
+  );
+}

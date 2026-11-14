@@ -1,0 +1,1039 @@
+{
+  "source_file": "LearnLite-Subanen-Vocabulary.xlsx",
+  "sheet": "Still needed",
+  "header_row": 5,
+  "headers": {
+    "A": "No.",
+    "B": "Module",
+    "C": "English",
+    "D": "Bisaya (Cebuano)",
+    "E": "Subanen (fill in)",
+    "F": "Who gave it / variety",
+    "G": "Pronunciation (optional)",
+    "H": "Example sentence (optional)",
+    "I": "Seen in your module",
+    "J": "Notes"
+  },
+  "rows": [
+    {
+      "row": 1,
+      "cells": {
+        "A": "Words and phrases from the module that still need a Subanen form",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 2,
+      "cells": {
+        "A": "How to fill this in: type the Subanen word in the yellow column. Write the speaker's name and community under 'Who gave it / variety'. Pronunciation and example sentence are optional.",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 3,
+      "cells": {
+        "A": "Delete the grey example row once you have seen the format. Bisaya is standard Cebuano written by Claude, so please check it too.",
+        "B": "",
+        "C": "",
+        "D": "",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 6,
+      "cells": {
+        "A": "EX",
+        "B": "1 · Basic Greetings",
+        "C": "Where are you going?",
+        "D": "Asa ka paingon?",
+        "E": "ayen ka pasungo?",
+        "F": "Not stated (subanen.net)",
+        "G": "(optional)",
+        "H": "(optional)",
+        "I": "",
+        "J": "EXAMPLE: a real entry from the Vocabulary sheet, shown only to illustrate the format. Delete this row."
+      }
+    },
+    {
+      "row": 7,
+      "cells": {
+        "A": "1",
+        "B": "1 · Basic Greetings",
+        "C": "Good morning, family",
+        "D": "Maayong buntag, pamilya",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Fig. 6",
+        "J": "The Lesson 3 phrase in Module 2."
+      }
+    },
+    {
+      "row": 8,
+      "cells": {
+        "A": "2",
+        "B": "1 · Basic Greetings",
+        "C": "Hello",
+        "D": "Kumusta / Hello",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 9,
+      "cells": {
+        "A": "3",
+        "B": "1 · Basic Greetings",
+        "C": "How are you?",
+        "D": "Kumusta ka?",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 10,
+      "cells": {
+        "A": "4",
+        "B": "1 · Basic Greetings",
+        "C": "I'm fine",
+        "D": "Maayo ra ko / Okay ra ko",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 11,
+      "cells": {
+        "A": "5",
+        "B": "1 · Basic Greetings",
+        "C": "Goodbye",
+        "D": "Babay / Hangtud sa sunod",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Figs. 7, 16",
+        "J": ""
+      }
+    },
+    {
+      "row": 12,
+      "cells": {
+        "A": "6",
+        "B": "1 · Basic Greetings",
+        "C": "Welcome",
+        "D": "Maayong pag-abot",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Figs. 7, 12, 16",
+        "J": ""
+      }
+    },
+    {
+      "row": 13,
+      "cells": {
+        "A": "7",
+        "B": "1 · Basic Greetings",
+        "C": "Please",
+        "D": "Palihug",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 14,
+      "cells": {
+        "A": "8",
+        "B": "1 · Basic Greetings",
+        "C": "Excuse me",
+        "D": "Pasaylo / Tabi",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 15,
+      "cells": {
+        "A": "9",
+        "B": "1 · Basic Greetings",
+        "C": "What is your name?",
+        "D": "Unsa imong ngalan?",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 16,
+      "cells": {
+        "A": "10",
+        "B": "1 · Basic Greetings",
+        "C": "My name is …",
+        "D": "Ang akong ngalan kay …",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 17,
+      "cells": {
+        "A": "11",
+        "B": "1 · Basic Greetings",
+        "C": "Nice to meet you",
+        "D": "Nalipay ko nga nahimamat ka",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 18,
+      "cells": {
+        "A": "12",
+        "B": "1 · Basic Greetings",
+        "C": "Good night",
+        "D": "Maayong gabii / Maayong pagkatulog",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 19,
+      "cells": {
+        "A": "13",
+        "B": "1 · Basic Greetings",
+        "C": "See you tomorrow",
+        "D": "Kita-kita ugma",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 20,
+      "cells": {
+        "A": "14",
+        "B": "1 · Basic Greetings",
+        "C": "Thank you for your help.",
+        "D": "Salamat sa imong tabang.",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Fig. 12",
+        "J": "Example sentence in the translator screen."
+      }
+    },
+    {
+      "row": 21,
+      "cells": {
+        "A": "15",
+        "B": "2 · Family & Community",
+        "C": "Respect",
+        "D": "Pagtahod / Respeto",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Figs. 6, 16",
+        "J": "Key word in Lesson 3."
+      }
+    },
+    {
+      "row": 22,
+      "cells": {
+        "A": "16",
+        "B": "2 · Family & Community",
+        "C": "Friend",
+        "D": "Higala",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 23,
+      "cells": {
+        "A": "17",
+        "B": "2 · Family & Community",
+        "C": "Neighbor",
+        "D": "Silingan",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 24,
+      "cells": {
+        "A": "18",
+        "B": "2 · Family & Community",
+        "C": "Brother",
+        "D": "Igsoong lalaki",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 25,
+      "cells": {
+        "A": "19",
+        "B": "2 · Family & Community",
+        "C": "Sister",
+        "D": "Igsoong babaye",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 26,
+      "cells": {
+        "A": "20",
+        "B": "2 · Family & Community",
+        "C": "Son",
+        "D": "Anak nga lalaki",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 27,
+      "cells": {
+        "A": "21",
+        "B": "2 · Family & Community",
+        "C": "Daughter",
+        "D": "Anak nga babaye",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 28,
+      "cells": {
+        "A": "22",
+        "B": "2 · Family & Community",
+        "C": "Wife",
+        "D": "Asawa nga babaye",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 29,
+      "cells": {
+        "A": "23",
+        "B": "2 · Family & Community",
+        "C": "Woman / female",
+        "D": "Babaye",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 30,
+      "cells": {
+        "A": "24",
+        "B": "2 · Family & Community",
+        "C": "Parents",
+        "D": "Ginikanan",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 31,
+      "cells": {
+        "A": "25",
+        "B": "2 · Family & Community",
+        "C": "Grandchild",
+        "D": "Apo",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 32,
+      "cells": {
+        "A": "26",
+        "B": "2 · Family & Community",
+        "C": "Village",
+        "D": "Baryo",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 33,
+      "cells": {
+        "A": "27",
+        "B": "3 · Numbers & Counting",
+        "C": "Zero",
+        "D": "Wala / Zero",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 34,
+      "cells": {
+        "A": "28",
+        "B": "3 · Numbers & Counting",
+        "C": "Eleven",
+        "D": "Napulo ug usa",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 35,
+      "cells": {
+        "A": "29",
+        "B": "3 · Numbers & Counting",
+        "C": "Twelve",
+        "D": "Napulo ug duha",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 36,
+      "cells": {
+        "A": "30",
+        "B": "3 · Numbers & Counting",
+        "C": "How many?",
+        "D": "Pila?",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 37,
+      "cells": {
+        "A": "31",
+        "B": "3 · Numbers & Counting",
+        "C": "First",
+        "D": "Una",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 38,
+      "cells": {
+        "A": "32",
+        "B": "3 · Numbers & Counting",
+        "C": "Second",
+        "D": "Ikaduha",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 39,
+      "cells": {
+        "A": "33",
+        "B": "3 · Numbers & Counting",
+        "C": "Half",
+        "D": "Tunga",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 40,
+      "cells": {
+        "A": "34",
+        "B": "4 · Everyday Phrases",
+        "C": "Who?",
+        "D": "Kinsa?",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 41,
+      "cells": {
+        "A": "35",
+        "B": "4 · Everyday Phrases",
+        "C": "Why?",
+        "D": "Ngano?",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 42,
+      "cells": {
+        "A": "36",
+        "B": "4 · Everyday Phrases",
+        "C": "How much?",
+        "D": "Tagpila?",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 43,
+      "cells": {
+        "A": "37",
+        "B": "4 · Everyday Phrases",
+        "C": "I don't understand",
+        "D": "Wala ko makasabot",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 44,
+      "cells": {
+        "A": "38",
+        "B": "4 · Everyday Phrases",
+        "C": "Please repeat",
+        "D": "Palihug balika",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 45,
+      "cells": {
+        "A": "39",
+        "B": "4 · Everyday Phrases",
+        "C": "Do you speak Subanen?",
+        "D": "Makasulti ka ug Subanen?",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 46,
+      "cells": {
+        "A": "40",
+        "B": "4 · Everyday Phrases",
+        "C": "I want …",
+        "D": "Gusto ko ug …",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 47,
+      "cells": {
+        "A": "41",
+        "B": "4 · Everyday Phrases",
+        "C": "I'm hungry",
+        "D": "Gigutom ko",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 48,
+      "cells": {
+        "A": "42",
+        "B": "4 · Everyday Phrases",
+        "C": "I'm thirsty",
+        "D": "Giuhaw ko",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 49,
+      "cells": {
+        "A": "43",
+        "B": "4 · Everyday Phrases",
+        "C": "Let's go",
+        "D": "Adto ta",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 50,
+      "cells": {
+        "A": "44",
+        "B": "4 · Everyday Phrases",
+        "C": "Let's eat",
+        "D": "Kaon ta",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 51,
+      "cells": {
+        "A": "45",
+        "B": "4 · Everyday Phrases",
+        "C": "Come here",
+        "D": "Dali diri",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 52,
+      "cells": {
+        "A": "46",
+        "B": "4 · Everyday Phrases",
+        "C": "Help me",
+        "D": "Tabangi ko",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 53,
+      "cells": {
+        "A": "47",
+        "B": "4 · Everyday Phrases",
+        "C": "Today",
+        "D": "Karon",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 54,
+      "cells": {
+        "A": "48",
+        "B": "4 · Everyday Phrases",
+        "C": "Tomorrow",
+        "D": "Ugma",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 55,
+      "cells": {
+        "A": "49",
+        "B": "4 · Everyday Phrases",
+        "C": "Where is the …?",
+        "D": "Asa ang …?",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 56,
+      "cells": {
+        "A": "50",
+        "B": "4 · Everyday Phrases",
+        "C": "Food",
+        "D": "Pagkaon",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 57,
+      "cells": {
+        "A": "51",
+        "B": "4 · Everyday Phrases",
+        "C": "Cooked rice",
+        "D": "Kan-on",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": "The sourced word 'begas' is uncooked, hulled rice."
+      }
+    },
+    {
+      "row": 58,
+      "cells": {
+        "A": "52",
+        "B": "4 · Everyday Phrases",
+        "C": "Wait",
+        "D": "Hulat",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 59,
+      "cells": {
+        "A": "53",
+        "B": "5 · Culture & Traditions",
+        "C": "Weaving",
+        "D": "Paghabol",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Figs. 8, 10, 15, 17",
+        "J": ""
+      }
+    },
+    {
+      "row": 60,
+      "cells": {
+        "A": "54",
+        "B": "5 · Culture & Traditions",
+        "C": "Outfit / costume",
+        "D": "Bisti / Sinina",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Figs. 8, 10",
+        "J": ""
+      }
+    },
+    {
+      "row": 61,
+      "cells": {
+        "A": "55",
+        "B": "5 · Culture & Traditions",
+        "C": "Elder (respected older person)",
+        "D": "Tigulang",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Fig. 10",
+        "J": ""
+      }
+    },
+    {
+      "row": 62,
+      "cells": {
+        "A": "56",
+        "B": "5 · Culture & Traditions",
+        "C": "Festival",
+        "D": "Pista / Kasaulogan",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Fig. 10",
+        "J": ""
+      }
+    },
+    {
+      "row": 63,
+      "cells": {
+        "A": "57",
+        "B": "5 · Culture & Traditions",
+        "C": "Story",
+        "D": "Sugilanon / Istorya",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "Figs. 10, 13, 15",
+        "J": ""
+      }
+    },
+    {
+      "row": 64,
+      "cells": {
+        "A": "58",
+        "B": "5 · Culture & Traditions",
+        "C": "Song",
+        "D": "Kanta / Awit",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 65,
+      "cells": {
+        "A": "59",
+        "B": "5 · Culture & Traditions",
+        "C": "Dance",
+        "D": "Sayaw",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 66,
+      "cells": {
+        "A": "60",
+        "B": "5 · Culture & Traditions",
+        "C": "Gong / musical instrument",
+        "D": "Agong / Instrumento sa musika",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 67,
+      "cells": {
+        "A": "61",
+        "B": "5 · Culture & Traditions",
+        "C": "Ancestors",
+        "D": "Mga katigulangan",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 68,
+      "cells": {
+        "A": "62",
+        "B": "5 · Culture & Traditions",
+        "C": "Harvest",
+        "D": "Ani",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 69,
+      "cells": {
+        "A": "63",
+        "B": "5 · Culture & Traditions",
+        "C": "Prayer / blessing",
+        "D": "Pag-ampo / Pagpanalangin",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    },
+    {
+      "row": 70,
+      "cells": {
+        "A": "64",
+        "B": "5 · Culture & Traditions",
+        "C": "Offering",
+        "D": "Halad",
+        "E": "",
+        "F": "",
+        "G": "",
+        "H": "",
+        "I": "",
+        "J": ""
+      }
+    }
+  ]
+}
