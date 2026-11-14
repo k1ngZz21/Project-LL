@@ -67,3 +67,28 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Flutter and Dart generated files
+.dart_tool/
+**/.dart_tool/
+build/
+**/build/
+build_new/
+phase4-output/
+**/.gradle/
+**/local.properties
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Generated binaries
+*.apk
+*.aab
+*.dill
+
+# Signing keys and secrets
+*.jks
+*.keystore
+key.properties
+.env
+.env.*
+!.env.example
