@@ -71,14 +71,19 @@ node_modules/
 # Flutter and Dart generated files
 .dart_tool/
 **/.dart_tool/
+.packages
 build/
 **/build/
 build_new/
 phase4-output/
+/mobile/build_phase1/
+/mobile/build_phase4/
 **/.gradle/
 **/local.properties
 .flutter-plugins
 .flutter-plugins-dependencies
+**/__pycache__/
+*.py[cod]
 
 # Generated binaries
 *.apk
@@ -88,7 +93,19 @@ phase4-output/
 # Signing keys and secrets
 *.jks
 *.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+*.mobileprovision
 key.properties
+id_rsa
+id_ed25519
+id_ecdsa
+**/*service-account*.json
+**/*serviceAccount*.json
+**/*firebase-adminsdk*.json
+*.env
 .env
 .env.*
 !.env.example
