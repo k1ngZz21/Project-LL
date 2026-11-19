@@ -12,6 +12,8 @@ import '../../widgets/learner_avatar.dart';
 import '../../widgets/learnlite_progress_indicator.dart';
 import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
+import '../content/content_gateway.dart';
+import '../content/local_vocabulary.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({
@@ -20,14 +22,16 @@ class DashboardScreen extends StatefulWidget {
     required this.onOpenModules,
     required this.onContinueLearning,
     required this.onOpenRewards,
+    required this.onOpenVocabulary,
     super.key,
   });
 
   final LearningSnapshot snapshot;
   final AuthGateway gateway;
   final VoidCallback onOpenModules;
-  final VoidCallback onContinueLearning;
+  final Future<void> Function(LearningModule module) onContinueLearning;
   final VoidCallback onOpenRewards;
+  final VoidCallback onOpenVocabulary;
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -36,12 +40,41 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   late Future<List<LearningModule>> _modulesFuture;
   late Future<RewardsOverview> _rewardsFuture;
+  Future<LocalVocabularyCatalog>? _vocabularyFuture;
+  bool _isContinuingLearning = false;
 
   @override
   void initState() {
     super.initState();
     _modulesFuture = widget.gateway.fetchModules();
     _rewardsFuture = widget.gateway.fetchRewards();
+    final gateway = widget.gateway;
+    if (gateway is DictionaryGateway) {
+      _vocabularyFuture = (gateway as DictionaryGateway).localVocabulary();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldSnapshot = oldWidget.snapshot;
+    final snapshot = widget.snapshot;
+    if (snapshot.completedLessons != oldSnapshot.completedLessons ||
+        snapshot.xp != oldSnapshot.xp ||
+        snapshot.streak != oldSnapshot.streak ||
+        snapshot.userLevel != oldSnapshot.userLevel) {
+      _modulesFuture = widget.gateway.fetchModules();
+      _rewardsFuture = widget.gateway.fetchRewards();
+    }
+  }
+
+  Future<void> _continueLearning(LearningModule module) async {
+    setState(() => _isContinuingLearning = true);
+    try {
+      await widget.onContinueLearning(module);
+    } finally {
+      if (mounted) setState(() => _isContinuingLearning = false);
+    }
   }
 
   @override
@@ -118,116 +151,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     },
                   ),
                   const SizedBox(height: 28),
-                  const SectionHeader(title: 'Continue Learning'),
-                  const SizedBox(height: 14),
-                  FutureBuilder<List<LearningModule>>(
-                    future: _modulesFuture,
-                    builder: (context, modulesSnapshot) {
-                      if (modulesSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const LearnLiteCard(
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        );
-                      }
-                      if (modulesSnapshot.hasError) {
-                        return LearnLiteCard(
-                          child: EmptyState(
-                            icon: Icons.cloud_off_outlined,
-                            title: 'Learning content is unavailable',
-                            message:
-                                'Check your connection to load your modules.',
-                            action: TextButton(
-                              onPressed: () => setState(
-                                () => _modulesFuture = widget.gateway
-                                    .fetchModules(),
-                              ),
-                              child: const Text('Try again'),
-                            ),
-                          ),
-                        );
-                      }
-                      final modules = modulesSnapshot.data ?? const [];
-                      LearningModule? currentModule;
-                      for (final module in modules) {
-                        if (module.completedLessons < module.lessonCount) {
-                          currentModule = module;
-                          break;
-                        }
-                      }
-                      if (currentModule == null && modules.isNotEmpty) {
-                        currentModule = modules.first;
-                      }
-                      if (currentModule == null) {
-                        return LearnLiteCard(
-                          child: Column(
-                            children: [
-                              const Icon(
-                                Icons.auto_stories_outlined,
-                                size: 32,
-                                color: AppColors.primary,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'No learning modules are available yet.',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Approved modules will appear here when content is uploaded.',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(color: AppColors.gray),
-                              ),
-                              const SizedBox(height: 16),
-                              LearnLiteButton(
-                                label: 'Browse modules',
-                                icon: Icons.grid_view_outlined,
-                                onPressed: widget.onOpenModules,
-                                variant: LearnLiteButtonVariant.outlined,
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                      return LearnLiteCard(
-                        child: Column(
+                  LayoutBuilder(
+                    builder: (context, contentConstraints) {
+                      final continueLearning = _buildContinueLearning();
+                      final dailyWord = _buildDailyWord();
+                      if (contentConstraints.maxWidth >= 820) {
+                        return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              currentModule.title,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '${currentModule.completedLessons} of ${currentModule.lessonCount} lessons completed',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppColors.gray),
-                            ),
-                            const SizedBox(height: 14),
-                            LearnLiteProgressIndicator(
-                              progress: currentModule.lessonCount == 0
-                                  ? 0
-                                  : currentModule.completedLessons /
-                                        currentModule.lessonCount,
-                            ),
-                            const SizedBox(height: 16),
-                            LearnLiteButton(
-                              label: currentModule.lastLessonIndex == null
-                                  ? 'Start Learning'
-                                  : 'Continue Learning',
-                              onPressed: widget.onContinueLearning,
-                            ),
+                            Expanded(flex: 3, child: continueLearning),
+                            const SizedBox(width: 20),
+                            Expanded(flex: 2, child: dailyWord),
                           ],
-                        ),
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          continueLearning,
+                          const SizedBox(height: 24),
+                          dailyWord,
+                        ],
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
+                  _buildLearningModules(),
+                  const SizedBox(height: 28),
                   SectionHeader(
                     title: 'Latest badges',
                     trailing: TextButton(
@@ -294,6 +244,262 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
     );
   }
+
+  Widget _buildContinueLearning() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: 'Continue learning'),
+        const SizedBox(height: 12),
+        FutureBuilder<List<LearningModule>>(
+          future: _modulesFuture,
+          builder: (context, modulesSnapshot) {
+            if (modulesSnapshot.connectionState == ConnectionState.waiting) {
+              return const LearnLiteCard(
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              );
+            }
+            if (modulesSnapshot.hasError) {
+              return LearnLiteCard(
+                child: EmptyState(
+                  icon: Icons.cloud_off_outlined,
+                  title: 'Learning content is unavailable',
+                  message: 'Check your connection to load your modules.',
+                  action: TextButton(
+                    onPressed: () => setState(
+                      () => _modulesFuture = widget.gateway.fetchModules(),
+                    ),
+                    child: const Text('Try again'),
+                  ),
+                ),
+              );
+            }
+            final modules = modulesSnapshot.data ?? const [];
+            LearningModule? currentModule;
+            for (final module in modules) {
+              if (module.completedLessons < module.lessonCount) {
+                currentModule = module;
+                break;
+              }
+            }
+            currentModule ??= modules.isNotEmpty ? modules.first : null;
+            if (currentModule == null) {
+              return LearnLiteCard(
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.auto_stories_outlined,
+                      size: 32,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'No learning modules are available yet.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Approved modules will appear here when content is uploaded.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(color: AppColors.gray),
+                    ),
+                    const SizedBox(height: 16),
+                    LearnLiteButton(
+                      label: 'Browse lessons',
+                      icon: Icons.grid_view_outlined,
+                      onPressed: widget.onOpenModules,
+                      variant: LearnLiteButtonVariant.outlined,
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final module = currentModule;
+            final progress = module.lessonCount == 0
+                ? 0.0
+                : (module.completedLessons / module.lessonCount).clamp(
+                    0.0,
+                    1.0,
+                  );
+            final hasStarted =
+                module.lastLessonIndex != null || module.completedLessons > 0;
+            return LearnLiteCard(
+              backgroundColor: AppColors.creamSecondary,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: const BoxDecoration(
+                          color: AppColors.lightPink,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.auto_stories_outlined,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          module.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (module.description.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      module.description,
+                      style: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(color: AppColors.gray),
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  Text(
+                    '${module.completedLessons} of ${module.lessonCount} lessons',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  LearnLiteProgressIndicator(progress: progress),
+                  const SizedBox(height: 16),
+                  LearnLiteButton(
+                    label: _isContinuingLearning
+                        ? 'Opening lesson'
+                        : hasStarted
+                        ? 'Continue Learning'
+                        : 'Start Learning',
+                    icon: Icons.play_arrow_rounded,
+                    isLoading: _isContinuingLearning,
+                    onPressed: _isContinuingLearning
+                        ? null
+                        : () => _continueLearning(module),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDailyWord() {
+    final vocabularyFuture = _vocabularyFuture;
+    if (vocabularyFuture == null) {
+      return const _DailyWordUnavailable();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader(title: 'Daily Word'),
+        const SizedBox(height: 12),
+        FutureBuilder<LocalVocabularyCatalog>(
+          future: vocabularyFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const LearnLiteCard(
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return const _DailyWordUnavailable();
+            }
+            final words = snapshot.data!.vocabulary
+                .where(
+                  (entry) =>
+                      entry.subanen.trim().isNotEmpty &&
+                      entry.english.trim().isNotEmpty,
+                )
+                .toList();
+            if (words.isEmpty) return const _DailyWordUnavailable();
+            final today = DateTime.now();
+            final dayOfYear = today.difference(DateTime(today.year)).inDays;
+            final word = words[dayOfYear % words.length];
+            return _DailyWordCard(
+              word: word,
+              onBrowse: widget.onOpenVocabulary,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLearningModules() {
+    return FutureBuilder<List<LearningModule>>(
+      future: _modulesFuture,
+      builder: (context, snapshot) {
+        final modules = snapshot.data ?? const [];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SectionHeader(
+              title: 'Learning modules',
+              trailing: TextButton(
+                onPressed: widget.onOpenModules,
+                child: const Text('Explore all'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (snapshot.connectionState == ConnectionState.waiting)
+              const LearnLiteCard(
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              )
+            else if (snapshot.hasError)
+              const _FeatureEmptyCard(
+                icon: Icons.cloud_off_outlined,
+                message: 'Modules are unavailable right now.',
+              )
+            else if (modules.isEmpty)
+              const _FeatureEmptyCard(
+                icon: Icons.auto_stories_outlined,
+                message: 'Approved learning modules will appear here.',
+              )
+            else
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.maxWidth >= 900
+                      ? 3
+                      : constraints.maxWidth >= 580
+                      ? 2
+                      : 1;
+                  final width =
+                      (constraints.maxWidth - 12 * (columns - 1)) / columns;
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      for (final module in modules.take(6))
+                        SizedBox(
+                          width: width,
+                          child: _ModuleCategoryCard(
+                            module: module,
+                            onTap: widget.onOpenModules,
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _WelcomeCard extends StatelessWidget {
@@ -306,11 +512,17 @@ class _WelcomeCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: DecoratedBox(
-        decoration: const BoxDecoration(color: AppColors.primary),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.redDark, AppColors.primary],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+              padding: const EdgeInsets.fromLTRB(24, 26, 24, 22),
               child: Row(
                 children: [
                   Expanded(
@@ -318,13 +530,23 @@ class _WelcomeCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Your learning journey',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(color: AppColors.white),
+                          'WELCOME BACK',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: AppColors.gold,
+                                letterSpacing: 1.4,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         Text(
-                          'Subanen Language & Culture',
+                          'Ready for today’s lesson?',
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(color: AppColors.white, fontSize: 26),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Build your Subanen language and culture skills, one step at a time.',
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppColors.white),
                         ),
@@ -337,11 +559,21 @@ class _WelcomeCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  LearnerAvatar(
-                    imageUrl: snapshot.avatarUrl,
-                    size: 68,
-                    backgroundColor: AppColors.lightPink,
+                  const SizedBox(width: 12),
+                  Column(
+                    children: [
+                      LearnerAvatar(
+                        imageUrl: snapshot.avatarUrl,
+                        size: 68,
+                        backgroundColor: AppColors.lightPink,
+                      ),
+                      const SizedBox(height: 8),
+                      const Icon(
+                        Icons.auto_awesome,
+                        color: AppColors.gold,
+                        size: 20,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -352,6 +584,171 @@ class _WelcomeCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ModuleCategoryCard extends StatelessWidget {
+  const _ModuleCategoryCard({required this.module, required this.onTap});
+
+  final LearningModule module;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = module.lessonCount == 0
+        ? 0.0
+        : (module.completedLessons / module.lessonCount).clamp(0.0, 1.0);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: LearnLiteCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.category_outlined, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      module.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: AppColors.gray),
+                ],
+              ),
+              if (module.description.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  module.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: AppColors.gray),
+                ),
+              ],
+              const SizedBox(height: 14),
+              LearnLiteProgressIndicator(progress: progress),
+              const SizedBox(height: 6),
+              Text(
+                '${module.completedLessons}/${module.lessonCount} lessons',
+                style: Theme.of(context).textTheme.labelSmall
+                    ?.copyWith(color: AppColors.gray),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DailyWordCard extends StatelessWidget {
+  const _DailyWordCard({required this.word, required this.onBrowse});
+
+  final LocalVocabularyEntry word;
+  final VoidCallback onBrowse;
+
+  @override
+  Widget build(BuildContext context) => LearnLiteCard(
+    backgroundColor: AppColors.creamSecondary,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.auto_awesome, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              'Today’s word',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          word.subanen,
+          style: Theme.of(context).textTheme.headlineSmall
+              ?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 12),
+        _TranslationLine(label: 'English', value: word.english),
+        if (word.bisaya.trim().isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _TranslationLine(label: 'Bisaya/Cebuano', value: word.bisaya),
+        ],
+        const SizedBox(height: 8),
+        const _TranslationLine(
+          label: 'Filipino',
+          value: 'Translation not yet available in the vocabulary data.',
+        ),
+        if (word.topic.isNotEmpty || word.module.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            [
+              word.module,
+              word.topic,
+            ].where((value) => value.trim().isNotEmpty).join(' · '),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: AppColors.gray),
+          ),
+        ],
+        if (word.reviewStatus.trim().isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Chip(
+            visualDensity: VisualDensity.compact,
+            avatar: const Icon(Icons.fact_check_outlined, size: 16),
+            label: Text(word.reviewStatus),
+          ),
+        ],
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: onBrowse,
+            child: const Text('Browse vocabulary'),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _TranslationLine extends StatelessWidget {
+  const _TranslationLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      SizedBox(
+        width: 112,
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: AppColors.gray),
+        ),
+      ),
+      Expanded(child: Text(value)),
+    ],
+  );
+}
+
+class _DailyWordUnavailable extends StatelessWidget {
+  const _DailyWordUnavailable();
+
+  @override
+  Widget build(BuildContext context) => const LearnLiteCard(
+    child: EmptyState(
+      icon: Icons.menu_book_outlined,
+      title: 'Daily Word unavailable',
+      message: 'A complete Subanen and English word pair is not available.',
+    ),
+  );
 }
 
 class _FeatureEmptyCard extends StatelessWidget {

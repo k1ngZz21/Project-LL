@@ -123,6 +123,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     try {
       final username = _usernameController.text.trim();
       final available = await _gateway.isUsernameAvailable(username);
+      if (!mounted) return;
       if (!available) {
         setState(() {
           _usernameAvailable = false;
@@ -162,7 +163,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         ),
         leading: IconButton(
           tooltip: 'Back to login',
-          onPressed: _returnToLogin,
+          onPressed: _isSubmitting ? null : _returnToLogin,
           icon: const Icon(Icons.arrow_back),
         ),
       ),

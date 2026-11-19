@@ -179,6 +179,13 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
       Navigator.of(context).pop(_module);
       return;
     }
+    await _openLesson(nextIndex);
+  }
+
+  Future<void> _openPreviousLesson() => _openLesson(_lesson.index - 1);
+
+  Future<void> _openLesson(int lessonIndex) async {
+    if (lessonIndex < 0 || lessonIndex >= _module.lessonCount) return;
     setState(() {
       _isSaving = true;
       _errorMessage = null;
@@ -186,12 +193,12 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
     try {
       final updated = await widget.gateway.startModuleLesson(
         _module.id,
-        nextIndex,
+        lessonIndex,
       );
       if (!mounted) return;
       setState(() {
         _module = updated;
-        _lesson = updated.lessons[nextIndex];
+        _lesson = updated.lessons[lessonIndex];
         _answers = [];
         _result = null;
         _showReview = false;
@@ -820,27 +827,16 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
         ],
       );
     }
-    if (_lesson.quiz.isNotEmpty) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          FilledButton(
-            onPressed: _isSaving ? null : _startQuiz,
-            child: Text(_lesson.completed ? 'Retake Quiz' : 'Start Quiz'),
-          ),
-          if (_lesson.completed) ...[
-            const SizedBox(height: 8),
-            _buildNextLessonButton(),
-          ],
-        ],
-      );
-    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (!_lesson.completed)
+        if (_lesson.quiz.isNotEmpty)
+          FilledButton(
+            onPressed: _isSaving ? null : _startQuiz,
+            child: Text(_lesson.completed ? 'Retake Quiz' : 'Start Quiz'),
+          )
+        else if (!_lesson.completed)
           FilledButton(
             onPressed: _isSaving ? null : _completeLesson,
             child: _isSaving
@@ -856,7 +852,30 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.primary),
           ),
-        if (_lesson.completed) ...[
+        if (_lesson.index > 0 || _lesson.index + 1 < _module.lessonCount) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              if (_lesson.index > 0)
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _isSaving ? null : _openPreviousLesson,
+                    child: const Text('Previous Lesson'),
+                  ),
+                ),
+              if (_lesson.index > 0 && _lesson.index + 1 < _module.lessonCount)
+                const SizedBox(width: 8),
+              if (_lesson.index + 1 < _module.lessonCount)
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _isSaving ? null : _openNextLesson,
+                    child: const Text('Next Lesson'),
+                  ),
+                ),
+            ],
+          ),
+        ],
+        if (_lesson.completed && _lesson.index + 1 == _module.lessonCount) ...[
           const SizedBox(height: 8),
           _buildNextLessonButton(),
         ],

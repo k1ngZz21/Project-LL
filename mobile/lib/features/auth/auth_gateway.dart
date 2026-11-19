@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
@@ -50,9 +50,7 @@ class FirebaseAuthGateway
       throw const AuthFailure('Sign in to use the AI Tutor.');
     }
     if (!user.emailVerified) {
-      throw const AuthFailure(
-        'Verify your email before using the AI Tutor.',
-      );
+      throw const AuthFailure('Verify your email before using the AI Tutor.');
     }
     try {
       return await user.getIdToken();
@@ -64,7 +62,11 @@ class FirebaseAuthGateway
     }
   }
 
-  static Future<FirebaseAuthGateway> initialize() async {
+  static Future<AuthGateway> initialize() async {
+    if (kIsWeb) {
+      return const UnavailableAuthGateway();
+    }
+
     final database = LearningDatabase.instance;
     await database.database;
     await database.seedVocabulary(await LocalVocabularyRepository().load());
@@ -103,6 +105,40 @@ class FirebaseAuthGateway
       database: database,
       initializationError: authError,
     );
+  }
+
+  @override
+  Future<VocabularyQuizAttempt> saveVocabularyQuizAttempt({
+    required String category,
+    required List<VocabularyQuizResponse> responses,
+  }) async {
+    if (responses.isEmpty) {
+      throw const AuthFailure('A vocabulary quiz must contain answers.');
+    }
+    final uid = await _ownerUid();
+    final attempt = VocabularyQuizAttempt(
+      id: const Uuid().v4(),
+      category: category,
+      completedAt: DateTime.now().toUtc(),
+      responses: List.unmodifiable(responses),
+    );
+    await _database.addHistory(
+      id: '${uid}_vocabulary_quiz_${attempt.id}',
+      uid: uid,
+      eventType: 'vocabulary_quiz_completed',
+      entityId: category,
+      eventData: attempt.toHistoryJson(),
+    );
+    return attempt;
+  }
+
+  @override
+  Future<List<VocabularyQuizAttempt>> fetchVocabularyQuizAttempts() async {
+    final rows = await _database.historyEvents(
+      uid: await _ownerUid(),
+      eventType: 'vocabulary_quiz_completed',
+    );
+    return rows.map(VocabularyQuizAttempt.fromHistory).toList();
   }
 
   static Future<void> _migrateLegacyCache(
@@ -190,6 +226,38 @@ class FirebaseAuthGateway
     return _profileFromRow(row, user.uid);
   }
 
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final auth = firebaseAuth;
+    if (auth == null) throw AuthFailure(_configurationError);
+    final user = _requireUser();
+    final email = user.email;
+    if (email == null || email.isEmpty) {
+      throw const AuthFailure('This account does not have an email address.');
+    }
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'wrong-password' ||
+          error.code == 'invalid-credential' ||
+          error.code == 'invalid-login-credentials') {
+        throw const AuthFailure('Your current password is incorrect.');
+      }
+      throw AuthFailure(
+        _firebaseErrorMessage(error.code),
+        isOffline: error.code == 'network-request-failed',
+      );
+    }
+  }
+
   Future<LearnerProfile> _profileFromRow(
     Map<String, Object?> row,
     String uid,
@@ -217,7 +285,26 @@ class FirebaseAuthGateway
   @override
   Future<LearnerProfile> updateAvatarProfile(LearnerProfile profile) async {
     final user = _requireUser();
+    final fullName = profile.fullName.trim();
+    if (fullName.isEmpty || fullName.length > 80) {
+      throw const AuthFailure('Name must be between 1 and 80 characters.');
+    }
+    final existing = await _database.learner(user.uid);
+    if (existing == null) {
+      throw const AuthFailure('Your learner profile could not be loaded.');
+    }
+    if (existing['full_name'] != fullName) {
+      try {
+        await user.updateDisplayName(fullName);
+      } on FirebaseAuthException catch (error) {
+        throw AuthFailure(
+          _firebaseErrorMessage(error.code),
+          isOffline: error.code == 'network-request-failed',
+        );
+      }
+    }
     await _database.updateLearner(user.uid, {
+      'full_name': fullName,
       'nickname': profile.nickname,
       'avatar_id': profile.avatarId,
       'outfit_color': profile.outfitColor,
@@ -330,6 +417,7 @@ class FirebaseAuthGateway
         )
         .length;
     final streak = await _currentStreak(uid);
+    final longestStreak = _longestStreak(activeDates);
     final calendar = List.generate(7, (index) {
       final date = DateTime.utc(today.year, today.month, today.day - 6 + index);
       return RewardCalendarDay(
@@ -377,7 +465,7 @@ class FirebaseAuthGateway
       timezone: 'UTC',
       today: DateTime.utc(today.year, today.month, today.day),
       streak: streak,
-      longestStreak: streak,
+      longestStreak: longestStreak,
       activeDates: activeDates,
       calendar: calendar,
       dailyQuest: DailyQuestStatus(
@@ -1047,6 +1135,23 @@ class FirebaseAuthGateway
     return streak;
   }
 
+  int _longestStreak(List<DateTime> activeDates) {
+    final dates = activeDates.toSet().toList()..sort();
+    var longest = 0;
+    var current = 0;
+    DateTime? previous;
+    for (final date in dates) {
+      if (previous != null && date.difference(previous).inDays == 1) {
+        current++;
+      } else {
+        current = 1;
+      }
+      if (current > longest) longest = current;
+      previous = date;
+    }
+    return longest;
+  }
+
   Future<bool> _hasPerfectQuiz(String uid) async {
     final rows = await (await _database.database).query(
       'quiz_results',
@@ -1249,6 +1354,12 @@ class UnavailableAuthGateway implements AuthGateway {
   @override
   Future<LearnerProfile> updateAvatarProfile(LearnerProfile profile) =>
       Future.error(_failure);
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => Future.error(_failure);
 
   @override
   Future<List<LearningModule>> fetchModules({String search = ''}) =>

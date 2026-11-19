@@ -4,20 +4,24 @@ import '../core/learning_snapshot.dart';
 import '../features/auth/auth_gateway.dart';
 import '../features/auth/avatar_creation_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
+import '../features/dashboard/progress_screen.dart';
 import '../features/content/content_gateway.dart';
 import '../features/content/dictionary_screen.dart';
+import '../features/content/local_vocabulary_screen.dart';
 import '../features/content/offline_content_screen.dart';
+import '../features/modules/lesson_screen.dart';
 import '../features/modules/modules_screen.dart';
 import '../features/profile/avatar_screen.dart';
 import '../features/rewards/rewards_screen.dart';
 import '../features/tutor/tutor_gateway.dart';
 import '../features/tutor/tutor_screen.dart';
+import '../features/content/vocabulary_practice_screen.dart';
 import '../widgets/decorative_border.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/learnlite_brand_mark.dart';
 import 'app_colors.dart';
 
-enum AppDestination { home, learn, translate, downloads, profile }
+enum AppDestination { home, learn, quiz, progress, profile }
 
 class AppShell extends StatefulWidget {
   const AppShell({
@@ -44,6 +48,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   late AppDestination _destination;
   late LearnerProfile _profile;
+  bool _isOpeningLearning = false;
 
   @override
   void initState() {
@@ -85,6 +90,35 @@ class _AppShellState extends State<AppShell> {
             onPressed: _openTutor,
             icon: const Icon(Icons.auto_awesome_outlined),
           ),
+          PopupMenuButton<String>(
+            tooltip: 'More tools',
+            onSelected: (value) {
+              switch (value) {
+                case 'dictionary':
+                  _openDictionary();
+                case 'downloads':
+                  _openDownloads();
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'dictionary',
+                child: ListTile(
+                  leading: Icon(Icons.translate_outlined),
+                  title: Text('Dictionary'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'downloads',
+                child: ListTile(
+                  leading: Icon(Icons.download_for_offline_outlined),
+                  title: Text('Offline downloads'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
           if (widget.isGuest)
             TextButton(
               onPressed: widget.onSignIn,
@@ -96,7 +130,6 @@ class _AppShellState extends State<AppShell> {
       bottomNavigationBar: LearnLiteNavigationBar(
         destination: _destination,
         onDestinationSelected: _selectDestination,
-        isGuest: widget.isGuest,
       ),
     );
   }
@@ -116,8 +149,9 @@ class _AppShellState extends State<AppShell> {
         ),
         gateway: widget.authGateway,
         onOpenModules: () => _selectDestination(AppDestination.learn),
-        onContinueLearning: () => _selectDestination(AppDestination.learn),
+        onContinueLearning: _continueLearning,
         onOpenRewards: _openRewards,
+        onOpenVocabulary: _openVocabularyReference,
       ),
       AppDestination.learn => ModulesScreen(
         key: const ValueKey(AppDestination.learn),
@@ -125,17 +159,68 @@ class _AppShellState extends State<AppShell> {
         onProgressChanged: _reloadProfile,
         isGuest: widget.isGuest,
       ),
-      AppDestination.translate => _buildDictionary(),
-      AppDestination.downloads => _buildDownloads(),
-      AppDestination.profile => AvatarScreen(
-        key: const ValueKey(AppDestination.profile),
-        profile: _profile,
+      AppDestination.quiz => _buildQuiz(),
+      AppDestination.progress => ProgressScreen(
+        snapshot: _learningSnapshot,
         gateway: widget.authGateway,
-        onEditNickname: _editAvatar,
         onOpenRewards: _openRewards,
-        onSignOut: widget.onSignOut,
       ),
+      AppDestination.profile => _buildProfile(),
     };
+  }
+
+  LearningSnapshot get _learningSnapshot => LearningSnapshot(
+    fullName: _profile.fullName,
+    username: _profile.username,
+    nickname: _profile.nickname,
+    avatarUrl: null,
+    userLevel: _profile.userLevel,
+    xp: _profile.xp,
+    streak: _profile.streak,
+    completedLessons: _profile.completedLessons,
+  );
+
+  Widget _buildQuiz() {
+    final gateway = widget.authGateway;
+    if (gateway is! DictionaryGateway) {
+      return _emptyPage(
+        icon: Icons.quiz_outlined,
+        title: 'Quiz unavailable',
+        message: 'Vocabulary practice is not configured.',
+      );
+    }
+    return VocabularyPracticeScreen(
+      gateway: gateway as DictionaryGateway,
+      startInQuiz: true,
+      showAppBar: false,
+    );
+  }
+
+  Widget _buildProfile() {
+    if (widget.isGuest) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: EmptyState(
+            icon: Icons.person_outline,
+            title: 'Guest learner',
+            message: 'Your offline lessons and progress stay on this device. Sign in to manage your learner profile.',
+            action: FilledButton(
+              onPressed: widget.onSignIn,
+              child: const Text('Sign in'),
+            ),
+          ),
+        ),
+      );
+    }
+    return AvatarScreen(
+      key: const ValueKey(AppDestination.profile),
+      profile: _profile,
+      gateway: widget.authGateway,
+      onEditNickname: _editAvatar,
+      onOpenRewards: _openRewards,
+      onSignOut: widget.onSignOut,
+    );
   }
 
   Widget _buildDictionary() {
@@ -148,6 +233,100 @@ class _AppShellState extends State<AppShell> {
       );
     }
     return DictionaryScreen(gateway: gateway as DictionaryGateway);
+  }
+
+  void _openDictionary() {
+    _openToolPage(title: 'Dictionary', child: _buildDictionary());
+  }
+
+  void _openDownloads() {
+    _openToolPage(title: 'Offline downloads', child: _buildDownloads());
+  }
+
+  void _openVocabularyReference() {
+    final gateway = widget.authGateway;
+    if (gateway is! DictionaryGateway) {
+      _openDictionary();
+      return;
+    }
+    _openToolPage(
+      title: 'Offline Vocabulary Reference',
+      child: LocalVocabularyScreen(gateway: gateway as DictionaryGateway),
+    );
+  }
+
+  void _openToolPage({required String title, required Widget child}) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => Scaffold(
+          appBar: AppBar(
+            title: Text(title),
+            bottom: const PreferredSize(
+              preferredSize: Size.fromHeight(10),
+              child: DecorativeBorder(height: 10),
+            ),
+          ),
+          body: SafeArea(child: child),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _continueLearning(LearningModule module) async {
+    if (_isOpeningLearning) return;
+    setState(() => _isOpeningLearning = true);
+    try {
+      final latestModule = await widget.authGateway.fetchModule(module.id);
+      if (!mounted) return;
+      if (latestModule.lessons.isEmpty) {
+        _selectDestination(AppDestination.learn);
+        return;
+      }
+
+      final nextLessonIndex = latestModule.lessons.indexWhere(
+        (lesson) => !lesson.completed,
+      );
+      final lastLessonIndex = latestModule.lastLessonIndex;
+      final canResumeLastLesson =
+          lastLessonIndex != null &&
+          lastLessonIndex >= 0 &&
+          lastLessonIndex < latestModule.lessons.length &&
+          !latestModule.lessons[lastLessonIndex].completed;
+      final lessonIndex = canResumeLastLesson
+          ? lastLessonIndex
+          : nextLessonIndex >= 0
+          ? nextLessonIndex
+          : (lastLessonIndex != null &&
+                lastLessonIndex >= 0 &&
+                lastLessonIndex < latestModule.lessons.length)
+          ? lastLessonIndex
+          : 0;
+      final startedModule = await widget.authGateway.startModuleLesson(
+        latestModule.id,
+        lessonIndex,
+      );
+      if (!mounted) return;
+      final updatedModule = await Navigator.of(context).push<LearningModule>(
+        MaterialPageRoute(
+          builder: (_) => ModuleLessonScreen(
+            gateway: widget.authGateway,
+            module: startedModule,
+            lesson: startedModule.lessons[lessonIndex],
+            isGuest: widget.isGuest,
+          ),
+        ),
+      );
+      if (updatedModule != null && mounted && !widget.isGuest) {
+        await _reloadProfile();
+      }
+    } on AuthFailure catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _isOpeningLearning = false);
+    }
   }
 
   Widget _buildDownloads() {
@@ -236,13 +415,11 @@ class LearnLiteNavigationBar extends StatelessWidget {
   const LearnLiteNavigationBar({
     required this.destination,
     required this.onDestinationSelected,
-    this.isGuest = false,
     super.key,
   });
 
   final AppDestination destination;
   final ValueChanged<AppDestination> onDestinationSelected;
-  final bool isGuest;
 
   static const _destinations = [
     _NavigationItem(
@@ -253,39 +430,33 @@ class LearnLiteNavigationBar extends StatelessWidget {
     ),
     _NavigationItem(
       destination: AppDestination.learn,
-      label: 'Learn',
+      label: 'Lessons',
       icon: Icons.auto_stories_outlined,
       selectedIcon: Icons.auto_stories,
     ),
     _NavigationItem(
-      destination: AppDestination.translate,
-      label: 'Translate',
-      icon: Icons.translate_outlined,
-      selectedIcon: Icons.translate,
+      destination: AppDestination.quiz,
+      label: 'Quiz',
+      icon: Icons.quiz_outlined,
+      selectedIcon: Icons.quiz,
     ),
     _NavigationItem(
-      destination: AppDestination.downloads,
-      label: 'Downloads',
-      icon: Icons.download_outlined,
-      selectedIcon: Icons.download,
+      destination: AppDestination.progress,
+      label: 'Progress',
+      icon: Icons.insights_outlined,
+      selectedIcon: Icons.insights,
+    ),
+    _NavigationItem(
+      destination: AppDestination.profile,
+      label: 'Profile',
+      icon: Icons.person_outline,
+      selectedIcon: Icons.person,
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final destinations = isGuest
-        ? _destinations
-              .where((item) => item.destination != AppDestination.home)
-              .toList()
-        : [
-            ..._destinations,
-            const _NavigationItem(
-              destination: AppDestination.profile,
-              label: 'Profile',
-              icon: Icons.person_outline,
-              selectedIcon: Icons.person,
-            ),
-          ];
+    const destinations = _destinations;
     final selectedIndex = destinations.indexWhere(
       (item) => item.destination == destination,
     );

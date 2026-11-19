@@ -1274,6 +1274,27 @@ class LearningDatabase {
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
+  Future<List<Map<String, dynamic>>> historyEvents({
+    required String uid,
+    required String eventType,
+  }) async {
+    final rows = await (await database).query(
+      'learning_history',
+      where: 'uid = ? AND event_type = ?',
+      whereArgs: [uid, eventType],
+      orderBy: 'created_at DESC',
+    );
+    return rows
+        .map(
+          (row) => {
+            'id': row['id'],
+            'created_at': row['created_at'],
+            'event_data': jsonDecode(row['event_data_json']! as String),
+          },
+        )
+        .toList();
+  }
+
   Future<void> savePack(Map<String, dynamic> pack) async {
     final id = pack['id'];
     final type = pack['type'];

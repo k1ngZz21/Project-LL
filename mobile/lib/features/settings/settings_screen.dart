@@ -65,6 +65,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _changePassword() async {
+    final changed = await showDialog<bool>(
+      context: context,
+      builder: (_) => _ChangePasswordDialog(gateway: widget.gateway),
+    );
+    if (changed == true && mounted) {
+      _showMessage('Your password has been updated.');
+    }
+  }
+
   Future<void> _signOut() async {
     final signOut = widget.onSignOut;
     if (signOut == null || _isSigningOut) return;
@@ -125,9 +135,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
+                      key: const ValueKey('settings-change-password'),
+                      onPressed: _changePassword,
+                      icon: const Icon(Icons.lock_outline),
+                      label: const Text('Change password'),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
                       key: const ValueKey('settings-password-reset'),
-                      onPressed:
-                          widget.accountEmail == null || _isSendingReset
+                      onPressed: widget.accountEmail == null || _isSendingReset
                           ? null
                           : _sendPasswordReset,
                       icon: _isSendingReset
@@ -266,4 +282,126 @@ class _StorageSummary {
 
   final int downloadedPacks;
   final int bytes;
+}
+
+class _ChangePasswordDialog extends StatefulWidget {
+  const _ChangePasswordDialog({required this.gateway});
+
+  final AuthGateway gateway;
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _currentPassword = TextEditingController();
+  final _newPassword = TextEditingController();
+  final _confirmPassword = TextEditingController();
+  bool _isSaving = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _currentPassword.dispose();
+    _newPassword.dispose();
+    _confirmPassword.dispose();
+    super.dispose();
+  }
+
+  String? _validateNewPassword(String? value) {
+    if (value == null || value.isEmpty) return 'Enter a new password.';
+    if (value.length < 10 ||
+        !RegExp(r'[a-z]').hasMatch(value) ||
+        !RegExp(r'[A-Z]').hasMatch(value) ||
+        !RegExp(r'\d').hasMatch(value)) {
+      return 'Use 10+ characters with uppercase, lowercase, and a number.';
+    }
+    if (value == _currentPassword.text) {
+      return 'Choose a password different from your current one.';
+    }
+    return null;
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _isSaving = true;
+      _errorMessage = null;
+    });
+    try {
+      await widget.gateway.changePassword(
+        currentPassword: _currentPassword.text,
+        newPassword: _newPassword.text,
+      );
+      if (mounted) Navigator.of(context).pop(true);
+    } on AuthFailure catch (error) {
+      if (mounted) setState(() => _errorMessage = error.message);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Change password'),
+    content: SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              key: const ValueKey('current-password'),
+              controller: _currentPassword,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Current password'),
+              validator: (value) => value == null || value.isEmpty
+                  ? 'Enter your current password.'
+                  : null,
+            ),
+            TextFormField(
+              key: const ValueKey('new-password'),
+              controller: _newPassword,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'New password'),
+              validator: _validateNewPassword,
+            ),
+            TextFormField(
+              key: const ValueKey('confirm-new-password'),
+              controller: _confirmPassword,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Confirm new password',
+              ),
+              validator: (value) =>
+                  value != _newPassword.text ? 'Passwords do not match.' : null,
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _errorMessage!,
+                style: const TextStyle(color: AppColors.primary),
+              ),
+            ],
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: _isSaving ? null : () => Navigator.of(context).pop(false),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        onPressed: _isSaving ? null : _save,
+        child: _isSaving
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Text('Update password'),
+      ),
+    ],
+  );
 }

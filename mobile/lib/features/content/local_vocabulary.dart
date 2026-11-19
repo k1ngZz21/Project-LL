@@ -50,6 +50,8 @@ class LocalVocabularyEntry {
     source,
     notes,
   ].join(' ').toLowerCase();
+
+  String get category => topic.trim().isNotEmpty ? topic.trim() : module.trim();
 }
 
 class LocalVocabularyCatalog {
@@ -65,7 +67,11 @@ class LocalVocabularyCatalog {
   final List<LocalVocabularyEntry> stillNeeded;
   final Map<String, int> sourceRowCounts;
 
-  List<LocalVocabularyEntry> search(String query, {String source = 'All'}) {
+  List<LocalVocabularyEntry> search(
+    String query, {
+    String source = 'All',
+    String category = 'All categories',
+  }) {
     final normalized = query.trim().toLowerCase();
     final entries = switch (source) {
       'LearnLite vocabulary' => vocabulary,
@@ -73,11 +79,19 @@ class LocalVocabularyCatalog {
       'Still needed' => stillNeeded,
       _ => [...vocabulary, ...starterList, ...stillNeeded],
     };
-    if (normalized.isEmpty) return entries;
-    return entries
-        .where((entry) => entry.searchableText.contains(normalized))
-        .toList();
+    return entries.where((entry) {
+      final matchesQuery =
+          normalized.isEmpty || entry.searchableText.contains(normalized);
+      final matchesCategory =
+          category == 'All categories' || entry.category == category;
+      return matchesQuery && matchesCategory;
+    }).toList();
   }
+
+  List<String> get categories => {
+    for (final entry in [...vocabulary, ...starterList, ...stillNeeded])
+      if (entry.category.isNotEmpty) entry.category,
+  }.toList()..sort();
 }
 
 class LocalVocabularyRepository {

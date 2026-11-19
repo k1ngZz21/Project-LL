@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:learnlite/core/bundled_learning_content.dart';
 import 'package:learnlite/core/learning_database.dart';
 import 'package:learnlite/features/auth/auth_gateway.dart';
+import 'package:learnlite/features/content/content_gateway.dart';
 import 'package:learnlite/features/content/local_vocabulary.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -439,6 +440,94 @@ void main() {
     expect(updatedModule.lastLessonIndex, 0);
     expect(attempts, hasLength(1));
     expect((await database.learner('offline-guest'))?['xp'], 16);
+  });
+
+  test(
+    'vocabulary quiz history survives closing and reopening SQLite',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'learnlite-vocabulary-quiz-',
+      );
+      final path = p.join(directory.path, 'learnlite.db');
+      final firstOpen = LearningDatabase(
+        factory: databaseFactoryFfi,
+        databasePath: path,
+      );
+      const responses = [
+        VocabularyQuizResponse(
+          english: 'water',
+          selectedAnswer: 'tubig',
+          correctAnswer: 'tubig',
+        ),
+        VocabularyQuizResponse(
+          english: 'house',
+          selectedAnswer: 'balay',
+          correctAnswer: 'balay',
+        ),
+      ];
+
+      try {
+        final firstGateway = FirebaseAuthGateway(database: firstOpen);
+        final attempt = await firstGateway.saveVocabularyQuizAttempt(
+          category: 'Everyday',
+          responses: responses,
+        );
+        expect(attempt.score, 100);
+        await firstOpen.close();
+
+        final reopened = LearningDatabase(
+          factory: databaseFactoryFfi,
+          databasePath: path,
+        );
+        try {
+          final history = await FirebaseAuthGateway(database: reopened)
+              .fetchVocabularyQuizAttempts();
+          expect(history, hasLength(1));
+          expect(history.single.category, 'Everyday');
+          expect(history.single.correctAnswers, 2);
+          expect(history.single.responses, hasLength(2));
+        } finally {
+          await reopened.close();
+        }
+      } finally {
+        await firstOpen.close();
+        await directory.delete(recursive: true);
+      }
+    },
+  );
+
+  test('longest streak reflects the full activity history', () async {
+    final today = DateTime.now().toUtc();
+    await database.createLearner(
+      uid: 'offline-guest',
+      email: '',
+      username: 'offline_guest',
+      fullName: 'Offline learner',
+      learningPreference: 'both',
+    );
+    for (var index = 0; index < 3; index++) {
+      final moduleId = await database.saveModule({
+        'title': 'Historical streak $index',
+        'description': 'Streak test',
+        'lessons': [
+          {'title': 'Lesson', 'content': 'Content'},
+        ],
+      });
+      await (await database.database).insert('lesson_completions', {
+        'uid': 'offline-guest',
+        'module_id': moduleId,
+        'lesson_index': 0,
+        'completed_at': today
+            .subtract(Duration(days: 12 - index))
+            .toIso8601String(),
+      });
+    }
+
+    final rewards = await FirebaseAuthGateway(database: database)
+        .fetchRewards();
+
+    expect(rewards.streak, 0);
+    expect(rewards.longestStreak, 3);
   });
 
   test(

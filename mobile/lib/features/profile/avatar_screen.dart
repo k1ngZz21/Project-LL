@@ -174,7 +174,7 @@ class _AvatarScreenState extends State<AvatarScreen> {
                     if (widget.onEditNickname != null) ...[
                       const SizedBox(height: 18),
                       LearnLiteButton(
-                        label: 'Edit nickname',
+                        label: 'Edit profile',
                         icon: Icons.edit_outlined,
                         variant: LearnLiteButtonVariant.outlined,
                         onPressed: widget.onEditNickname,

@@ -14,9 +14,16 @@ import 'local_vocabulary.dart';
 enum _PracticeMode { flashcards, quiz }
 
 class VocabularyPracticeScreen extends StatefulWidget {
-  const VocabularyPracticeScreen({required this.gateway, super.key});
+  const VocabularyPracticeScreen({
+    required this.gateway,
+    this.startInQuiz = false,
+    this.showAppBar = true,
+    super.key,
+  });
 
   final DictionaryGateway gateway;
+  final bool startInQuiz;
+  final bool showAppBar;
 
   @override
   State<VocabularyPracticeScreen> createState() =>
@@ -32,8 +39,10 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
   ];
 
   late Future<LocalVocabularyCatalog> _catalogFuture;
-  _PracticeMode _mode = _PracticeMode.flashcards;
+  late Future<List<VocabularyQuizAttempt>> _quizHistoryFuture;
+  late _PracticeMode _mode;
   String _source = 'All';
+  String _category = 'All categories';
   int _cardIndex = 0;
   bool _showSubanen = false;
   bool _isSaving = false;
@@ -43,14 +52,21 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
   int _quizIndex = 0;
   int _selectedAnswer = -1;
   int _correctAnswers = 0;
+  bool _attemptSaved = false;
   List<LocalVocabularyEntry> _quizEntries = const [];
   List<String> _choices = const [];
+  List<VocabularyQuizResponse> _quizResponses = [];
   String? _errorMessage;
+  int get _quizScore => _quizResponses.isEmpty
+      ? 0
+      : (100 * _correctAnswers / _quizResponses.length).round();
 
   @override
   void initState() {
     super.initState();
+    _mode = widget.startInQuiz ? _PracticeMode.quiz : _PracticeMode.flashcards;
     _catalogFuture = widget.gateway.localVocabulary();
+    _quizHistoryFuture = widget.gateway.fetchVocabularyQuizAttempts();
   }
 
   List<LocalVocabularyEntry> _entries(
@@ -58,7 +74,11 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
     String? source,
   }) {
     final unique = <String, LocalVocabularyEntry>{};
-    for (final entry in catalog.search('', source: source ?? _source)) {
+    for (final entry in catalog.search(
+      '',
+      source: source ?? _source,
+      category: _category,
+    )) {
       if (entry.english.trim().isEmpty || entry.subanen.trim().isEmpty) {
         continue;
       }
@@ -78,7 +98,29 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
     });
   }
 
+  void _selectCategory(String category) {
+    setState(() {
+      _category = category;
+      _cardIndex = 0;
+      _showSubanen = false;
+      _quizStarted = false;
+      _quizFinished = false;
+      _quizResponses = [];
+      _errorMessage = null;
+    });
+  }
+
   void _startQuiz(List<LocalVocabularyEntry> entries) {
+    if (entries.length < 2) {
+      setState(() {
+        _mode = _PracticeMode.quiz;
+        _quizStarted = false;
+        _quizFinished = false;
+        _errorMessage =
+            'At least two distinct Subanen word pairs are needed for a quiz.';
+      });
+      return;
+    }
     final questions = [...entries]..shuffle(Random());
     setState(() {
       _mode = _PracticeMode.quiz;
@@ -88,6 +130,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
       _quizIndex = 0;
       _selectedAnswer = -1;
       _correctAnswers = 0;
+      _attemptSaved = false;
+      _quizResponses = [];
       _answerChecked = false;
       _errorMessage = null;
       _choices = _quizEntries.isEmpty
@@ -157,14 +201,22 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
       setState(() {
         _answerChecked = true;
         if (isCorrect) _correctAnswers++;
+        _quizResponses.add(
+          VocabularyQuizResponse(
+            english: question.english,
+            selectedAnswer: _choices[_selectedAnswer],
+            correctAnswer: question.subanen,
+          ),
+        );
         _errorMessage = null;
       });
     }
   }
 
-  void _nextQuestion(List<LocalVocabularyEntry> entries) {
+  Future<void> _nextQuestion(List<LocalVocabularyEntry> entries) async {
     if (_quizIndex + 1 >= _quizEntries.length) {
       setState(() => _quizFinished = true);
+      await _saveQuizAttempt();
       return;
     }
     final nextIndex = _quizIndex + 1;
@@ -175,6 +227,36 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
       _errorMessage = null;
       _choices = _choicesFor(_quizEntries[nextIndex], entries);
     });
+  }
+
+  Future<void> _saveQuizAttempt() async {
+    if (_attemptSaved || _isSaving || _quizResponses.isEmpty) return;
+    setState(() {
+      _isSaving = true;
+      _errorMessage = null;
+    });
+    try {
+      await widget.gateway.saveVocabularyQuizAttempt(
+        category: _category,
+        responses: List.unmodifiable(_quizResponses),
+      );
+      if (mounted) {
+        setState(() {
+          _attemptSaved = true;
+          _quizHistoryFuture = widget.gateway.fetchVocabularyQuizAttempts();
+        });
+      }
+    } on AuthFailure catch (error) {
+      if (mounted) setState(() => _errorMessage = error.message);
+    } on DatabaseException {
+      if (mounted) {
+        setState(() => _errorMessage = 'Could not save your quiz result.');
+      }
+    } on FormatException catch (error) {
+      if (mounted) setState(() => _errorMessage = error.message);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   Future<void> _setVocabularyStatus(
@@ -214,7 +296,9 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Vocabulary Practice')),
+    appBar: widget.showAppBar
+        ? AppBar(title: const Text('Vocabulary Practice'))
+        : null,
     body: FutureBuilder<LocalVocabularyCatalog>(
       future: _catalogFuture,
       builder: (context, snapshot) {
@@ -270,6 +354,29 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      key: const ValueKey('practice-category-filter'),
+                      initialValue: _category,
+                      decoration: const InputDecoration(
+                        labelText: 'Category',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: 'All categories',
+                          child: Text('All categories'),
+                        ),
+                        for (final category in snapshot.data!.categories)
+                          DropdownMenuItem(
+                            value: category,
+                            child: Text(category),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) _selectCategory(value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
                     SegmentedButton<_PracticeMode>(
                       segments: const [
                         ButtonSegment(
@@ -310,6 +417,10 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                       _buildFlashcard(currentCard!, entries.length)
                     else
                       _buildQuiz(entries),
+                    if (_mode == _PracticeMode.quiz) ...[
+                      const SizedBox(height: 24),
+                      _buildQuizHistory(),
+                    ],
                     if (_errorMessage != null) ...[
                       const SizedBox(height: 12),
                       Semantics(
@@ -454,10 +565,16 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
   Widget _buildQuiz(List<LocalVocabularyEntry> entries) {
     if (!_quizStarted) {
       return Center(
-        child: FilledButton(
-          onPressed: () => _startQuiz(entries),
-          child: const Text('Start vocabulary quiz'),
-        ),
+        child: entries.length < 2
+            ? const EmptyState(
+                icon: Icons.quiz_outlined,
+                title: 'More vocabulary is needed',
+                message: 'At least two distinct Subanen word pairs are needed for a multiple-choice quiz.',
+              )
+            : FilledButton(
+                onPressed: () => _startQuiz(entries),
+                child: const Text('Start vocabulary quiz'),
+              ),
       );
     }
     if (_quizFinished) {
@@ -477,6 +594,24 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
             ),
             const SizedBox(height: 6),
             Text('$_correctAnswers of ${_quizEntries.length} correct'),
+            if (_quizEntries.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text('Score: $_quizScore%'),
+              const SizedBox(height: 4),
+              Text(
+                _attemptSaved
+                    ? 'Result saved to your quiz history.'
+                    : 'Your result has not been saved yet.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (!_attemptSaved) ...[
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: _isSaving ? null : _saveQuizAttempt,
+                  child: Text(_isSaving ? 'Saving…' : 'Save result'),
+                ),
+              ],
+            ],
             const SizedBox(height: 14),
             FilledButton(
               onPressed: () => _startQuiz(entries),
@@ -586,6 +721,73 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
       ],
     );
   }
+
+  Widget _buildQuizHistory() => FutureBuilder<List<VocabularyQuizAttempt>>(
+    future: _quizHistoryFuture,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        );
+      }
+      if (snapshot.hasError) {
+        return EmptyState(
+          icon: Icons.history_outlined,
+          title: 'Quiz history unavailable',
+          message: '${snapshot.error}',
+        );
+      }
+      final attempts = snapshot.data ?? const [];
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Quiz history', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          if (attempts.isEmpty)
+            const EmptyState(
+              icon: Icons.history_outlined,
+              title: 'No vocabulary quiz attempts yet',
+              message: 'Completed quiz results will be saved on this device.',
+            )
+          else
+            for (final attempt in attempts) ...[
+              LearnLiteCard(
+                padding: EdgeInsets.zero,
+                child: Material(
+                  color: AppColors.white,
+                  child: ExpansionTile(
+                    title: Text(
+                      '${attempt.score}% · ${attempt.correctAnswers} of '
+                      '${attempt.totalQuestions} correct',
+                    ),
+                    subtitle: Text(
+                      '${attempt.category} · ${attempt.completedAt.toLocal()}',
+                    ),
+                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    children: [
+                      for (final response in attempt.responses)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              response.isCorrect
+                                  ? '${response.english}: ${response.selectedAnswer} ✓'
+                                  : '${response.english}: ${response.selectedAnswer} '
+                                        '(correct: ${response.correctAnswer})',
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+        ],
+      );
+    },
+  );
 }
 
 class _SourceLabel extends StatelessWidget {

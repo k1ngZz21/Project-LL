@@ -29,6 +29,7 @@ class AvatarCreationScreen extends StatefulWidget {
 }
 
 class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
+  late final TextEditingController _fullNameController;
   late final TextEditingController _nicknameController;
   bool _isSaving = false;
   String? _errorMessage;
@@ -36,6 +37,7 @@ class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
   @override
   void initState() {
     super.initState();
+    _fullNameController = TextEditingController(text: widget.profile.fullName);
     _nicknameController = TextEditingController(
       text: widget.profile.nickname ?? '',
     );
@@ -43,11 +45,19 @@ class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
 
   @override
   void dispose() {
+    _fullNameController.dispose();
     _nicknameController.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
+    final fullName = _fullNameController.text.trim();
+    if (fullName.isEmpty || fullName.length > 80) {
+      setState(() {
+        _errorMessage = 'Name must be between 1 and 80 characters.';
+      });
+      return;
+    }
     if (_nicknameController.text.trim().length > 40) {
       setState(() {
         _errorMessage = 'Nickname must be 40 characters or fewer.';
@@ -61,7 +71,7 @@ class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
     try {
       final updated = LearnerProfile(
         username: widget.profile.username,
-        fullName: widget.profile.fullName,
+        fullName: fullName,
         nickname: _nicknameController.text.trim().isEmpty
             ? null
             : _nicknameController.text.trim(),
@@ -138,8 +148,9 @@ class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
                             ),
                             const SizedBox(height: 12),
                             Text(
+                              key: const ValueKey('profile-preview-name'),
                               _nicknameController.text.trim().isEmpty
-                                  ? 'Your avatar'
+                                  ? _fullNameController.text.trim()
                                   : _nicknameController.text.trim(),
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
@@ -147,6 +158,17 @@ class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
                             const DecorativeBorder(),
                             const SizedBox(height: 20),
                             LearnLiteTextField(
+                              key: const ValueKey('profile-full-name'),
+                              controller: _fullNameController,
+                              label: 'Full name',
+                              hint: 'Enter your name',
+                              prefixIcon: Icons.person_outline,
+                              textCapitalization: TextCapitalization.words,
+                              onChanged: (_) => setState(() {}),
+                            ),
+                            const SizedBox(height: 14),
+                            LearnLiteTextField(
+                              key: const ValueKey('profile-nickname'),
                               controller: _nicknameController,
                               label: 'Nickname (optional)',
                               hint: 'Choose a nickname',

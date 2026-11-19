@@ -15,7 +15,9 @@ import 'package:learnlite/features/auth/auth_gateway.dart';
 import 'package:learnlite/features/auth/avatar_creation_screen.dart';
 import 'package:learnlite/features/content/content_gateway.dart';
 import 'package:learnlite/features/content/local_vocabulary.dart';
+import 'package:learnlite/features/dashboard/progress_screen.dart';
 import 'package:learnlite/features/modules/lesson_screen.dart';
+import 'package:learnlite/features/settings/settings_screen.dart';
 import 'package:learnlite/main.dart';
 
 void main() {
@@ -63,6 +65,78 @@ void main() {
     expect(find.text('Subanen word'), findsNothing);
   });
 
+  testWidgets(
+    'dashboard daily word keeps available translation labels honest',
+    (WidgetTester tester) async {
+      final gateway = _FakeDictionaryGateway(authenticated: true)
+        ..catalogToReturn = const LocalVocabularyCatalog(
+          vocabulary: [
+            LocalVocabularyEntry(
+              english: 'water',
+              bisaya: 'tubig',
+              subanen: 'sawa',
+              module: 'Everyday words',
+              topic: 'Nature',
+              variety: '',
+              alternateForms: '',
+              source: 'Workbook',
+              reviewStatus: 'Pending review',
+              notes: '',
+              sourceFile: 'workbook.xlsx',
+              sourceRow: 1,
+            ),
+          ],
+          starterList: [],
+          stillNeeded: [],
+          sourceRowCounts: {},
+        );
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Daily Word'), findsOneWidget);
+      expect(find.text('sawa'), findsOneWidget);
+      expect(find.text('water'), findsOneWidget);
+      expect(find.text('Bisaya/Cebuano'), findsOneWidget);
+      expect(find.text('Filipino'), findsOneWidget);
+      expect(
+        find.text('Translation not yet available in the vocabulary data.'),
+        findsOneWidget,
+      );
+      expect(find.text('Pending review'), findsOneWidget);
+    },
+  );
+
+  testWidgets('Continue Learning opens the saved unfinished lesson', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway(authenticated: true)
+      ..modulesToReturn = [_resumableModule]
+      ..moduleToReturn = _resumableModule;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
+    await tester.pumpAndSettle();
+    final continueButton = find.widgetWithText(
+      FilledButton,
+      'Continue Learning',
+    );
+    await tester.ensureVisible(continueButton);
+    await tester.tap(continueButton);
+    await tester.pumpAndSettle();
+
+    expect(gateway.startedLessonIndex, 1);
+    expect(find.text('Everyday phrases'), findsOneWidget);
+    expect(find.text('Lesson 2 of 2'), findsOneWidget);
+  });
+
   testWidgets('navigation opens the empty dictionary state', (
     WidgetTester tester,
   ) async {
@@ -75,7 +149,9 @@ void main() {
       LearnLiteApp(authGateway: _FakeDictionaryGateway(authenticated: true)),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Translate'));
+    await tester.tap(find.byTooltip('More tools'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dictionary'));
     await tester.pumpAndSettle();
 
     expect(find.text('AI Search and Translator'), findsOneWidget);
@@ -98,7 +174,9 @@ void main() {
       LearnLiteApp(authGateway: _FakeDictionaryGateway(authenticated: true)),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Downloads'));
+    await tester.tap(find.byTooltip('More tools'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Offline downloads'));
     await tester.pumpAndSettle();
 
     expect(find.text('Offline Content Packs'), findsOneWidget);
@@ -107,6 +185,45 @@ void main() {
       find.textContaining('No learning modules are available'),
       findsNothing,
     );
+  });
+
+  testWidgets('bottom navigation exposes Home Lessons Quiz Progress Profile', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeDictionaryGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Lessons'), findsOneWidget);
+    expect(find.text('Quiz'), findsOneWidget);
+    expect(find.text('Progress'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
+
+    await tester.tap(find.text('Quiz').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Practice from your workbooks'), findsOneWidget);
+
+    await tester.tap(find.text('Progress').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Your learning progress'), findsOneWidget);
+
+    await tester.tap(find.text('Profile').last);
+    await tester.pumpAndSettle();
+    expect(find.text('My Avatar'), findsOneWidget);
+
+    await tester.tap(find.text('Lessons').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Learning Modules'), findsOneWidget);
+
+    await tester.tap(find.text('Home').last);
+    await tester.pumpAndSettle();
+    expect(find.text('WELCOME BACK'), findsOneWidget);
   });
 
   testWidgets('wide layout keeps the mobile bottom navigation', (
@@ -124,6 +241,29 @@ void main() {
 
     expect(find.byType(NavigationRail), findsNothing);
     expect(find.byType(NavigationBar), findsOneWidget);
+  });
+
+  testWidgets('app bar opens AI Tutor and back returns to dashboard', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeAuthGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Open AI Tutor'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('AI Tutor'), findsOneWidget);
+    expect(find.text('Learn with the AI Tutor'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('WELCOME BACK'), findsOneWidget);
   });
 
   testWidgets('new authenticated account opens empty avatar setup', (
@@ -146,13 +286,9 @@ void main() {
 
     expect(find.text('Create Your Avatar'), findsOneWidget);
     expect(find.text('Avatar designs are coming soon'), findsOneWidget);
-    expect(find.text('Your avatar'), findsOneWidget);
+    expect(find.byKey(const ValueKey('profile-preview-name')), findsOneWidget);
     expect(find.text('Start Learning'), findsOneWidget);
-    expect(find.byType(TextFormField), findsOneWidget);
-    expect(
-      tester.widget<TextFormField>(find.byType(TextFormField)).controller?.text,
-      isEmpty,
-    );
+    expect(find.byKey(const ValueKey('profile-nickname')), findsOneWidget);
     expect(
       find.text(
         'Outfits and colors will unlock when customization items are available.',
@@ -184,12 +320,20 @@ void main() {
       ),
     );
 
-    await tester.enterText(find.byType(TextFormField), 'River');
+    await tester.enterText(
+      find.byKey(const ValueKey('profile-full-name')),
+      'River Learner',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('profile-nickname')),
+      'River',
+    );
     await tester.ensureVisible(find.text('Start Learning'));
     await tester.tap(find.text('Start Learning'));
     await tester.pumpAndSettle();
 
     expect(savedProfile?.nickname, 'River');
+    expect(savedProfile?.fullName, 'River Learner');
     expect(savedProfile?.avatarId, isNull);
     expect(savedProfile?.outfitColor, isNull);
     expect(savedProfile?.avatarCompleted, isTrue);
@@ -210,7 +354,10 @@ void main() {
 
     await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField), 'River');
+    await tester.enterText(
+      find.byKey(const ValueKey('profile-nickname')),
+      'River',
+    );
     await tester.ensureVisible(find.text('Start Learning'));
     await tester.tap(find.text('Start Learning'));
     await tester.pumpAndSettle();
@@ -376,6 +523,59 @@ void main() {
     );
   });
 
+  testWidgets('settings changes password after validating all fields', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SettingsScreen(
+            gateway: gateway,
+            profile: const LearnerProfile(
+              username: 'test_user',
+              fullName: 'Test Learner',
+            ),
+            accountEmail: 'learner@example.test',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('settings-change-password')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Update password'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter your current password.'), findsOneWidget);
+    expect(gateway.passwordChangeAttempts, 0);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('current-password')),
+      'Current123',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('new-password')),
+      'BetterPassword123',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('confirm-new-password')),
+      'BetterPassword123',
+    );
+    await tester.tap(find.text('Update password'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.passwordChangeAttempts, 1);
+    expect(gateway.lastCurrentPassword, 'Current123');
+    expect(gateway.lastNewPassword, 'BetterPassword123');
+    expect(find.text('Your password has been updated.'), findsOneWidget);
+  });
+
   testWidgets('unverified email accounts are held at email verification', (
     WidgetTester tester,
   ) async {
@@ -502,7 +702,7 @@ void main() {
       LearnLiteApp(authGateway: _FakeAuthGateway(authenticated: true)),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Learn'));
+    await tester.tap(find.text('Lessons'));
     await tester.pumpAndSettle();
 
     expect(find.text('Learning Modules'), findsOneWidget);
@@ -594,6 +794,77 @@ void main() {
     expect(find.text('+25 XP earned'), findsNothing);
   });
 
+  testWidgets('progress shows saved quiz scores and answer review', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    const lesson = ModuleLesson(
+      index: 0,
+      title: 'Lesson One',
+      content: 'Lesson content.',
+      completed: true,
+      quiz: [
+        QuizQuestion(
+          question: 'Which answer is correct?',
+          choices: ['Wrong', 'Right'],
+        ),
+      ],
+    );
+    gateway.modulesToReturn = const [
+      LearningModule(
+        id: 4,
+        title: 'Everyday phrases',
+        description: 'Lesson module.',
+        lessonCount: 1,
+        completedLessons: 1,
+        lessons: [lesson],
+      ),
+    ];
+    gateway.quizAttemptsToReturn.add(
+      QuizResult(
+        attemptId: 7,
+        score: 80,
+        totalQuestions: 5,
+        correctAnswers: 4,
+        incorrectAnswers: 1,
+        completedAt: DateTime.utc(2026, 5, 1),
+        questions: const [
+          QuizResultQuestion(
+            question: 'Which answer is correct?',
+            choices: ['Wrong', 'Right'],
+            selectedAnswerIndex: 0,
+            correctAnswerIndex: 1,
+          ),
+        ],
+      ),
+    );
+    tester.view.physicalSize = const Size(390, 2200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ProgressScreen(
+            snapshot: LearningSnapshot.empty,
+            gateway: gateway,
+            onOpenRewards: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Quiz history'), findsOneWidget);
+    expect(find.text('Everyday phrases · Lesson One'), findsOneWidget);
+    expect(find.textContaining('80% · 4 of 5 correct'), findsOneWidget);
+    await tester.ensureVisible(find.text('Everyday phrases · Lesson One'));
+    await tester.tap(find.text('Everyday phrases · Lesson One'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Correct answer: Right'), findsOneWidget);
+  });
+
   testWidgets('lesson without supplied enrichments stays text-only', (
     WidgetTester tester,
   ) async {
@@ -639,6 +910,58 @@ void main() {
     expect(find.text('Cultural note'), findsNothing);
     expect(find.text('Pronunciation:'), findsNothing);
   });
+
+  testWidgets(
+    'lesson previous and next buttons navigate and save resume index',
+    (WidgetTester tester) async {
+      final gateway = _FakeAuthGateway();
+      const first = ModuleLesson(
+        index: 0,
+        title: 'First lesson',
+        content: 'First lesson content.',
+        completed: false,
+      );
+      const second = ModuleLesson(
+        index: 1,
+        title: 'Second lesson',
+        content: 'Second lesson content.',
+        completed: false,
+      );
+      final module = LearningModule(
+        id: 8,
+        title: 'Test module',
+        description: 'Navigation test',
+        lessonCount: 2,
+        completedLessons: 0,
+        lessons: const [first, second],
+      );
+      gateway.moduleToReturn = module;
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ModuleLessonScreen(
+            gateway: gateway,
+            module: module,
+            lesson: first,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Next Lesson'));
+      await tester.pumpAndSettle();
+      expect(find.text('Second lesson content.'), findsOneWidget);
+      expect(gateway.startedLessonIndex, 1);
+
+      await tester.tap(find.text('Previous Lesson'));
+      await tester.pumpAndSettle();
+      expect(find.text('First lesson content.'), findsOneWidget);
+      expect(gateway.startedLessonIndex, 0);
+    },
+  );
 
   testWidgets('quiz selection submits and reviews actual server results', (
     WidgetTester tester,
@@ -789,6 +1112,29 @@ bool _isObscured(WidgetTester tester, String fieldKey) => tester
     )
     .obscureText;
 
+const _resumableModule = LearningModule(
+  id: 1,
+  title: 'Everyday Subanen',
+  description: 'Learn useful everyday phrases.',
+  lessonCount: 2,
+  completedLessons: 1,
+  lastLessonIndex: 0,
+  lessons: [
+    ModuleLesson(
+      index: 0,
+      title: 'Greetings',
+      content: 'A greeting lesson.',
+      completed: true,
+    ),
+    ModuleLesson(
+      index: 1,
+      title: 'Everyday phrases',
+      content: 'Practice everyday phrases.',
+      completed: false,
+    ),
+  ],
+);
+
 class _FakeAuthGateway implements AuthGateway {
   _FakeAuthGateway({
     this.authenticated = false,
@@ -807,11 +1153,17 @@ class _FakeAuthGateway implements AuthGateway {
   final AuthFailure? verificationFailure;
   LearnerProfile? savedProfile;
   LearningModule? moduleToReturn;
+  List<LearningModule> modulesToReturn = const [];
+  int? startedLessonIndex;
   QuizResult? quizResultToReturn;
   int quizSubmissions = 0;
   int profileFetches = 0;
   List<int>? lastQuizAnswers;
+  final List<QuizResult> quizAttemptsToReturn = [];
   final List<String> passwordResetEmails = [];
+  int passwordChangeAttempts = 0;
+  String? lastCurrentPassword;
+  String? lastNewPassword;
   int resendAttempts = 0;
 
   @override
@@ -851,8 +1203,18 @@ class _FakeAuthGateway implements AuthGateway {
   }
 
   @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    passwordChangeAttempts++;
+    lastCurrentPassword = currentPassword;
+    lastNewPassword = newPassword;
+  }
+
+  @override
   Future<List<LearningModule>> fetchModules({String search = ''}) async =>
-      const [];
+      modulesToReturn;
 
   @override
   Future<LearningModule> fetchModule(int moduleId) async =>
@@ -862,7 +1224,10 @@ class _FakeAuthGateway implements AuthGateway {
   Future<LearningModule> startModuleLesson(
     int moduleId,
     int lessonIndex,
-  ) async => moduleToReturn ?? (throw const AuthFailure('Not found.'));
+  ) async {
+    startedLessonIndex = lessonIndex;
+    return moduleToReturn ?? (throw const AuthFailure('Not found.'));
+  }
 
   @override
   Future<LearningModule> completeModuleLesson(
@@ -886,7 +1251,7 @@ class _FakeAuthGateway implements AuthGateway {
   Future<List<QuizResult>> fetchLessonQuizAttempts(
     int moduleId,
     int lessonIndex,
-  ) async => const [];
+  ) async => quizAttemptsToReturn;
 
   @override
   Future<RewardsOverview> fetchRewards() async => _emptyRewardsOverview();
@@ -942,8 +1307,12 @@ class _FakeDictionaryGateway extends _FakeAuthGateway
     implements DictionaryGateway {
   _FakeDictionaryGateway({super.authenticated});
 
+  LocalVocabularyCatalog? catalogToReturn;
+  final List<VocabularyQuizAttempt> vocabularyQuizAttempts = [];
+
   @override
   Future<LocalVocabularyCatalog> localVocabulary() async =>
+      catalogToReturn ??
       const LocalVocabularyCatalog(
         vocabulary: [],
         starterList: [],
@@ -957,6 +1326,25 @@ class _FakeDictionaryGateway extends _FakeAuthGateway
     required bool learned,
     required bool bookmarked,
   }) async {}
+
+  @override
+  Future<VocabularyQuizAttempt> saveVocabularyQuizAttempt({
+    required String category,
+    required List<VocabularyQuizResponse> responses,
+  }) async {
+    final attempt = VocabularyQuizAttempt(
+      id: 'attempt-${vocabularyQuizAttempts.length + 1}',
+      category: category,
+      completedAt: DateTime.utc(2026, 1, 1),
+      responses: List.unmodifiable(responses),
+    );
+    vocabularyQuizAttempts.add(attempt);
+    return attempt;
+  }
+
+  @override
+  Future<List<VocabularyQuizAttempt>> fetchVocabularyQuizAttempts() async =>
+      List.unmodifiable(vocabularyQuizAttempts);
 
   @override
   Future<List<DictionaryTranslation>> searchDictionary(

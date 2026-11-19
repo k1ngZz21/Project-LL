@@ -28,6 +28,7 @@ class _LocalVocabularyScreenState extends State<LocalVocabularyScreen> {
   String _searchQuery = '';
   int? _savingVocabularyId;
   String _source = 'All';
+  String _category = 'All categories';
 
   static const _sources = [
     'All',
@@ -114,9 +115,8 @@ class _LocalVocabularyScreenState extends State<LocalVocabularyScreen> {
                   key: const ValueKey('open-vocabulary-practice'),
                   onPressed: () => Navigator.of(context).push<void>(
                     MaterialPageRoute(
-                      builder: (_) => VocabularyPracticeScreen(
-                        gateway: widget.gateway,
-                      ),
+                      builder: (_) =>
+                          VocabularyPracticeScreen(gateway: widget.gateway),
                     ),
                   ),
                   icon: const Icon(Icons.style_outlined),
@@ -167,37 +167,67 @@ class _LocalVocabularyScreenState extends State<LocalVocabularyScreen> {
                     );
                   }
                   final catalog = snapshot.data!;
-                  final entries = catalog.search(_searchQuery, source: _source);
-                  if (entries.isEmpty) {
-                    return const EmptyState(
-                      icon: Icons.search_off,
-                      title: 'No matching workbook entries',
-                      message: 'Try another word or choose a different source.',
-                    );
-                  }
+                  final entries = catalog.search(
+                    _searchQuery,
+                    source: _source,
+                    category: _category,
+                  );
                   return Column(
                     children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          '${entries.length} workbook ${entries.length == 1 ? 'entry' : 'entries'}',
-                          style: Theme.of(context).textTheme.labelLarge,
+                      DropdownButtonFormField<String>(
+                        key: const ValueKey('vocabulary-category-filter'),
+                        initialValue: _category,
+                        decoration: const InputDecoration(
+                          labelText: 'Category',
+                          border: OutlineInputBorder(),
                         ),
+                        items: [
+                          const DropdownMenuItem(
+                            value: 'All categories',
+                            child: Text('All categories'),
+                          ),
+                          for (final category in catalog.categories)
+                            DropdownMenuItem(
+                              value: category,
+                              child: Text(category),
+                            ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _category = value);
+                          }
+                        },
                       ),
-                      const SizedBox(height: 10),
-                      for (final entry in entries) ...[
-                        _VocabularyCard(
-                          entry: entry,
-                          isSaving: _savingVocabularyId == entry.id,
-                          onLearnedChanged: (learned) =>
-                              _setVocabularyStatus(entry, learned: learned),
-                          onBookmarkedChanged: (bookmarked) =>
-                              _setVocabularyStatus(
-                                entry,
-                                bookmarked: bookmarked,
-                              ),
+                      const SizedBox(height: 14),
+                      if (entries.isEmpty)
+                        const EmptyState(
+                          icon: Icons.search_off,
+                          title: 'No matching workbook entries',
+                          message: 'Try another word or choose a different source or category.',
+                        )
+                      else ...[
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            '${entries.length} workbook ${entries.length == 1 ? 'entry' : 'entries'}',
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
                         ),
                         const SizedBox(height: 10),
+                        for (final entry in entries) ...[
+                          _VocabularyCard(
+                            entry: entry,
+                            isSaving: _savingVocabularyId == entry.id,
+                            onLearnedChanged: (learned) =>
+                                _setVocabularyStatus(entry, learned: learned),
+                            onBookmarkedChanged: (bookmarked) =>
+                                _setVocabularyStatus(
+                                  entry,
+                                  bookmarked: bookmarked,
+                                ),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
                       ],
                     ],
                   );
