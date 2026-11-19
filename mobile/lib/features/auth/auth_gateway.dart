@@ -12,6 +12,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/bundled_learning_content.dart';
 import '../../core/learning_database.dart';
+import '../../core/local_day.dart';
 import '../../core/offline_content_store.dart';
 import '../../firebase_options.dart';
 import '../content/content_gateway.dart';
@@ -385,12 +386,15 @@ class FirebaseAuthGateway
   Future<RewardsOverview> fetchRewards() async {
     final uid = await _ownerUid();
     final db = await _database.database;
-    final today = DateTime.now().toUtc();
-    final todayKey = _dateKey(today);
+    // Rewards follow the learner's local calendar day (stored times are UTC).
+    final now = _database.clock();
+    final today = localCalendarDate(now);
+    final todayKey = dateKeyOf(today);
+    final localWeek = localWeekStart(now);
     final weekStart = DateTime.utc(
-      today.year,
-      today.month,
-      today.day - (today.weekday - 1),
+      localWeek.year,
+      localWeek.month,
+      localWeek.day,
     );
     final completions = await db.query(
       'lesson_completions',
@@ -399,22 +403,16 @@ class FirebaseAuthGateway
       whereArgs: [uid],
       orderBy: 'completed_at DESC',
     );
-    final activeDates =
-        completions
-            .map((row) => DateTime.parse(row['completed_at']! as String))
-            .map((date) => DateTime.utc(date.year, date.month, date.day))
-            .toSet()
-            .toList()
-          ..sort((a, b) => b.compareTo(a));
-    final todayLessons = completions
-        .where((row) => (row['completed_at']! as String).startsWith(todayKey))
+    final completionTimes = completions
+        .map((row) => DateTime.parse(row['completed_at']! as String))
+        .toList();
+    final activeDates = completionTimes.map(localCalendarDate).toSet().toList()
+      ..sort((a, b) => b.compareTo(a));
+    final todayLessons = completionTimes
+        .where((time) => localDateKey(time) == todayKey)
         .length;
-    final thisWeekLessons = completions
-        .where(
-          (row) =>
-              !DateTime.parse(row['completed_at']! as String)
-                  .isBefore(weekStart),
-        )
+    final thisWeekLessons = completionTimes
+        .where((time) => !time.isBefore(localWeek))
         .length;
     final streak = await _currentStreak(uid);
     final longestStreak = _longestStreak(activeDates);
@@ -424,10 +422,8 @@ class FirebaseAuthGateway
         date: date,
         weekday: _weekday(date.weekday),
         active: activeDates.contains(date),
-        isToday: _dateKey(date) == todayKey,
-        isFuture: date.isAfter(
-          DateTime.utc(today.year, today.month, today.day),
-        ),
+        isToday: dateKeyOf(date) == todayKey,
+        isFuture: date.isAfter(today),
       );
     });
     final badges = [
@@ -462,8 +458,8 @@ class FirebaseAuthGateway
     ];
     final certificates = await _completedCertificates(uid);
     return RewardsOverview(
-      timezone: 'UTC',
-      today: DateTime.utc(today.year, today.month, today.day),
+      timezone: now.timeZoneName,
+      today: today,
       streak: streak,
       longestStreak: longestStreak,
       activeDates: activeDates,
@@ -490,7 +486,7 @@ class FirebaseAuthGateway
             await _hasHistoryEvent(
               uid,
               'weekly_bonus_awarded',
-              _dateKey(weekStart),
+              dateKeyOf(weekStart),
             )
             ? 25
             : 0,
@@ -529,7 +525,7 @@ class FirebaseAuthGateway
               pw.SizedBox(height: 12),
               pw.Text('completed ${certificate.single.moduleTitle}'),
               pw.SizedBox(height: 28),
-              pw.Text(_dateKey(certificate.single.issuedAt)),
+              pw.Text(localDateKey(certificate.single.issuedAt)),
             ],
           ),
         ),
@@ -548,7 +544,7 @@ class FirebaseAuthGateway
     if (normalized.isEmpty) return const [];
     final sourceColumn = _languageColumn(sourceLanguage);
     final targetColumn = _languageColumn(targetLanguage);
-    final rows = await _database.searchVerifiedVocabulary(
+    final rows = await _database.searchVocabulary(
       column: sourceColumn,
       query: normalized,
     );
@@ -566,6 +562,7 @@ class FirebaseAuthGateway
             'topic': row['topic'],
             'source': row['source'],
             'review_status': row['review_status'],
+            'is_verified': row['is_verified'] == 1,
           });
           return DictionaryTranslation(
             entry: entry,
@@ -1121,16 +1118,18 @@ class FirebaseAuthGateway
     );
     final dates = rows
         .map((row) => DateTime.parse(row['completed_at']! as String))
-        .map((date) => _dateKey(date))
+        .map(localDateKey)
         .toSet();
-    var current = DateTime.now().toUtc();
-    if (!dates.contains(_dateKey(current))) {
-      current = current.subtract(const Duration(days: 1));
-    }
+    // Walk back one local calendar day at a time (date arithmetic, not
+    // 24-hour durations).
+    var current = localCalendarDate(_database.clock());
+    DateTime previousDay(DateTime date) =>
+        DateTime.utc(date.year, date.month, date.day - 1);
+    if (!dates.contains(dateKeyOf(current))) current = previousDay(current);
     var streak = 0;
-    while (dates.contains(_dateKey(current))) {
+    while (dates.contains(dateKeyOf(current))) {
       streak++;
-      current = current.subtract(const Duration(days: 1));
+      current = previousDay(current);
     }
     return streak;
   }
@@ -1275,11 +1274,6 @@ class FirebaseAuthGateway
     'cebuano' || 'bisaya' => 'bisaya',
     _ => throw const AuthFailure('This language pair is not supported.'),
   };
-
-  String _dateKey(DateTime date) =>
-      '${date.year.toString().padLeft(4, '0')}-'
-      '${date.month.toString().padLeft(2, '0')}-'
-      '${date.day.toString().padLeft(2, '0')}';
 
   String _weekday(int weekday) => const [
     'Monday',

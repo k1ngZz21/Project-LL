@@ -73,7 +73,11 @@ class _LocalVocabularyScreenState extends State<LocalVocabularyScreen> {
         bookmarked: bookmarked ?? entry.isBookmarked,
       );
       if (mounted) {
-        setState(() => _catalogFuture = widget.gateway.localVocabulary());
+        // Block body: setState must not receive the Future returned by an
+        // assignment expression (asserts in debug builds).
+        setState(() {
+          _catalogFuture = widget.gateway.localVocabulary();
+        });
       }
     } on AuthFailure catch (error) {
       if (mounted) {
@@ -91,151 +95,166 @@ class _LocalVocabularyScreenState extends State<LocalVocabularyScreen> {
     }
   }
 
+  static Widget _constrained(Widget child) => Center(
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 720),
+      child: child,
+    ),
+  );
+
+  // The list is built lazily: only the visible vocabulary cards are created,
+  // so typing in the search field does not rebuild every workbook entry.
   @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.fromLTRB(20, 26, 20, 32),
-    children: [
-      Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SectionHeader(title: 'Offline Vocabulary Reference'),
-              const SizedBox(height: 8),
-              Text(
-                'Bundled from the original workbooks. Entries retain their review status and are not presented as verified translations.',
-                style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: AppColors.gray),
+  Widget build(BuildContext context) => FutureBuilder<LocalVocabularyCatalog>(
+    future: _catalogFuture,
+    builder: (context, snapshot) {
+      // While a reload is in flight, keep showing the previous catalog so the
+      // list does not collapse and lose its scroll position.
+      final catalog = snapshot.data;
+      final entries = catalog == null
+          ? const <LocalVocabularyEntry>[]
+          : catalog.search(_searchQuery, source: _source, category: _category);
+      return ListView.builder(
+        key: const ValueKey('vocabulary-list'),
+        padding: const EdgeInsets.fromLTRB(20, 26, 20, 32),
+        itemCount: 1 + entries.length,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _constrained(_buildHeader(context, snapshot, entries));
+          }
+          final entry = entries[index - 1];
+          return _constrained(
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _VocabularyCard(
+                key: ValueKey('vocabulary-entry-${entry.id ?? index}'),
+                entry: entry,
+                isSaving: _savingVocabularyId == entry.id,
+                onLearnedChanged: (learned) =>
+                    _setVocabularyStatus(entry, learned: learned),
+                onBookmarkedChanged: (bookmarked) =>
+                    _setVocabularyStatus(entry, bookmarked: bookmarked),
               ),
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: FilledButton.tonalIcon(
-                  key: const ValueKey('open-vocabulary-practice'),
-                  onPressed: () => Navigator.of(context).push<void>(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          VocabularyPracticeScreen(gateway: widget.gateway),
-                    ),
-                  ),
-                  icon: const Icon(Icons.style_outlined),
-                  label: const Text('Practice vocabulary'),
+            ),
+          );
+        },
+      );
+    },
+  );
+
+  Widget _buildHeader(
+    BuildContext context,
+    AsyncSnapshot<LocalVocabularyCatalog> snapshot,
+    List<LocalVocabularyEntry> entries,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      const SectionHeader(title: 'Offline Vocabulary Reference'),
+      const SizedBox(height: 8),
+      Text(
+        'Bundled from the original workbooks. Entries retain their review status and are not presented as verified translations.',
+        style: Theme.of(context).textTheme.bodyMedium
+            ?.copyWith(color: AppColors.gray),
+      ),
+      const SizedBox(height: 10),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: FilledButton.tonalIcon(
+          key: const ValueKey('open-vocabulary-practice'),
+          onPressed: () => Navigator.of(context).push<void>(
+            MaterialPageRoute(
+              builder: (_) => VocabularyPracticeScreen(gateway: widget.gateway),
+            ),
+          ),
+          icon: const Icon(Icons.style_outlined),
+          label: const Text('Practice vocabulary'),
+        ),
+      ),
+      const SizedBox(height: 16),
+      TextField(
+        controller: _queryController,
+        textInputAction: TextInputAction.search,
+        onChanged: _handleSearchChanged,
+        decoration: const InputDecoration(
+          labelText: 'Search words and meanings',
+          prefixIcon: Icon(Icons.search),
+          border: OutlineInputBorder(),
+        ),
+      ),
+      const SizedBox(height: 12),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final source in _sources)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(source),
+                  selected: _source == source,
+                  onSelected: (_) => setState(() => _source = source),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _queryController,
-                textInputAction: TextInputAction.search,
-                onChanged: _handleSearchChanged,
+          ],
+        ),
+      ),
+      const SizedBox(height: 18),
+      Builder(
+        builder: (context) {
+          final catalog = snapshot.data;
+          if (catalog == null) {
+            if (snapshot.hasError) {
+              return const EmptyState(
+                icon: Icons.error_outline,
+                title: 'Vocabulary could not be loaded',
+                message: 'The bundled vocabulary data is unavailable on this device. Try reopening the app.',
+              );
+            }
+            return const Center(child: CircularProgressIndicator());
+          }
+          return Column(
+            children: [
+              DropdownButtonFormField<String>(
+                key: const ValueKey('vocabulary-category-filter'),
+                initialValue: _category,
                 decoration: const InputDecoration(
-                  labelText: 'Search words and meanings',
-                  prefixIcon: Icon(Icons.search),
+                  labelText: 'Category',
                   border: OutlineInputBorder(),
                 ),
-              ),
-              const SizedBox(height: 12),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (final source in _sources)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(
-                          label: Text(source),
-                          selected: _source == source,
-                          onSelected: (_) => setState(() => _source = source),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-              FutureBuilder<LocalVocabularyCatalog>(
-                future: _catalogFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                items: [
+                  const DropdownMenuItem(
+                    value: 'All categories',
+                    child: Text('All categories'),
+                  ),
+                  for (final category in catalog.categories)
+                    DropdownMenuItem(value: category, child: Text(category)),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _category = value);
                   }
-                  if (snapshot.hasError) {
-                    return EmptyState(
-                      icon: Icons.error_outline,
-                      title: 'Vocabulary could not be loaded',
-                      message:
-                          'The bundled vocabulary data is unavailable. ${snapshot.error}',
-                    );
-                  }
-                  final catalog = snapshot.data!;
-                  final entries = catalog.search(
-                    _searchQuery,
-                    source: _source,
-                    category: _category,
-                  );
-                  return Column(
-                    children: [
-                      DropdownButtonFormField<String>(
-                        key: const ValueKey('vocabulary-category-filter'),
-                        initialValue: _category,
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: [
-                          const DropdownMenuItem(
-                            value: 'All categories',
-                            child: Text('All categories'),
-                          ),
-                          for (final category in catalog.categories)
-                            DropdownMenuItem(
-                              value: category,
-                              child: Text(category),
-                            ),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _category = value);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      if (entries.isEmpty)
-                        const EmptyState(
-                          icon: Icons.search_off,
-                          title: 'No matching workbook entries',
-                          message: 'Try another word or choose a different source or category.',
-                        )
-                      else ...[
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            '${entries.length} workbook ${entries.length == 1 ? 'entry' : 'entries'}',
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        for (final entry in entries) ...[
-                          _VocabularyCard(
-                            entry: entry,
-                            isSaving: _savingVocabularyId == entry.id,
-                            onLearnedChanged: (learned) =>
-                                _setVocabularyStatus(entry, learned: learned),
-                            onBookmarkedChanged: (bookmarked) =>
-                                _setVocabularyStatus(
-                                  entry,
-                                  bookmarked: bookmarked,
-                                ),
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                      ],
-                    ],
-                  );
                 },
               ),
+              const SizedBox(height: 14),
+              if (entries.isEmpty)
+                const EmptyState(
+                  icon: Icons.search_off,
+                  title: 'No matching workbook entries',
+                  message: 'Try another word or choose a different source or category.',
+                )
+              else ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${entries.length} workbook ${entries.length == 1 ? 'entry' : 'entries'}',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
             ],
-          ),
-        ),
+          );
+        },
       ),
     ],
   );
@@ -243,6 +262,7 @@ class _LocalVocabularyScreenState extends State<LocalVocabularyScreen> {
 
 class _VocabularyCard extends StatelessWidget {
   const _VocabularyCard({
+    super.key,
     required this.entry,
     required this.isSaving,
     required this.onLearnedChanged,

@@ -5,14 +5,23 @@ import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 import '../features/content/local_vocabulary.dart';
+import 'local_day.dart';
 
 class LearningDatabase {
-  LearningDatabase({this.factory, this.databasePath});
+  LearningDatabase({
+    this.factory,
+    this.databasePath,
+    DateTime Function()? clock,
+  }) : clock = clock ?? DateTime.now;
 
   static final instance = LearningDatabase();
 
   final DatabaseFactory? factory;
   final String? databasePath;
+
+  /// Source of the current time for local-day rewards logic. Tests inject a
+  /// fixed clock.
+  final DateTime Function() clock;
   Future<Database>? _opening;
 
   Future<Database> get database => _opening ??= _open();
@@ -995,7 +1004,8 @@ class LearningDatabase {
       limit: 1,
     );
     if (lessons.isEmpty) throw const FormatException('Lesson not found.');
-    final now = DateTime.now().toUtc().toIso8601String();
+    final nowTime = clock();
+    final now = nowTime.toUtc().toIso8601String();
     final inserted = await txn.insert('lesson_completions', {
       'uid': uid,
       'module_id': moduleId,
@@ -1011,27 +1021,30 @@ class LearningDatabase {
     if (inserted == 0) return (completed: false, xpAwarded: 0);
 
     var earnedXp = 10;
+    // Day and week boundaries follow the device's local calendar; the stored
+    // timestamps remain UTC, so the boundaries are converted to UTC for the
+    // comparisons.
+    final dayStart = localDayStart(nowTime).toUtc().toIso8601String();
+    final nextDayStart = localNextDayStart(nowTime).toUtc().toIso8601String();
+    final todayKey = localDateKey(nowTime);
     if (await _count(
           txn,
-          'SELECT COUNT(*) AS count FROM lesson_completions WHERE uid = ? AND substr(completed_at, 1, 10) = ?',
-          [uid, now.substring(0, 10)],
+          'SELECT COUNT(*) AS count FROM lesson_completions WHERE uid = ? AND completed_at >= ? AND completed_at < ?',
+          [uid, dayStart, nextDayStart],
         ) ==
         1) {
       earnedXp += 5;
       await txn.insert('learning_history', {
-        'id': '${uid}_daily_$now',
+        'id': '${uid}_daily_$todayKey',
         'uid': uid,
         'event_type': 'daily_bonus_awarded',
-        'entity_id': now.substring(0, 10),
+        'entity_id': todayKey,
         'created_at': now,
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
-    final current = DateTime.parse(now);
-    final weekStart = DateTime.utc(
-      current.year,
-      current.month,
-      current.day - (current.weekday - 1),
-    ).toIso8601String();
+    final localWeek = localWeekStart(nowTime);
+    final weekStart = localWeek.toUtc().toIso8601String();
+    final weekKey = dateKeyOf(localWeek);
     if (await _count(
           txn,
           'SELECT COUNT(*) AS count FROM lesson_completions WHERE uid = ? AND completed_at >= ?',
@@ -1040,10 +1053,10 @@ class LearningDatabase {
         5) {
       earnedXp += 25;
       await txn.insert('learning_history', {
-        'id': '${uid}_weekly_$weekStart',
+        'id': '${uid}_weekly_$weekKey',
         'uid': uid,
         'event_type': 'weekly_bonus_awarded',
-        'entity_id': weekStart.substring(0, 10),
+        'entity_id': weekKey,
         'created_at': now,
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
@@ -1400,14 +1413,18 @@ class LearningDatabase {
     return rows.map((item) => item['query']! as String).toList();
   }
 
-  Future<List<Map<String, Object?>>> searchVerifiedVocabulary({
+  /// Searches every active vocabulary entry, verified or not (decision D5).
+  /// Verified entries are listed first; callers must label the rest as
+  /// pending review.
+  Future<List<Map<String, Object?>>> searchVocabulary({
     required String column,
     required String query,
   }) async {
     const columns = {'subanen', 'english', 'bisaya'};
     if (!columns.contains(column)) throw ArgumentError.value(column, 'column');
     return (await database).rawQuery(
-      'SELECT * FROM vocabulary WHERE is_active = 1 AND is_verified = 1 AND $column LIKE ? COLLATE NOCASE ORDER BY $column LIMIT 50',
+      'SELECT * FROM vocabulary WHERE is_active = 1 AND $column LIKE ? COLLATE NOCASE '
+      'ORDER BY is_verified DESC, $column LIMIT 50',
       ['%${query.trim()}%'],
     );
   }

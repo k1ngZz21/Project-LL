@@ -129,7 +129,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                 const SectionHeader(title: 'AI Search and Translator'),
                 const SizedBox(height: 8),
                 Text(
-                  'Translations come only from verified dictionary records.',
+                  'Results come only from the bundled vocabulary workbooks. Entries marked "Pending review" have not been verified yet.',
                   style: Theme.of(context).textTheme.bodyMedium
                       ?.copyWith(color: AppColors.gray),
                 ),
@@ -265,7 +265,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                       FilledButton.icon(
                         onPressed: _isSearching ? null : _search,
                         icon: const Icon(Icons.translate),
-                        label: const Text('Search verified entries'),
+                        label: const Text('Search dictionary'),
                       ),
                     ],
                   ),
@@ -307,14 +307,14 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                 else if (_hasSearched)
                   const EmptyState(
                     icon: Icons.search_off,
-                    title: 'No verified translation found',
-                    message: 'This entry is not in the available verified dictionary. No translation was generated.',
+                    title: 'No matching entry found',
+                    message: 'This word is not in the bundled vocabulary for the selected languages. No translation was generated.',
                   )
                 else
                   const EmptyState(
                     icon: Icons.menu_book_outlined,
                     title: 'Dictionary ready',
-                    message: 'Search verified entries or download a dictionary pack for offline use.',
+                    message: 'Search the bundled vocabulary. It works offline.',
                   ),
                 if (_playingError != null)
                   Padding(
@@ -349,6 +349,22 @@ class _DictionaryResultCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Chip(
+            key: ValueKey(
+              entry.isVerified
+                  ? 'dictionary-verified-${entry.id}'
+                  : 'dictionary-pending-${entry.id}',
+            ),
+            avatar: Icon(
+              entry.isVerified
+                  ? Icons.verified_outlined
+                  : Icons.pending_outlined,
+              size: 18,
+            ),
+            label: Text(entry.isVerified ? 'Verified' : 'Pending review'),
+            visualDensity: VisualDensity.compact,
+          ),
+          const SizedBox(height: 6),
           Text(
             entry.subanenWord,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(

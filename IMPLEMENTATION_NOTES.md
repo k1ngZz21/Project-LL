@@ -50,3 +50,15 @@ A permanent fix is to move the project out of a OneDrive-synced folder. That is 
 | Date | Phase | Change |
 |---|---|---|
 | 2026-11-19 | 0 | Baseline commit `7bd8f35`. Added `mobile/tool/verify.ps1` and the four roadmap documents. |
+| 2026-11-19 | 1 | Lazy vocabulary list; quiz headline uses correct/total; dictionary searches all entries with Pending review badges (D5); rewards use local calendar days (`lib/core/local_day.dart`, injectable `LearningDatabase.clock`); fixed `setState` returning a Future in 7 places. 67 tests. |
+
+## Coding notes
+
+- Don't write `setState(() => _future = ...)`. The assignment's value (a Future) is returned to `setState`, which asserts in debug builds. Use a block body.
+- Rewards and streak logic must use the helpers in `lib/core/local_day.dart` and `LearningDatabase.clock`, never `DateTime.now().toUtc()` day strings.
+- Quiz `score` in local results is a **percentage**. Use `correctAnswers`/`totalQuestions` for counts.
+
+## Device testing
+
+- Emulator: `Flutter_Emulator` (start with `%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe -avd Flutter_Emulator`). adb is at `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe` and is not on PATH.
+- The emulator holds a signed-in real Firebase account. Avoid actions that change its progress unless the owner approves.

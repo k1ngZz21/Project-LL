@@ -213,10 +213,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                               title: 'Module progress is unavailable',
                               message: 'Check your connection and try again.',
                               action: TextButton(
-                                onPressed: () => setState(
-                                  () => _modulesFuture = widget.gateway
-                                      .fetchModules(),
-                                ),
+                                onPressed: () => setState(() {
+                                  _modulesFuture = widget.gateway
+                                      .fetchModules();
+                                }),
                                 child: const Text('Try again'),
                               ),
                             ),
@@ -265,9 +265,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                               title: 'Quiz history is unavailable',
                               message: '${snapshot.error}',
                               action: TextButton(
-                                onPressed: () => setState(
-                                  () => _quizHistoryFuture = _loadQuizHistory(),
-                                ),
+                                onPressed: () => setState(() {
+                                  _quizHistoryFuture = _loadQuizHistory();
+                                }),
                                 child: const Text('Try again'),
                               ),
                             ),

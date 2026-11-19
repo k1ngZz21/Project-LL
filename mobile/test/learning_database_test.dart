@@ -596,4 +596,124 @@ void main() {
       }
     },
   );
+
+  group('Phase 1 regressions', () {
+    test('dictionary search returns pending entries, labelled and ranked after verified ones', () async {
+      await database.seedVocabulary(await LocalVocabularyRepository().load());
+      final gateway = FirebaseAuthGateway(database: database);
+
+      final pending = await gateway.searchDictionary('gempya');
+      expect(pending, isNotEmpty);
+      expect(pending.every((result) => !result.entry.isVerified), isTrue);
+      expect(pending.first.entry.reviewStatus, 'Pending review');
+
+      final db = await database.database;
+      final lastId = pending.last.entry.id;
+      await db.update(
+        'vocabulary',
+        {'is_verified': 1},
+        where: 'id = ?',
+        whereArgs: [lastId],
+      );
+      final ranked = await gateway.searchDictionary('gempya');
+      expect(ranked.first.entry.id, lastId);
+      expect(ranked.first.entry.isVerified, isTrue);
+    });
+
+    Future<int> threeLessonModule(LearningDatabase target) async {
+      final moduleId = await target.saveModule({
+        'title': 'Local day module',
+        'description': 'Local day rewards',
+        'lessons': [
+          for (var index = 0; index < 3; index++)
+            {'title': 'Lesson $index', 'content': 'Content $index'},
+        ],
+      });
+      await target.setModulePublished(moduleId, true);
+      return moduleId;
+    }
+
+    test('daily bonus follows the device local calendar day', () async {
+      var now = DateTime(2026, 11, 19, 0, 30);
+      final clocked = LearningDatabase(
+        factory: databaseFactoryFfi,
+        databasePath: inMemoryDatabasePath,
+        clock: () => now,
+      );
+      try {
+        await clocked.createLearner(
+          uid: 'learner-a',
+          email: 'a@example.test',
+          username: 'learner_a',
+          fullName: 'Learner A',
+          learningPreference: 'both',
+        );
+        final moduleId = await threeLessonModule(clocked);
+
+        // Just after local midnight: first lesson of the local day earns
+        // the daily bonus.
+        expect(await clocked.completeLesson('learner-a', moduleId, 0), isTrue);
+        expect((await clocked.learner('learner-a'))?['xp'], 15);
+
+        // Late the same local day: no second daily bonus.
+        now = DateTime(2026, 11, 19, 23, 30);
+        expect(await clocked.completeLesson('learner-a', moduleId, 1), isTrue);
+        expect((await clocked.learner('learner-a'))?['xp'], 25);
+
+        // Next local day: the daily bonus is available again.
+        now = DateTime(2026, 11, 20, 0, 10);
+        expect(await clocked.completeLesson('learner-a', moduleId, 2), isTrue);
+        expect((await clocked.learner('learner-a'))?['xp'], 40);
+
+        final bonuses = await (await clocked.database).query(
+          'learning_history',
+          columns: ['entity_id'],
+          where: 'uid = ? AND event_type = ?',
+          whereArgs: ['learner-a', 'daily_bonus_awarded'],
+          orderBy: 'entity_id',
+        );
+        expect(bonuses.map((row) => row['entity_id']), [
+          '2026-11-19',
+          '2026-11-20',
+        ]);
+      } finally {
+        await clocked.close();
+      }
+    });
+
+    test('streak and daily quest use local calendar days', () async {
+      var now = DateTime(2026, 11, 18, 7);
+      final clocked = LearningDatabase(
+        factory: databaseFactoryFfi,
+        databasePath: inMemoryDatabasePath,
+        clock: () => now,
+      );
+      try {
+        await clocked.createLearner(
+          uid: 'offline-guest',
+          email: '',
+          username: 'offline_guest',
+          fullName: 'Offline learner',
+          learningPreference: 'both',
+        );
+        final moduleId = await threeLessonModule(clocked);
+        await clocked.completeLesson('offline-guest', moduleId, 0);
+        now = DateTime(2026, 11, 19, 7);
+        await clocked.completeLesson('offline-guest', moduleId, 1);
+        now = DateTime(2026, 11, 19, 9);
+
+        final rewards = await FirebaseAuthGateway(database: clocked)
+            .fetchRewards();
+
+        expect(rewards.today, DateTime.utc(2026, 11, 19));
+        expect(rewards.streak, 2);
+        expect(rewards.dailyQuest.completed, isTrue);
+        expect(rewards.dailyQuest.xpAwarded, 5);
+        expect(rewards.calendar.last.isToday, isTrue);
+        expect(rewards.calendar.last.active, isTrue);
+      } finally {
+        await clocked.close();
+      }
+    });
+  });
 }

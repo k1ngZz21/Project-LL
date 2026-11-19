@@ -195,9 +195,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: () => setState(
-                                  () => _storageFuture = _loadStorage(),
-                                ),
+                                onPressed: () => setState(() {
+                                  _storageFuture = _loadStorage();
+                                }),
                                 child: const Text('Try again'),
                               ),
                             ],

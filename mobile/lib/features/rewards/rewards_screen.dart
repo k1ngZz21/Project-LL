@@ -164,10 +164,9 @@ class _RewardsScreenState extends State<RewardsScreen> {
                           )
                         else if (snapshot.hasError)
                           _RewardsLoadError(
-                            onRetry: () => setState(
-                              () => _rewardsFuture = widget.gateway
-                                  .fetchRewards(),
-                            ),
+                            onRetry: () => setState(() {
+                              _rewardsFuture = widget.gateway.fetchRewards();
+                            }),
                           )
                         else ...[
                           _buildBadgeCollection(snapshot.data!),

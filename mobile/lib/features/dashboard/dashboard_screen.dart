@@ -145,9 +145,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   DailyEngagementCard(
                     rewardsFuture: _rewardsFuture,
                     onRetry: () {
-                      setState(
-                        () => _rewardsFuture = widget.gateway.fetchRewards(),
-                      );
+                      setState(() {
+                        _rewardsFuture = widget.gateway.fetchRewards();
+                      });
                     },
                   ),
                   const SizedBox(height: 28),
@@ -268,9 +268,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   title: 'Learning content is unavailable',
                   message: 'Check your connection to load your modules.',
                   action: TextButton(
-                    onPressed: () => setState(
-                      () => _modulesFuture = widget.gateway.fetchModules(),
-                    ),
+                    onPressed: () => setState(() {
+                      _modulesFuture = widget.gateway.fetchModules();
+                    }),
                     child: const Text('Try again'),
                   ),
                 ),

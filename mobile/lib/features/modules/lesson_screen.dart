@@ -681,12 +681,20 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
+              // `score` is a percentage in local results, so the headline uses
+              // the correct-answer count instead.
               Text(
-                '${result.score} / ${result.totalQuestions}',
+                '${result.correctAnswers} / ${result.totalQuestions}',
+                key: const ValueKey('quiz-result-score'),
                 style: Theme.of(context).textTheme.headlineMedium
                     ?.copyWith(color: AppColors.primary),
               ),
-              const Text('correct answers'),
+              Text(
+                result.totalQuestions == 0
+                    ? 'correct answers'
+                    : 'correct answers · '
+                          '${(100 * result.correctAnswers / result.totalQuestions).round()}%',
+              ),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

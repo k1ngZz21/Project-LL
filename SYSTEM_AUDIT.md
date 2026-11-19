@@ -68,6 +68,13 @@ Each problem is labelled with the phase that will address it.
 | S4 | Web is unsupported (`UnavailableAuthGateway`, and sqflite has no web support), but the README implies web works. | 9 (docs) |
 | S5 | Stale build folders exist, and 32 packages have newer, constraint-incompatible versions. | 7, 9 |
 
+### Found during Phase 1
+| ID | Problem | Status |
+|---|---|---|
+| F6 | `setState(() => _future = ...)` returns a Future to `setState`, which asserts in debug builds and breaks the vocabulary learned/saved toggle and several Retry buttons. | Fixed in Phase 1 (7 places) |
+
+C3, F1, F2 and F3 were addressed in Phase 1. See PHASE_PROGRESS.md for verification status.
+
 ## 4. Documentation conflicts and their resolution
 
 All seven conflicts were resolved on 2026-11-19. See decisions D1–D7 in

@@ -156,7 +156,9 @@ void main() {
 
     expect(find.text('AI Search and Translator'), findsOneWidget);
     expect(
-      find.text('Translations come only from verified dictionary records.'),
+      find.text(
+        'Results come only from the bundled vocabulary workbooks. Entries marked "Pending review" have not been verified yet.',
+      ),
       findsOneWidget,
     );
     expect(find.text('Your learning journey'), findsNothing);
@@ -999,7 +1001,8 @@ void main() {
     gateway.moduleToReturn = module;
     gateway.quizResultToReturn = QuizResult(
       attemptId: 14,
-      score: 1,
+      // Local SQLite results store the score as a percentage.
+      score: 100,
       totalQuestions: 1,
       correctAnswers: 1,
       incorrectAnswers: 0,
@@ -1060,6 +1063,8 @@ void main() {
     expect(gateway.lastQuizAnswers, [1]);
     expect(find.text('Quiz complete'), findsOneWidget);
     expect(find.text('1 / 1'), findsOneWidget);
+    expect(find.text('100 / 1'), findsNothing);
+    expect(find.text('correct answers · 100%'), findsOneWidget);
     expect(find.text('+11 XP'), findsOneWidget);
     expect(find.text('Quiz XP: +1'), findsOneWidget);
     expect(find.text('Lesson completion XP: +10'), findsOneWidget);

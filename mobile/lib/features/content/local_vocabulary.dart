@@ -39,7 +39,11 @@ class LocalVocabularyEntry {
 
   bool get needsSubanenForm => subanen.trim().isEmpty;
 
-  String get searchableText => [
+  // Entries are immutable, so the lowercase search text is computed once per
+  // entry instead of on every keystroke.
+  static final _searchableTextCache = Expando<String>('searchableText');
+
+  String get searchableText => _searchableTextCache[this] ??= [
     english,
     bisaya,
     subanen,

@@ -16,6 +16,7 @@ class DictionaryEntry {
     this.audioUrl,
     this.source,
     this.reviewStatus,
+    this.isVerified = false,
   });
 
   final int id;
@@ -30,6 +31,10 @@ class DictionaryEntry {
   final String? audioUrl;
   final String? source;
   final String? reviewStatus;
+
+  /// Whether an administrator verified this entry against a cited source.
+  /// Unverified entries must be shown with a "Pending review" label.
+  final bool isVerified;
 
   factory DictionaryEntry.fromJson(Map<String, dynamic> json) {
     final id = json['id'];
@@ -51,6 +56,7 @@ class DictionaryEntry {
       audioUrl: json['audio_url'] as String?,
       source: json['source'] as String?,
       reviewStatus: json['review_status'] as String?,
+      isVerified: json['is_verified'] == true,
     );
   }
 }
