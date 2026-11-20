@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'app_log.dart';
 
 import '../features/auth/auth_models.dart';
 import 'offline_content_store.dart';
@@ -12,6 +12,6 @@ import 'offline_content_store.dart';
 String userMessage(Object? error, {required String fallback}) {
   if (error is AuthFailure) return error.message;
   if (error is OfflineStorageFailure) return error.message;
-  debugPrint('LearnLite error (shown as "$fallback"): $error');
+  appLog('LearnLite error (shown as "$fallback"): $error');
   return fallback;
 }

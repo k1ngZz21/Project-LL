@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_log.dart';
 import '../core/learning_snapshot.dart';
 import '../core/vocabulary_context.dart';
 import '../features/auth/auth_gateway.dart';
@@ -67,7 +68,7 @@ class _AppShellState extends State<AppShell> {
       final updated = await widget.authGateway.fetchProfile();
       if (mounted) setState(() => _profile = updated);
     } on Object catch (error) {
-      debugPrint('LearnLite: profile refresh skipped: $error');
+      appLog('LearnLite: profile refresh skipped: $error');
     }
   }
 

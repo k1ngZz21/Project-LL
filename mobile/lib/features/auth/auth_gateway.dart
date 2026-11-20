@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
     show
-        debugPrint,
         defaultTargetPlatform,
         kIsWeb,
         kReleaseMode,
@@ -14,6 +13,7 @@ import 'package:flutter/foundation.dart'
         visibleForTesting;
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../core/app_log.dart';
 import '../../core/vocabulary_pdf.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
@@ -94,7 +94,7 @@ class FirebaseAuthGateway
     final address = parseEmulatorAddress(authEmulatorAddress);
     if (address == null) return;
     await auth.useAuthEmulator(address.host, address.port);
-    debugPrint('LearnLite: using the Firebase Auth emulator at '
+    appLog('LearnLite: using the Firebase Auth emulator at '
         '${address.host}:${address.port}');
   }
 
@@ -123,7 +123,7 @@ class FirebaseAuthGateway
     } on Exception catch (error) {
       // The app still opens with the existing modules; the next launch
       // retries because the fingerprint was not stored.
-      debugPrint('LearnLite: workbook modules were not updated: $error');
+      appLog('LearnLite: workbook modules were not updated: $error');
     }
     timer.lap('workbook modules');
 
@@ -1400,7 +1400,7 @@ class FirebaseAuthGateway
   };
 
   String _unmappedFirebaseError(String code) {
-    debugPrint('LearnLite: unmapped Firebase Auth error code "$code"');
+    appLog('LearnLite: unmapped Firebase Auth error code "$code"');
     return 'Firebase sign-in could not be completed. Please try again.';
   }
 
@@ -1425,10 +1425,10 @@ class FirebaseAuthGateway
   static String _codeOf(FirebaseAuthException error) {
     final code = normalizedAuthErrorCode(error.code, error.message);
     if (code != error.code) {
-      debugPrint('LearnLite: Firebase Auth "${error.code}" treated as offline '
+      appLog('LearnLite: Firebase Auth "${error.code}" treated as offline '
           '(${error.message})');
     } else if (code == 'unknown') {
-      debugPrint('LearnLite: Firebase Auth "unknown": ${error.message}');
+      appLog('LearnLite: Firebase Auth "unknown": ${error.message}');
     }
     return code;
   }
@@ -1463,7 +1463,7 @@ class _StartupTimer {
 
   void report() {
     if (kReleaseMode) return;
-    debugPrint(
+    appLog(
       'LearnLite startup: ${_laps.join(' · ')} · '
       'total ${_stopwatch.elapsedMilliseconds}ms',
     );
