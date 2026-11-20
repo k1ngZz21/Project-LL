@@ -14,7 +14,7 @@ the physical-phone pass is still open (see [OWNER_ACTIONS.md](../OWNER_ACTIONS.m
 | `LL_Phone_API36` | Pixel 5 | 16 (API 36) | 1080×2340, 440 dpi | 2 GB / 2 | Account integration test, clean install, offline walkthrough, screenshots |
 | `LL_Tablet_API36` | Pixel Tablet | 16 (API 36) | 2560×1600, 320 dpi | 2 GB / 2 | Large-screen layout |
 | `Flutter_Emulator` | existing | 16 (API 36) | 1080×2400 | existing | Owner's device with account A; release ↔ debug data check and live Tutor (earlier today) |
-| Low-end, minimum Android (API 24) | planned | 7.0 | — | 1.5 GB / 2 | **Blocked:** the system image download from `dl.google.com` failed three times (stalled at 766 MB, then network errors). |
+| Low-end, minimum Android (API 24) | planned | 7.0 | — | 1.5 GB / 2 | **Blocked:** the system image download from `dl.google.com` failed three times (stalled at 766 MB; then "connection aborted"). Retry on a stable connection: `sdkmanager "system-images;android-24;google_apis;x86_64"`, then create the AVD with 1536 MB RAM. |
 
 ## Results
 

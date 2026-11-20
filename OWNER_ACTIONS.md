@@ -88,8 +88,10 @@ inbox and the live project:
 
 ## 5. Physical phone pass (Phase 8)
 
-Install the release APK from `release/` on the TECNO Spark Go 2 (uninstall the
-old debug build first if Android refuses the update). Then: register or sign
+Install `release/LearnLite-1.0.0-arm64-v8a.apk` on the TECNO Spark Go 2 (use
+the universal APK if Android says the app is not compatible). Android will
+refuse it over the old debug build because the signature differs; uninstalling
+that build first deletes the phone's local progress. Then: register or sign
 in, open a lesson, take a quiz, use flashcards, open Offline downloads →
 "Subanen word list (PDF)" → download → Open, switch to airplane mode and
 repeat, restart the phone and confirm progress is still there. For the
