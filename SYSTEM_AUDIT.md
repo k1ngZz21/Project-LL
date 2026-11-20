@@ -73,6 +73,15 @@ Each problem is labelled with the phase that will address it.
 |---|---|---|
 | F6 | `setState(() => _future = ...)` returns a Future to `setState`, which asserts in debug builds and breaks the vocabulary learned/saved toggle and several Retry buttons. | Fixed in Phase 1 (7 places) |
 
+### Found during Phase 3
+| ID | Problem | Status |
+|---|---|---|
+| F7 | All bundled vocabulary was re-imported on every launch (about 830 ms on desktop), and corrected workbook rows never updated existing devices. | Fixed in Phase 3 |
+| F8 | A failed database open was cached forever, so the app could not recover without a restart. | Fixed in Phase 3 |
+| F9 | `saveVocabulary` rewrote an edited workbook entry's `source_key` to `admin:<id>`, so the entry vanished from the offline vocabulary list and a duplicate of the original returned on the next import. | Fixed in Phase 3, with a regression test. A device already affected before the fix (no admin edits found on emulator-5554) would keep its earlier duplicate until cleaned up. |
+| F10 | Opening the database takes about 2–3 s at startup on the emulator (debug build), now the slowest startup step. | Open (to investigate in Phase 4 with the launch screen and profile measurements) |
+| F11 | Entries an admin creates (rather than edits) never appear in the offline vocabulary list, only in Dictionary search, because the list includes workbook rows only. | Open (existing behaviour; to decide in Phase 5) |
+
 C3, F1, F2 and F3 were addressed in Phase 1. See PHASE_PROGRESS.md for verification status.
 
 ## 4. Documentation conflicts and their resolution

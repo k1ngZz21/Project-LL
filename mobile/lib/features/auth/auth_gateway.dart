@@ -5,7 +5,12 @@ import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, kIsWeb, TargetPlatform;
+    show
+        debugPrint,
+        defaultTargetPlatform,
+        kIsWeb,
+        kReleaseMode,
+        TargetPlatform;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
@@ -68,14 +73,21 @@ class FirebaseAuthGateway
       return const UnavailableAuthGateway();
     }
 
+    // Startup timing (debug and profile builds only) so slow steps are
+    // measured rather than guessed.
+    final timer = _StartupTimer();
     final database = LearningDatabase.instance;
     await database.database;
-    await database.seedVocabulary(await LocalVocabularyRepository().load());
+    timer.lap('open database');
+    await database.seedVocabularyIfChanged(LocalVocabularyRepository());
+    timer.lap('vocabulary seed check');
     await _migrateLegacyCache(database, OfflineContentStore());
+    timer.lap('legacy cache check');
     await database.seedBundledModule(
       key: bundledOfflineModuleKey,
       module: bundledOfflineModule,
     );
+    timer.lap('bundled module');
 
     FirebaseAuth? auth;
     String? authError;
@@ -100,6 +112,9 @@ class FirebaseAuthGateway
       authError =
           'Firebase initialization failed (${error.code}). Check the LearnLite Firebase options and Android package registration.';
     }
+    timer
+      ..lap('firebase init')
+      ..report();
 
     return FirebaseAuthGateway(
       firebaseAuth: auth,
@@ -1322,6 +1337,28 @@ class FirebaseAuthGateway
     'operation-not-allowed' => 'Email verification is not available for this Firebase project. Contact LearnLite support.',
     _ => 'Firebase could not send or check your verification email. Please try again.',
   };
+}
+
+/// Records how long each startup step takes and prints one summary line in
+/// debug and profile builds (never in release builds).
+class _StartupTimer {
+  final _stopwatch = Stopwatch()..start();
+  final _laps = <String>[];
+  Duration _last = Duration.zero;
+
+  void lap(String step) {
+    final now = _stopwatch.elapsed;
+    _laps.add('$step ${(now - _last).inMilliseconds}ms');
+    _last = now;
+  }
+
+  void report() {
+    if (kReleaseMode) return;
+    debugPrint(
+      'LearnLite startup: ${_laps.join(' · ')} · '
+      'total ${_stopwatch.elapsedMilliseconds}ms',
+    );
+  }
 }
 
 class UnavailableAuthGateway implements AuthGateway {

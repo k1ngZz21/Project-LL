@@ -52,6 +52,14 @@ A permanent fix is to move the project out of a OneDrive-synced folder. That is 
 | 2026-11-19 | 0 | Baseline commit `7bd8f35`. Added `mobile/tool/verify.ps1` and the four roadmap documents. |
 | 2026-11-19 | 1 | Lazy vocabulary list; quiz headline uses correct/total; dictionary searches all entries with Pending review badges (D5); rewards use local calendar days (`lib/core/local_day.dart`, injectable `LearningDatabase.clock`); fixed `setState` returning a Future in 7 places. 67 tests. |
 
+| 2026-11-19 | 3 | Startup step timing; vocabulary import skipped unless the bundled-data fingerprint changes, and existing rows updated instead of skipped; retry after a failed database open; `addHistory` requires an owner; `integrityProblems()`; v1-to-v3 and double-reopen tests; `saveVocabulary` keeps an entry's identity on edit (F9). 76 tests. Emulator: data kept on `install -r`; steady startup setup 2.9–4.2 s (debug). |
+
+## Vocabulary import
+
+- `LocalVocabularyRepository.fingerprint()` hashes the three bundled JSON files plus `importerVersion`. **Bump `importerVersion`** whenever the column-to-field mapping changes, so every device re-imports.
+- `seedVocabularyIfChanged` compares the fingerprint with `app_metadata.vocabulary_seed_fingerprint_v1` and imports only when they differ.
+- An import overwrites workbook text fields of rows matched by `source_key`, but never `is_verified`, `is_active`, `pronunciation`, `audio_url`, or a verified entry's review status. The workbooks stay the source of truth.
+
 ## Coding notes
 
 - Don't write `setState(() => _future = ...)`. The assignment's value (a Future) is returned to `setState`, which asserts in debug builds. Use a block body.

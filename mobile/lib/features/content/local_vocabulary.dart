@@ -104,16 +104,42 @@ class LocalVocabularyRepository {
 
   final AssetBundle _bundle;
 
+  /// Bump when the way workbook columns map to vocabulary fields changes, so
+  /// devices re-import even if the JSON files are unchanged.
+  static const importerVersion = 1;
+
+  static const assetPaths = [
+    'assets/vocabulary/learnlite_subanen_vocabulary.json',
+    'assets/vocabulary/learnlite_still_needed.json',
+    'assets/vocabulary/subanen_vocabulary_starter_list.json',
+  ];
+
+  /// A cheap fingerprint (64-bit FNV-1a) of the bundled vocabulary files and
+  /// the importer version. Startup compares it with the stored value and
+  /// skips the import when nothing changed.
+  Future<String> fingerprint() async {
+    var hash = 0xcbf29ce484222325;
+    void mix(int value) {
+      hash ^= value & 0xff;
+      hash *= 0x100000001b3;
+      hash ^= (value >> 8) & 0xff;
+      hash *= 0x100000001b3;
+    }
+
+    mix(importerVersion);
+    for (final path in assetPaths) {
+      for (final unit in (await _bundle.loadString(path)).codeUnits) {
+        mix(unit);
+      }
+      mix(0x1f);
+    }
+    return 'v$importerVersion:${hash.toUnsigned(64).toRadixString(16)}';
+  }
+
   Future<LocalVocabularyCatalog> load() async {
-    final vocabularyData = await _readAsset(
-      'assets/vocabulary/learnlite_subanen_vocabulary.json',
-    );
-    final neededData = await _readAsset(
-      'assets/vocabulary/learnlite_still_needed.json',
-    );
-    final starterData = await _readAsset(
-      'assets/vocabulary/subanen_vocabulary_starter_list.json',
-    );
+    final vocabularyData = await _readAsset(assetPaths[0]);
+    final neededData = await _readAsset(assetPaths[1]);
+    final starterData = await _readAsset(assetPaths[2]);
 
     final vocabulary = _entries(
       vocabularyData,

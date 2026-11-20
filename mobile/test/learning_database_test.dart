@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:learnlite/core/bundled_learning_content.dart';
 import 'package:learnlite/core/learning_database.dart';
@@ -716,4 +718,428 @@ void main() {
       }
     });
   });
+
+  group('Phase 3 hardening', () {
+    test(
+      'vocabulary import runs once and is skipped while unchanged',
+      () async {
+        final repository = LocalVocabularyRepository(
+          bundle: _MemoryBundle(_vocabularyFiles(english: 'Good day')),
+        );
+
+        expect(await database.seedVocabularyIfChanged(repository), isTrue);
+        final firstCount = (await database.vocabulary()).length;
+        expect(await database.seedVocabularyIfChanged(repository), isFalse);
+        expect((await database.vocabulary()).length, firstCount);
+      },
+    );
+
+    test(
+      'changed workbook updates existing rows and keeps admin-managed fields',
+      () async {
+        await database.seedVocabularyIfChanged(
+          LocalVocabularyRepository(
+            bundle: _MemoryBundle(_vocabularyFiles(english: 'Good day')),
+          ),
+        );
+        final db = await database.database;
+        final row = (await db.query(
+          'vocabulary',
+          where: 'subanen = ?',
+          whereArgs: ['gempya gendao'],
+        )).single;
+        await db.update(
+          'vocabulary',
+          {
+            'is_verified': 1,
+            'review_status': 'verified',
+            'pronunciation': 'gem-PYA gen-DAO',
+          },
+          where: 'id = ?',
+          whereArgs: [row['id']],
+        );
+        final countBefore = (await database.vocabulary()).length;
+
+        final changed = await database.seedVocabularyIfChanged(
+          LocalVocabularyRepository(
+            bundle: _MemoryBundle(_vocabularyFiles(english: 'Good day!')),
+          ),
+        );
+
+        expect(changed, isTrue);
+        final updated = (await db.query(
+          'vocabulary',
+          where: 'id = ?',
+          whereArgs: [row['id']],
+        )).single;
+        expect(updated['english'], 'Good day!');
+        expect(updated['is_verified'], 1);
+        expect(updated['review_status'], 'verified');
+        expect(updated['pronunciation'], 'gem-PYA gen-DAO');
+        expect((await database.vocabulary()).length, countBefore);
+      },
+    );
+
+    test('measures the real vocabulary import against the skipped check', () async {
+      final repository = LocalVocabularyRepository();
+      final first = Stopwatch()..start();
+      expect(await database.seedVocabularyIfChanged(repository), isTrue);
+      first.stop();
+      final repeat = Stopwatch()..start();
+      expect(await database.seedVocabularyIfChanged(repository), isFalse);
+      repeat.stop();
+      // Reported for the Phase 3 record; timings are not asserted.
+      // ignore: avoid_print
+      print(
+        'PHASE3_TIMING vocabulary import first=${first.elapsedMilliseconds}ms '
+        'repeat=${repeat.elapsedMilliseconds}ms '
+        'rows=${(await database.vocabulary()).length}',
+      );
+    });
+
+    test('admin-edited workbook entry stays listed and is not duplicated by the next import', () async {
+      await database.seedVocabularyIfChanged(
+        LocalVocabularyRepository(
+          bundle: _MemoryBundle(_vocabularyFiles(english: 'Good day')),
+        ),
+      );
+      final db = await database.database;
+      final original = (await db.query(
+        'vocabulary',
+        where: 'subanen = ?',
+        whereArgs: ['gempya gendao'],
+      )).single;
+      final id = original['id']! as int;
+      final countBefore = (await database.vocabulary()).length;
+
+      await database.saveVocabulary({
+        'subanen_word': 'gempya gendao',
+        'english_translation': 'Good day (edited)',
+        'bisaya_translation': 'Maayong adlaw',
+        'pronunciation': 'gem-PYA gen-DAO',
+        'audio_url': 'local://resource/recording-1',
+        'source': 'Elder review',
+        'review_status': 'verified',
+        'is_verified': true,
+        'is_active': true,
+      }, entryId: id);
+
+      final afterEdit = (await db.query(
+        'vocabulary',
+        where: 'id = ?',
+        whereArgs: [id],
+      )).single;
+      expect(afterEdit['source_key'], original['source_key']);
+      expect(afterEdit['source_row'], original['source_row']);
+      final listed = (await database.vocabularyCatalog()).vocabulary.where(
+        (entry) => entry.id == id,
+      );
+      expect(listed.single.english, 'Good day (edited)');
+
+      // A later workbook change triggers a new import.
+      final changed = await database.seedVocabularyIfChanged(
+        LocalVocabularyRepository(
+          bundle: _MemoryBundle(
+            _vocabularyFiles(english: 'Good day', starterEnglish: 'Good!'),
+          ),
+        ),
+      );
+      expect(changed, isTrue);
+
+      expect((await database.vocabulary()).length, countBefore);
+      final matches = await db.query(
+        'vocabulary',
+        where: 'subanen = ?',
+        whereArgs: ['gempya gendao'],
+      );
+      expect(matches, hasLength(1), reason: 'no duplicate after import');
+      final row = matches.single;
+      expect(row['id'], id);
+      expect(row['is_verified'], 1);
+      expect(row['is_active'], 1);
+      expect(row['review_status'], 'verified');
+      expect(row['pronunciation'], 'gem-PYA gen-DAO');
+      expect(row['audio_url'], 'local://resource/recording-1');
+      // Workbook text stays the source of truth for workbook entries.
+      expect(row['english'], 'Good day');
+      expect(
+        (await database.vocabularyCatalog()).vocabulary.where(
+          (entry) => entry.id == id,
+        ),
+        hasLength(1),
+      );
+    });
+
+    test('a failed database open is retried on the next call', () async {
+      final factory = _FlakyFactory();
+      final flaky = LearningDatabase(
+        factory: factory,
+        databasePath: inMemoryDatabasePath,
+      );
+      try {
+        await expectLater(flaky.database, throwsA(isA<StateError>()));
+        final db = await flaky.database;
+        expect(db.isOpen, isTrue);
+        expect(factory.calls, 2);
+      } finally {
+        await flaky.close();
+      }
+    });
+
+    test('learning history requires an owner', () async {
+      await expectLater(
+        database.addHistory(id: 'h1', uid: ' ', eventType: 'test'),
+        throwsArgumentError,
+      );
+    });
+
+    test('integrity check passes and reports ownerless rows', () async {
+      await database.createLearner(
+        uid: 'learner-a',
+        email: 'a@example.test',
+        username: 'learner_a',
+        fullName: 'Learner A',
+        learningPreference: 'both',
+      );
+      await database.addHistory(
+        id: 'owned',
+        uid: 'learner-a',
+        eventType: 'test',
+      );
+      expect(await database.integrityProblems(), isEmpty);
+
+      await (await database.database).insert('learning_history', {
+        'id': 'ghost-row',
+        'uid': 'ghost',
+        'event_type': 'test',
+        'created_at': '2026-01-01T00:00:00.000Z',
+      });
+      expect(
+        await database.integrityProblems(),
+        contains('learning_history: 1 row(s) without a learner'),
+      );
+    });
+
+    test('migrates a version one database to version three', () async {
+      final directory = await Directory.systemTemp.createTemp('learnlite-v1-');
+      final path = p.join(directory.path, 'learnlite-v1.db');
+      final legacy = await databaseFactoryFfi.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: (db, _) async {
+            await db.execute('''
+              CREATE TABLE learners (
+                uid TEXT PRIMARY KEY,
+                email TEXT NOT NULL,
+                username TEXT NOT NULL COLLATE NOCASE UNIQUE,
+                full_name TEXT NOT NULL,
+                nickname TEXT,
+                avatar_id TEXT,
+                outfit_color TEXT,
+                avatar_completed INTEGER NOT NULL DEFAULT 0,
+                learning_preference TEXT NOT NULL DEFAULT 'both',
+                xp INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+              )
+            ''');
+            await db.execute('''
+              CREATE TABLE learning_modules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                is_published INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+              )
+            ''');
+            await db.execute('''
+              CREATE TABLE vocabulary (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source_key TEXT NOT NULL UNIQUE,
+                source_file TEXT NOT NULL,
+                source_row INTEGER,
+                english TEXT NOT NULL DEFAULT '',
+                is_verified INTEGER NOT NULL DEFAULT 0,
+                is_active INTEGER NOT NULL DEFAULT 1
+              )
+            ''');
+            await db.execute('''
+              CREATE TABLE quiz_results (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                uid TEXT NOT NULL REFERENCES learners(uid) ON DELETE CASCADE,
+                module_id INTEGER,
+                lesson_index INTEGER NOT NULL,
+                score INTEGER NOT NULL,
+                total_questions INTEGER NOT NULL,
+                correct_answers INTEGER NOT NULL,
+                answers_json TEXT NOT NULL,
+                completed_at TEXT NOT NULL
+              )
+            ''');
+            await db.insert('learners', {
+              'uid': 'v1-learner',
+              'email': 'v1@example.test',
+              'username': 'v1_learner',
+              'full_name': 'Version One',
+              'xp': 42,
+              'created_at': '2025-01-01T00:00:00.000Z',
+              'updated_at': '2025-03-01T00:00:00.000Z',
+            });
+            await db.insert('quiz_results', {
+              'uid': 'v1-learner',
+              'module_id': null,
+              'lesson_index': 0,
+              'score': 100,
+              'total_questions': 1,
+              'correct_answers': 1,
+              'answers_json': '[]',
+              'completed_at': '2025-03-01T00:00:00.000Z',
+            });
+          },
+        ),
+      );
+      await legacy.close();
+
+      final upgraded = LearningDatabase(
+        factory: databaseFactoryFfi,
+        databasePath: path,
+      );
+      try {
+        final db = await upgraded.database;
+        expect(
+          (await db.rawQuery('PRAGMA user_version')).single['user_version'],
+          3,
+        );
+        final learner = await upgraded.learner('v1-learner');
+        expect(learner?['xp'], 42);
+        expect(learner?['full_name'], 'Version One');
+        expect(learner?['last_login'], '2025-03-01T00:00:00.000Z');
+        expect(await db.query('quiz_results'), hasLength(1));
+        expect(await db.query('learning_history'), isEmpty);
+        expect(await upgraded.integrityProblems(), isEmpty);
+      } finally {
+        await upgraded.close();
+        await directory.delete(recursive: true);
+      }
+    });
+
+    test('progress survives two close and reopen cycles', () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'learnlite-reopen-',
+      );
+      final path = p.join(directory.path, 'learnlite.db');
+      LearningDatabase open() =>
+          LearningDatabase(factory: databaseFactoryFfi, databasePath: path);
+      try {
+        final first = open();
+        await first.createLearner(
+          uid: 'learner-a',
+          email: 'a@example.test',
+          username: 'learner_a',
+          fullName: 'Learner A',
+          learningPreference: 'both',
+        );
+        final moduleId = await first.saveModule({
+          'title': 'Reopen module',
+          'description': 'Persistence',
+          'lessons': [
+            {'title': 'One', 'content': 'One'},
+            {'title': 'Two', 'content': 'Two'},
+          ],
+        });
+        await first.setModulePublished(moduleId, true);
+        await first.completeLesson('learner-a', moduleId, 0);
+        await first.close();
+
+        final second = open();
+        await second.completeLesson('learner-a', moduleId, 1);
+        await second.close();
+
+        final third = open();
+        final module = await third.module(moduleId, uid: 'learner-a');
+        expect(module?['completed_lessons'], 2);
+        expect((await third.learner('learner-a'))?['xp'], 25);
+        expect(await third.integrityProblems(), isEmpty);
+        await third.close();
+      } finally {
+        await directory.delete(recursive: true);
+      }
+    });
+  });
+}
+
+/// Minimal workbook-shaped vocabulary files for import tests.
+Map<String, String> _vocabularyFiles({
+  required String english,
+  String starterEnglish = 'Good',
+}) {
+  String file(Map<String, dynamic> row) => jsonEncode({
+    'source_file': 'test.xlsx',
+    'sheet': 'Sheet',
+    'header_row': 1,
+    'headers': <String, String>{},
+    'rows': [row],
+  });
+  return {
+    LocalVocabularyRepository.assetPaths[0]: file({
+      'row': 2,
+      'cells': {
+        'B': '1 · Basic Greetings',
+        'D': english,
+        'E': 'Maayong adlaw',
+        'F': 'gempya gendao',
+        'K': 'Pending review',
+      },
+    }),
+    LocalVocabularyRepository.assetPaths[1]: file({
+      'row': 2,
+      'cells': {'B': '1 · Basic Greetings', 'C': 'Good night'},
+    }),
+    LocalVocabularyRepository.assetPaths[2]: file({
+      'row': 2,
+      'cells': {
+        'B': 'Greetings',
+        'C': 'gempya',
+        'D': 'Maayo',
+        'E': starterEnglish,
+      },
+    }),
+  };
+}
+
+class _MemoryBundle extends CachingAssetBundle {
+  _MemoryBundle(this.files);
+
+  final Map<String, String> files;
+
+  @override
+  Future<ByteData> load(String key) async {
+    final text = files[key];
+    if (text == null) throw StateError('Missing test asset $key');
+    return ByteData.sublistView(Uint8List.fromList(utf8.encode(text)));
+  }
+
+  @override
+  Future<String> loadString(String key, {bool cache = true}) async {
+    final text = files[key];
+    if (text == null) throw StateError('Missing test asset $key');
+    return text;
+  }
+}
+
+/// Fails the first open, then delegates to the FFI factory.
+class _FlakyFactory implements DatabaseFactory {
+  int calls = 0;
+
+  @override
+  Future<Database> openDatabase(String path, {OpenDatabaseOptions? options}) {
+    calls++;
+    if (calls == 1) return Future.error(StateError('disk busy'));
+    return databaseFactoryFfi.openDatabase(path, options: options);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

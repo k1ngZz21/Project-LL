@@ -24,7 +24,15 @@ class LearningDatabase {
   final DateTime Function() clock;
   Future<Database>? _opening;
 
-  Future<Database> get database => _opening ??= _open();
+  /// Opens the database once and shares the result. A failed open is not
+  /// cached, so the next call retries instead of failing forever.
+  Future<Database> get database => _opening ??= _open().then(
+    (db) => db,
+    onError: (Object error, StackTrace stackTrace) {
+      _opening = null;
+      Error.throwWithStackTrace(error, stackTrace);
+    },
+  );
 
   Future<void> close() async {
     final opened = _opening;
@@ -264,16 +272,70 @@ class LearningDatabase {
     ''');
   }
 
-  Future<void> seedVocabulary(LocalVocabularyCatalog catalog) async {
+  static const vocabularySeedFingerprintKey = 'vocabulary_seed_fingerprint_v1';
+
+  /// Imports the bundled vocabulary only when its fingerprint differs from
+  /// the one stored at the last import. Returns whether an import ran.
+  Future<bool> seedVocabularyIfChanged(
+    LocalVocabularyRepository repository,
+  ) async {
+    final fingerprint = await repository.fingerprint();
+    final stored = await (await database).query(
+      'app_metadata',
+      columns: ['value'],
+      where: 'key = ?',
+      whereArgs: [vocabularySeedFingerprintKey],
+      limit: 1,
+    );
+    if (stored.isNotEmpty && stored.single['value'] == fingerprint) {
+      return false;
+    }
+    await seedVocabulary(await repository.load(), fingerprint: fingerprint);
+    return true;
+  }
+
+  /// Adds new workbook rows and updates existing ones (matched by
+  /// `source_key`) so corrected workbooks reach devices that already have
+  /// the data. Admin-managed fields — `is_verified`, `is_active`,
+  /// `pronunciation`, `audio_url` — are never overwritten, and the review
+  /// status of an admin-verified entry is kept.
+  Future<void> seedVocabulary(
+    LocalVocabularyCatalog catalog, {
+    String? fingerprint,
+  }) async {
     final db = await database;
     await db.transaction((txn) async {
-      Future<void> insertRows(
+      Future<void> upsertRows(
         List<LocalVocabularyEntry> entries,
         String dataset,
       ) async {
         for (final entry in entries) {
+          final sourceKey = '$dataset:${entry.sourceFile}:${entry.sourceRow}';
+          final updated = await txn.rawUpdate(
+            'UPDATE vocabulary SET source_file = ?, source_row = ?, '
+            'english = ?, bisaya = ?, subanen = ?, module = ?, topic = ?, '
+            'variety = ?, alternate_forms = ?, source = ?, notes = ?, '
+            'review_status = CASE WHEN is_verified = 1 THEN review_status ELSE ? END '
+            'WHERE source_key = ?',
+            [
+              entry.sourceFile,
+              entry.sourceRow,
+              entry.english,
+              entry.bisaya,
+              entry.subanen,
+              entry.module,
+              entry.topic,
+              entry.variety,
+              entry.alternateForms,
+              entry.source,
+              entry.notes,
+              entry.reviewStatus,
+              sourceKey,
+            ],
+          );
+          if (updated > 0) continue;
           await txn.insert('vocabulary', {
-            'source_key': '$dataset:${entry.sourceFile}:${entry.sourceRow}',
+            'source_key': sourceKey,
             'source_file': entry.sourceFile,
             'source_row': entry.sourceRow,
             'english': entry.english,
@@ -290,13 +352,19 @@ class LearningDatabase {
         }
       }
 
-      await insertRows(catalog.vocabulary, 'vocabulary');
-      await insertRows(catalog.stillNeeded, 'still-needed');
-      await insertRows(catalog.starterList, 'starter-list');
+      await upsertRows(catalog.vocabulary, 'vocabulary');
+      await upsertRows(catalog.stillNeeded, 'still-needed');
+      await upsertRows(catalog.starterList, 'starter-list');
       await txn.insert('app_metadata', {
         'key': 'vocabulary_source_row_counts_v1',
         'value': jsonEncode(catalog.sourceRowCounts),
       }, conflictAlgorithm: ConflictAlgorithm.replace);
+      if (fingerprint != null) {
+        await txn.insert('app_metadata', {
+          'key': vocabularySeedFingerprintKey,
+          'value': fingerprint,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+      }
     });
   }
 
@@ -1270,13 +1338,18 @@ class LearningDatabase {
         .toList();
   }
 
+  /// Every history row belongs to a learner, so per-UID queries never see
+  /// ownerless events.
   Future<void> addHistory({
     required String id,
-    required String? uid,
+    required String uid,
     required String eventType,
     String? entityId,
     Map<String, dynamic> eventData = const {},
   }) async {
+    if (uid.trim().isEmpty) {
+      throw ArgumentError.value(uid, 'uid', 'A history owner is required.');
+    }
     await (await database).insert('learning_history', {
       'id': id,
       'uid': uid,
@@ -1285,6 +1358,37 @@ class LearningDatabase {
       'event_data_json': jsonEncode(eventData),
       'created_at': DateTime.now().toUtc().toIso8601String(),
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
+  }
+
+  /// Runs SQLite's integrity and foreign-key checks and looks for learner
+  /// data with no owning learner in the tables that have no foreign key
+  /// (`learning_history`, `dictionary_searches`). Returns a description of
+  /// each problem; an empty list means the database is consistent.
+  Future<List<String>> integrityProblems() async {
+    final db = await database;
+    final problems = <String>[];
+    final integrity = await db.rawQuery('PRAGMA integrity_check');
+    for (final row in integrity) {
+      final message = row.values.first?.toString() ?? '';
+      if (message != 'ok') problems.add('integrity: $message');
+    }
+    for (final row in await db.rawQuery('PRAGMA foreign_key_check')) {
+      problems.add(
+        'foreign key: ${row['table']} row ${row['rowid']} → ${row['parent']}',
+      );
+    }
+    for (final table in const ['learning_history', 'dictionary_searches']) {
+      final orphans = await _count(
+        db,
+        'SELECT COUNT(*) AS count FROM $table '
+        'WHERE uid IS NULL OR uid NOT IN (SELECT uid FROM learners)',
+        const [],
+      );
+      if (orphans > 0) {
+        problems.add('$table: $orphans row(s) without a learner');
+      }
+    }
+    return problems;
   }
 
   Future<List<Map<String, dynamic>>> historyEvents({
@@ -1444,12 +1548,13 @@ class LearningDatabase {
     );
   }
 
+  /// Creates an admin entry, or updates an existing one in place. An update
+  /// never changes `source_key`, `source_file` or `source_row`, so an edited
+  /// workbook entry keeps its identity: it stays in the offline vocabulary
+  /// list and the next workbook import updates it instead of adding a
+  /// duplicate.
   Future<int> saveVocabulary(Map<String, dynamic> entry, {int? entryId}) async {
     final row = <String, Object?>{
-      'source_key': entryId == null
-          ? 'admin:${const Uuid().v4()}'
-          : 'admin:$entryId',
-      'source_file': entry['source'] ?? 'LearnLite local entry',
       'english': entry['english_translation'] ?? '',
       'bisaya': entry['bisaya_translation'] ?? '',
       'subanen': entry['subanen_word'] ?? '',
@@ -1463,7 +1568,13 @@ class LearningDatabase {
       'is_active': entry['is_active'] == false ? 0 : 1,
     };
     final db = await database;
-    if (entryId == null) return db.insert('vocabulary', row);
+    if (entryId == null) {
+      return db.insert('vocabulary', {
+        ...row,
+        'source_key': 'admin:${const Uuid().v4()}',
+        'source_file': entry['source'] ?? 'LearnLite local entry',
+      });
+    }
     await db.update('vocabulary', row, where: 'id = ?', whereArgs: [entryId]);
     return entryId;
   }
