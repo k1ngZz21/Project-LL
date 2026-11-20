@@ -60,7 +60,30 @@ A permanent fix is to move the project out of a OneDrive-synced folder. That is 
 | 2026-11-20 | 7 | `userMessage()` replaces raw error text; UI dumps untracked; `.gitignore` covers dumps, `backend/.venv`, `backend/data`. |
 | 2026-11-20 | 9 | Release signing from `android/key.properties`; README rewritten. |
 | 2026-11-20 | 4–9 | Committed as `5bab2fc`. |
+| 2026-11-20 | 2, 4, 7, 9 | `f21e62c`: Auth-emulator hook and device account test (7/7), offline sign-in fix (F15), word-list PDF, release signing outside the repo, OWNER_ACTIONS.md. `bfd7b8c`: guest progress (F16), greeting (F17), quiz scroll (F18), text (F19). 100 unit/widget tests. |
 | 2026-11-20 | 5, 7 | `d6e87fe`: LAN-HTTP opt-in for release builds (F13); admin-created entries listed and deactivated entries hidden (F11). 92 tests. Release APK smoke-tested on the emulator; database unchanged across release ↔ debug installs. |
+
+## Device integration tests
+
+- `mobile/integration_test/auth_flow_test.dart` drives the real Firebase Auth plugin and SQLite on a device against the **Firebase Auth emulator**:
+  ```powershell
+  firebase emulators:start --only auth --project demo-learnlite          # repo root; config in firebase.json
+  # in %TEMP%\learnlite_verify (after verify.ps1 copied the sources):
+  flutter test integration_test/auth_flow_test.dart -d emulator-5554 --dart-define=LEARNLITE_AUTH_EMULATOR=10.0.2.2:9099
+  ```
+- **Never run it on `Flutter_Emulator`** (it holds the owner's account and progress). Use `LL_Phone_API36` / `LL_Tablet_API36`.
+- The emulator stores accounts under `demo-learnlite`; the test reads verification links from there (`LEARNLITE_AUTH_EMULATOR_PROJECT` overrides).
+- `LEARNLITE_AUTH_EMULATOR` only works in debug/profile builds.
+
+## Release signing
+
+- `mobile/tool/create_release_keystore.ps1` creates `%USERPROFILE%\.learnlite-signing\learnlite-upload.jks` and `key.properties` (random password, current-user ACL). It refuses to overwrite an existing key.
+- Gradle looks for `key.properties` in `LEARNLITE_KEY_PROPERTIES`, then that folder, then `android/key.properties`; without one it signs with the debug key and warns on release tasks.
+- A release-signed APK cannot replace a debug-signed install (signature mismatch). Don't install release builds on `Flutter_Emulator` unless losing its local data is acceptable.
+
+## Word-list PDF
+
+- `lib/core/vocabulary_pdf.dart` builds the PDF from the SQLite vocabulary catalog; it is stored as content pack `vocabulary-pdf` (bytes in `content_packs.media_json`) and opened with `printing`. Regenerate it after vocabulary changes by removing and downloading it again.
 
 ## Workbook modules
 

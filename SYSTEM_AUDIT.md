@@ -104,6 +104,22 @@ C3, F1, F2 and F3 were addressed in Phase 1. See PHASE_PROGRESS.md for verificat
 | F13 (new) | **Fixed (2026-11-20, `d6e87fe`).** Decided without the owner (they asked for autonomous work), choosing the conservative option: HTTPS stays the default; a build made with `--dart-define=LEARNLITE_ALLOW_LAN_HTTP=true` also accepts `http://` to a private IPv4 address only. Trade-off: on classroom Wi-Fi the Firebase ID token (1-hour lifetime) travels unencrypted. Verified with a release build on the emulator. Reversible by building without the flag. |
 | F14 (new) | Open (environment). On this PC (7.6 GB RAM), running the emulator, Ollama, Gradle and the editor together caused "isn't responding" dialogs for LearnLite and for Android's System UI. LearnLite threads were idle; the device's `system_server` and the host were saturated. Recheck on the physical phone with the Tutor PC separate. |
 
+### Status update (2026-11-20, afternoon)
+| ID | Status |
+|---|---|
+| C2 | **Mostly closed.** All account flows verified on an Android emulator against the Firebase Auth emulator (7/7). Live-project inbox checks remain for the owner. |
+| F1 | **Closed.** Verified on a device ("2 / 5 correct answers · 40%"). |
+| G3, F4 | **PDF closed:** offline word-list PDF built from the workbooks. Audio still open (no licensed recordings). |
+| S1 | Release signing **done** (random-password keystore outside the repo). Application ID still open: needs the owner's Firebase registration. |
+| S3 | Open (owner). Read-only check: no SHA fingerprints registered. Steps in OWNER_ACTIONS.md. |
+| F15 (new) | **Fixed.** Sign-in with no reachable server showed a vague error (SDK code `unknown`). |
+| F16 (new) | **Fixed.** Guests always saw 0 XP / Level 0 (constant profile; saved guest progress never loaded). |
+| F17 (new) | **Fixed.** "Welcome," with an empty name. |
+| F18 (new) | **Fixed.** Start Quiz opened at the last question (lesson scroll offset reused). |
+| F19 (new) | **Fixed.** Offline downloads text claimed only verified entries. |
+| F20 (new) | Open (environment). Android 7.0 system image could not be downloaded; the minimum-version / low-end emulator test is pending. |
+| G-Avatar | Open (by design). Avatar artwork needs approved designs; the screen says so instead of showing placeholders. |
+
 ## 4. Documentation conflicts and their resolution
 
 All seven conflicts were resolved on 2026-11-19. See decisions D1–D7 in

@@ -6,15 +6,19 @@ A phase is COMPLETED only after its verification has passed. The plan is in [MAS
 | Phase | Title | Status | Last updated |
 |---|---|---|---|
 | 0 | Baseline and decisions | COMPLETED | 2026-11-19 |
-| 1 | Fix existing defects | PARTIALLY COMPLETED | 2026-11-19 |
-| 2 | Live Firebase authentication verification | IN PROGRESS (owner checks pending) | 2026-11-19 |
+| 1 | Fix existing defects | COMPLETED (1.2 verified on device 2026-11-20) | 2026-11-20 |
+| 2 | Live Firebase authentication verification | PARTIALLY COMPLETED (all flows verified against the Auth emulator; inbox checks on the live project are the owner's) | 2026-11-20 |
 | 3 | SQLite hardening | COMPLETED (commit `4e7454f`) | 2026-11-20 |
-| 4 | Complete the offline learning modules | PARTIALLY COMPLETED (audio/PDF need source files) | 2026-11-20 |
+| 4 | Complete the offline learning modules | PARTIALLY COMPLETED (word-list PDF done; audio needs recordings) | 2026-11-20 |
 | 5 | AI Tutor integration | COMPLETED (release build verified over LAN HTTP on the emulator; physical-phone run still to do) | 2026-11-20 |
 | 6 | Firebase cloud sync | DEFERRED (D2) | 2026-11-19 |
 | 7 | Security and error handling | PARTIALLY COMPLETED (only the API-key restriction, an owner Console task, is open) | 2026-11-20 |
-| 8 | UI/UX polish and physical device testing | PARTIALLY COMPLETED (physical-phone pass) | 2026-11-20 |
-| 9 | Release build and documentation | PARTIALLY COMPLETED (owner keystore, app ID, screenshots) | 2026-11-20 |
+| 8 | UI/UX polish and physical device testing | PARTIALLY COMPLETED (emulator profiles done; physical-phone pass open) | 2026-11-20 |
+| 9 | Release build and documentation | PARTIALLY COMPLETED (application ID needs the owner's Firebase registration) | 2026-11-20 |
+
+**Mapping to the seven-phase plan** (`mobile/.cursor/rules/Phase.md.txt`): its Phase 1 (auth) = Phase 2 here; 2 (SQLite) = 3; 3 (auth ↔ SQLite) = 2 and 3; 4 (offline modules) = 4; 5 (Tutor) = 5; 6 (UI/testing) = 1, 7 and 8; 7 (build/docs) = 9. "Firebase synchronization" in later briefs is read as the account ↔ local-profile link (verified in Phase 2); a cloud database stays out of scope by D2 and `learnlite.mdc` §9.
+
+**Session 2026-11-20 (afternoon):** see [docs/EMULATOR_TEST_REPORT.md](docs/EMULATOR_TEST_REPORT.md) for the device results and [OWNER_ACTIONS.md](OWNER_ACTIONS.md) for the steps only the owner can do.
 
 The earlier plan (`mobile/.cursor/rules/Phase.md.txt`) had a Phase 4, "Offline Learning Modules". It is
 **PARTIALLY COMPLETED** (D7): offline lessons, quizzes and persistence were verified for the guest profile,
@@ -43,7 +47,7 @@ Status: **PARTIALLY COMPLETED.** One device check is still open (see the table b
 | Task | Status | Evidence |
 |---|---|---|
 | 1.1 Vocabulary search freeze (C3) | COMPLETED | Lazy `ListView.builder` and cached search text. Tests: `local_vocabulary_screen_test.dart`. **Emulator:** typed "g" then "gempya" on the 315-entry list; results filtered with no ANR in logcat. |
-| 1.2 Quiz score "100 / 1" (F1) | PARTIALLY COMPLETED | The headline now shows correct/total plus a percentage. Widget test updated to the real local value (`score: 100`) and asserts "1 / 1" and "100%". **Not yet checked on the emulator** (it would alter a real account's progress); this moves to Phase 2 with a test account. |
+| 1.2 Quiz score "100 / 1" (F1) | COMPLETED | The headline shows correct/total plus a percentage. Widget test asserts "1 / 1" and "100%". **Device (2026-11-20, `LL_Phone_API36`, release build, offline guest):** a 5-question workbook quiz showed "2 / 5 correct answers · 40%". Authenticated quiz verified by the account integration test. |
 | 1.3 Dictionary shows pending entries (D5) | COMPLETED | Searches all active entries, verified first, with a "Pending review"/"Verified" badge. Tests: DB ranking test, `dictionary_screen_test.dart`. **Emulator:** "gempya" returned 3 entries, each badged "Pending review". |
 | 1.4 Local-day streaks, quests and chests (F3) | COMPLETED | `lib/core/local_day.dart` and an injectable clock. Tests: daily bonus across local midnight, streak/quest on local days. **Emulator:** the dashboard calendar shows Thursday 19 as today (UTC+8). |
 | Added (approved): setState returning a Future | COMPLETED | Found by a new test. Fixed in 7 places (vocabulary screen, admin reports, dashboard ×2, progress ×2, rewards, settings). **Emulator:** the learned toggle worked on and off with no Flutter errors. |
@@ -55,7 +59,9 @@ Status: **PARTIALLY COMPLETED.** One device check is still open (see the table b
 
 ## Phase 2: Live Firebase authentication verification
 
-Status: **IN PROGRESS.** The remaining checks need the owner at the emulator.
+Status: **PARTIALLY COMPLETED.** Every flow is verified on an Android emulator against the Firebase Auth emulator (no production accounts touched). What remains needs the owner's inbox and the live project (OWNER_ACTIONS.md §4).
+
+**Automated device test (2026-11-20):** `mobile/integration_test/auth_flow_test.dart` on `LL_Phone_API36`, 7/7 passed: register A (held at email verification, local profile created), duplicate email / invalid email / weak password / taken username refused, wrong password / unknown account / username-instead-of-email refused, verified A signs in and takes a lesson quiz (XP and attempt saved), sign-out keeps A's data, B starts empty and isolated and A is unchanged afterwards, a deleted account loses its session, sign-in with no reachable server shows the offline message (after fix F15).
 
 | Check | Status | Evidence |
 |---|---|---|
@@ -96,7 +102,7 @@ Status: **PARTIALLY COMPLETED.** Tasks 4.1–4.3 and 4.5 are implemented and ver
 | 4.1 Lessons from the workbook | COMPLETED | `lib/core/workbook_modules.dart` turns `LearnLite-Subanen-Vocabulary.xlsx` into **5 modules and 19 lessons** (one per workbook topic). Each lesson shows its rows as word cards: Subanen form, English, Cebuano/Bisaya, dialect, other forms and notes as recorded, review status, source row. The only added text is fixed factual wording; no Subanen content is invented. The starter list (82) and still-needed list (68) stay in the dictionary and practice. |
 | 4.2 Quizzes from the same data | COMPLETED | Up to 5 questions per lesson, spread over the lesson's rows. The answer is the row's Subanen form; distractors are Subanen forms from the same module; each explanation cites the workbook row. Deterministic. Test: every answer and choice exists in the workbook module, no duplicate choices. |
 | 4.3 Identification mode and module filter | COMPLETED | Quiz tab: "English → Subanen" / "Subanen → English" and a Module filter (category list follows the module). Widget test for identification mode. |
-| 4.4 Audio and PDF | NOT STARTED | No source audio or PDF files exist. Every word card states "No recorded audio in the workbook"; nothing is presented as available. |
+| 4.4 Audio and PDF | PARTIALLY COMPLETED | **PDF:** "Subanen word list (PDF)" in Offline downloads is generated on the device from the workbooks (`lib/core/vocabulary_pdf.dart`): every entry with its review status, still-needed meanings left blank, sources cited. Download, open (print preview / save as PDF), share and remove; verified offline on `LL_Phone_API36` (13 pages, 251 entries). 2 tests. **Audio:** no licensed recordings exist; word cards say "No recorded audio in the workbook". Admins can attach audio per entry, which plays offline. |
 | 4.5 Data safety | COMPLETED | No schema change. Modules install once and are rewritten **in place** (same module ID) only when the workbook or generator version changes, so completions, quiz results and resume positions are kept. Test: an updated workbook keeps module IDs and a learner's completed lesson. **Emulator:** after the generator update (v1 → v2), still 6 modules (no duplicates), new descriptions shown, and the guest's "Numbers 1–10" still showed **Resume**. Seeding errors are caught so the app always opens. |
 | 4.6 Verify | COMPLETED | `verify.ps1 -Build`: analyze clean, **85/85 tests** (78 + 6 module tests + 1 practice test), debug APK built, installed with `adb install -r` (data kept). **Airplane mode on emulator-5554** (airplane on, Wi-Fi and data off, ping unreachable): workbook modules listed, the "Numbers 1–10" lesson showed its word cards, its 5-question quiz opened, Back returned to the lesson, and the Quiz tab's module filter and identification mode worked. Network restored afterwards. |
 
@@ -129,7 +135,9 @@ Status: **PARTIALLY COMPLETED.** Every item is done or justified except the API-
 
 | Check | Result |
 |---|---|
-| Restrict the Firebase API key (S3) | **OPEN (owner).** Console → APIs & Services → Credentials → restrict the Android key to package `com.example.learnlite` + the signing SHA-1, and to the Identity Toolkit / Token Service APIs. |
+| Restrict the Firebase API key (S3) | **OPEN (owner).** Exact steps in OWNER_ACTIONS.md §3. Read-only check 2026-11-20: one Android app registered, **no SHA fingerprints** yet. Release SHA-1 `16:98:E5:…:71:70` is ready to add. |
+| Release signing secrets | PASSED. Keystore and `key.properties` live in `%USERPROFILE%\.learnlite-signing` (outside OneDrive and git, current user only); password generated randomly and never printed; `git diff --cached` checked before each commit. |
+| Debug-only test hooks | PASSED. `LEARNLITE_AUTH_EMULATOR` is ignored in release builds (unit test). |
 | No cleartext HTTP in release | PASSED. Release builds require HTTPS; plain HTTP only with the explicit LAN opt-in and only to private IPv4 addresses (F13). |
 | Admin claim | PASSED. `verifyAdministrator()` checks the Firebase custom claim (`admin`, `role`, or `roles`) and is called by every admin read and write (11 methods). Claims can only be set with the Admin SDK. Edits stay local to the device (F5). |
 | Committed UI dumps (S2) | PASSED. Untracked and git-ignored. They remain in older commits (partial username, no passwords); rewriting history was not done. |
@@ -143,14 +151,14 @@ Status: **PARTIALLY COMPLETED.** Every item is done or justified except the API-
 
 | Task | Status | Evidence |
 |---|---|---|
-| 9.1 Real application ID | BLOCKED (owner) | Needs a new Firebase Android app registration and `google-services.json`. |
-| 9.2 Release signing | PARTIALLY COMPLETED | Gradle reads `android/key.properties`; without it the debug key is used. The owner must create and keep the keystore. |
+| 9.1 Real application ID | BLOCKED (owner) | Needs the owner to choose an ID and register it in Firebase (OWNER_ACTIONS.md §2, with exact commands). Not chosen by the engineer to avoid claiming an identifier the owner may not control. |
+| 9.2 Release signing | COMPLETED | `tool/create_release_keystore.ps1` created an RSA-4096 upload key (2026-11-20); Gradle finds it automatically. Release APKs verified with `apksigner`: SHA-256 `9b32465d…0e2cc4dc`. The owner must back it up (OWNER_ACTIONS.md §1). |
 | 9.3 Release APK smoke test | COMPLETED (emulator) | `flutter build apk --release` (57 MB). Installed with `adb install -r` over the debug build (same certificate `2fab0f91…264a`): opened signed in as account A; Home, Lessons (modules listed), Quiz and Progress correct; Tutor answered over LAN HTTP. Reinstalling the debug build afterwards: on-device database **identical** to the snapshot taken before (integrity ok, 2 learners, XP 27/27, 315 vocabulary rows, 0 duplicate keys, same counts in every table). |
 | 9.4 README and docs | COMPLETED | README rewritten; this file, SYSTEM_AUDIT and IMPLEMENTATION_NOTES updated. |
-| 9.5 Screenshots | NOT STARTED | Emulator screenshots were taken for testing only (temp folder); curated screenshots need a stable device. |
+| 9.5 Screenshots | COMPLETED | 13 real screenshots from the release build on `LL_Phone_API36` and `LL_Tablet_API36` in [docs/screenshots](docs/screenshots/) (guest profile only; no personal account data). |
 | 9.6 Stale build folders | COMPLETED (2026-11-20, owner request) | Deleted untracked/ignored items only: `mobile/build`, `build_new`, `build_phase1`, `build_phase4`, the two old APKs in `mobile/phase4-output` (the report was kept), `mobile/.dart_tool` (regenerated by `flutter pub get`), `mobile/android/.gradle`, empty `.idea` and `SYSTEM NOTES`, `.firebase` cache, the root `window_dump*.xml`, `.github/modernize` (VS Code Java-upgrade extension logs) and `__pycache__`. About 5 GB freed. `verify.ps1` passed afterwards; git status unchanged. |
 
-**APK for the owner:** `release/LearnLite-1.0.0-release-tutor-10.0.10.5.apk` (git-ignored, SHA-256 `5070f473…03aa36`). Release mode, **signed with the debug key (testing only)**, Tutor address `http://10.0.10.5:8000` (this PC's Wi-Fi address on 2026-11-20, assigned by DHCP so it may change) with the LAN opt-in. The phone needs inbound TCP 8000 allowed in Windows Firewall and the bridge running.
+**APK for the owner:** `release/LearnLite-1.0.0-release-signed-tutor-10.0.10.5.apk` (git-ignored, file SHA-256 `053E8CF5…5E9D3808`). Release mode, **signed with the release key**, Tutor address `http://10.0.10.5:8000` (this PC's Wi-Fi address on 2026-11-20, assigned by DHCP so it may change) with the LAN opt-in. It replaces the earlier debug-key APK. Android will not install it over a debug-signed LearnLite; uninstalling first deletes that phone's local progress.
 
 ---
 
@@ -162,7 +170,8 @@ Status: **PARTIALLY COMPLETED.** Done early as the demo sprint and redesign (com
 |---|---|---|
 | Screen states and navigation review | COMPLETED | Redesign of every learner screen; Back fixes (tabs, quiz results); Settings sign-out fix. Emulator walkthroughs recorded in the session reports. |
 | App label and icon | COMPLETED | "LearnLite" with the LearnLite logo, including an adaptive icon. Verified in the emulator app drawer. |
-| Physical phone | PARTIALLY COMPLETED | Debug APK installed and opened on a TECNO Spark Go 2 (Android 15). The full online/offline pass on the phone is still to do. |
+| Emulator profiles | PARTIALLY COMPLETED | Phone (Pixel 5, Android 16) and tablet (2560×1600) profiles tested with the release build: clean install, guest learning in airplane mode, PDF, restart and upgrade persistence, tablet layout. Five defects found and fixed (F15–F19). The Android 7.0 / low-end profile is blocked by failed system-image downloads. Report: [docs/EMULATOR_TEST_REPORT.md](docs/EMULATOR_TEST_REPORT.md). |
+| Physical phone | PARTIALLY COMPLETED | Debug APK installed and opened on a TECNO Spark Go 2 (Android 15). The full online/offline pass on the phone is still to do (OWNER_ACTIONS.md §5). |
 
 ---
 

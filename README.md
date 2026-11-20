@@ -18,9 +18,16 @@ network.
 | Lessons | 5 workbook modules (Basic Greetings, Family & Community, Numbers & Counting, Everyday Phrases, Culture & Traditions) with 19 lessons, plus an Offline Study Guide. Each lesson shows its workbook entries as word cards and has a quiz built from those entries. |
 | Practice | Flashcards, a vocabulary quiz in both directions (English → Subanen and Subanen → English), filters by workbook module, category and source. |
 | Dictionary | Searches all bundled workbook entries offline, verified entries first, each labelled "Verified" or "Pending review". |
+| Word list PDF | Offline downloads → "Subanen word list (PDF)": made on the phone from the workbooks, every entry with its review status; opens, prints, saves and shares without internet. |
 | Progress | XP, levels, daily streaks, daily quest, weekly chest, badges, quiz history and per-module progress, all stored on the device. |
 | Accounts | Firebase email/password sign-in with email verification. An offline guest mode keeps its own separate progress. |
 | AI Tutor | Optional. Sends the learner's question, plus any matching workbook entries labelled as unverified, to the classroom computer. |
+
+| Home | Lesson | Word list PDF (offline) | Progress |
+|---|---|---|---|
+| ![Home](docs/screenshots/03-home.png) | ![Lesson](docs/screenshots/04-lesson-word-cards.png) | ![PDF](docs/screenshots/08-word-list-pdf-offline.png) | ![Progress](docs/screenshots/11-progress.png) |
+
+More in [docs/screenshots](docs/screenshots/).
 
 ## Architecture
 
@@ -49,6 +56,9 @@ Phone (Flutter app)
 | `mobile/lib/widgets/` | Shared design-system widgets |
 | `mobile/assets/vocabulary/` | The bundled workbook data (JSON exports of the Excel workbooks) |
 | `mobile/test/` | Unit and widget tests |
+| `mobile/integration_test/` | Device tests (account flows against the Firebase Auth emulator) |
+| `docs/` | Emulator test report and screenshots |
+| `OWNER_ACTIONS.md` | Steps that need the owner's accounts, inbox or phone |
 | `mobile/tool/verify.ps1` | Analyze, test and build in a temp copy (see below) |
 | `backend/` | The Tutor bridge and its tests |
 | `MASTER_ROADMAP.md`, `PHASE_PROGRESS.md`, `SYSTEM_AUDIT.md`, `IMPLEMENTATION_NOTES.md` | Project plan, status, audit findings and developer notes |
@@ -78,21 +88,27 @@ cd mobile
 flutter build apk --release
 ```
 
-Release signing uses `mobile/android/key.properties` if it exists (git-ignored;
-the owner keeps the keystore):
+Release builds are signed with the LearnLite upload key, kept outside the
+project in `%USERPROFILE%\.learnlite-signing\` (keystore plus
+`key.properties`). On a new machine, restore that folder from your backup, or
+create a key once with:
 
-```properties
-storeFile=C:\\path\\to\\learnlite-upload.jks
-storePassword=...
-keyAlias=learnlite
-keyPassword=...
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File mobile\tool\create_release_keystore.ps1
 ```
 
-Without that file, release builds are signed with the debug key and are for
-testing only. Create a keystore with
-`keytool -genkeypair -v -keystore learnlite-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias learnlite`
-and keep it and its passwords safe; losing them means a published app can no
-longer be updated.
+The script generates a random password, never prints it, and refuses to
+overwrite an existing key. Gradle also accepts a `key.properties` path in
+`LEARNLITE_KEY_PROPERTIES` or at `mobile/android/key.properties` (git-ignored).
+Without any of them, release builds fall back to the debug key (testing only)
+and the build prints a warning. Back the key up: losing it means a published
+app can no longer be updated. See [OWNER_ACTIONS.md](OWNER_ACTIONS.md).
+
+### Device tests
+
+Account flows run on an Android emulator against the local Firebase Auth
+emulator; see [IMPLEMENTATION_NOTES.md](IMPLEMENTATION_NOTES.md#device-integration-tests)
+and the results in [docs/EMULATOR_TEST_REPORT.md](docs/EMULATOR_TEST_REPORT.md).
 
 ## Set up the AI Tutor (optional)
 
