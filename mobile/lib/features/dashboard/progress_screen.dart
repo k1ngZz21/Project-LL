@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_colors.dart';
 import '../../app/responsive_layout.dart';
 import '../../core/display_format.dart';
+import '../../core/user_message.dart';
 import '../../core/learning_snapshot.dart';
 import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
@@ -258,7 +259,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                             child: EmptyState(
                               icon: Icons.history_outlined,
                               title: 'Quiz history is unavailable',
-                              message: '${snapshot.error}',
+                              message: userMessage(
+                                snapshot.error,
+                                fallback:
+                                    'Saved quiz results could not be loaded right now.',
+                              ),
                               action: TextButton(
                                 onPressed: () => setState(() {
                                   _quizHistoryFuture = _loadQuizHistory();

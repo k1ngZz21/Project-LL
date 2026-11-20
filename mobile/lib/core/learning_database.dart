@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../features/content/local_vocabulary.dart';
 import 'local_day.dart';
+import 'workbook_modules.dart';
 
 class LearningDatabase {
   LearningDatabase({
@@ -273,6 +274,7 @@ class LearningDatabase {
   }
 
   static const vocabularySeedFingerprintKey = 'vocabulary_seed_fingerprint_v1';
+  static const workbookModulesFingerprintKey = 'workbook_modules_fingerprint_v1';
 
   /// Imports the bundled vocabulary only when its fingerprint differs from
   /// the one stored at the last import. Returns whether an import ran.
@@ -897,6 +899,77 @@ class LearningDatabase {
         'value': moduleId.toString(),
       });
       return moduleId;
+    });
+  }
+
+  /// Installs the language modules generated from the bundled workbook, and
+  /// regenerates them only when the workbook (or the generator) changes.
+  ///
+  /// Each module keeps its database ID across updates (it is rewritten in
+  /// place), so lesson completions, quiz results and resume positions, which
+  /// are stored by module ID and lesson index, are preserved. Returns `true`
+  /// when modules were written.
+  Future<bool> seedWorkbookModulesIfChanged(
+    LocalVocabularyRepository repository,
+  ) async {
+    final fingerprint =
+        'g$workbookModulesGeneratorVersion:${await repository.fingerprint()}';
+    final db = await database;
+    final stored = await db.query(
+      'app_metadata',
+      columns: ['value'],
+      where: 'key = ?',
+      whereArgs: [workbookModulesFingerprintKey],
+      limit: 1,
+    );
+    if (stored.isNotEmpty && stored.single['value'] == fingerprint) {
+      return false;
+    }
+    final seeds = buildWorkbookModules((await repository.load()).vocabulary);
+    await seedWorkbookModules(seeds, fingerprint: fingerprint);
+    return true;
+  }
+
+  /// Writes [seeds]: new modules are inserted, previously installed ones are
+  /// updated in place (same module ID). Kept separate for tests.
+  Future<void> seedWorkbookModules(
+    List<WorkbookModuleSeed> seeds, {
+    String? fingerprint,
+  }) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final seed in seeds) {
+        final metadataKey = 'bundled_module:${seed.key}';
+        final markers = await txn.query(
+          'app_metadata',
+          columns: ['value'],
+          where: 'key = ?',
+          whereArgs: [metadataKey],
+          limit: 1,
+        );
+        final existingId = markers.isEmpty
+            ? null
+            : int.tryParse(markers.single['value']! as String);
+        final moduleId = await _writeModule(
+          txn,
+          seed.module,
+          moduleId: existingId,
+          // Re-creates the module (same ID) if it was deleted by an admin.
+          importIfMissing: existingId != null,
+        );
+        if (existingId == null) {
+          await txn.insert('app_metadata', {
+            'key': metadataKey,
+            'value': moduleId.toString(),
+          });
+        }
+      }
+      if (fingerprint != null) {
+        await txn.insert('app_metadata', {
+          'key': workbookModulesFingerprintKey,
+          'value': fingerprint,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+      }
     });
   }
 

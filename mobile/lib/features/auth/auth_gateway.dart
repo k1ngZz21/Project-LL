@@ -88,6 +88,14 @@ class FirebaseAuthGateway
       module: bundledOfflineModule,
     );
     timer.lap('bundled module');
+    try {
+      await database.seedWorkbookModulesIfChanged(LocalVocabularyRepository());
+    } on Exception catch (error) {
+      // The app still opens with the existing modules; the next launch
+      // retries because the fingerprint was not stored.
+      debugPrint('LearnLite: workbook modules were not updated: $error');
+    }
+    timer.lap('workbook modules');
 
     FirebaseAuth? auth;
     String? authError;

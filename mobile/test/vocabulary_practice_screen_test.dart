@@ -54,6 +54,50 @@ void main() {
     expect(find.textContaining('· row '), findsOneWidget);
   });
 
+  testWidgets('identification mode shows Subanen and asks for English', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(home: VocabularyPracticeScreen(gateway: _PracticeGateway())),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Quiz'));
+    await tester.pumpAndSettle();
+    expect(find.text('Choose the Subanen form for'), findsOneWidget);
+
+    await tester.tap(find.text('Subanen → English'));
+    await tester.pumpAndSettle();
+    expect(find.text('Choose the English meaning of'), findsOneWidget);
+
+    const english = {'water', 'house', 'sun', 'tree'};
+    const subanen = {'tubig', 'balay', 'adlaw', 'kahoy'};
+    final choiceTexts = [
+      for (var index = 0; index < 4; index++)
+        tester
+            .widgetList<Text>(
+              find.descendant(
+                of: find.byKey(ValueKey('practice-choice-$index')),
+                matching: find.byType(Text),
+              ),
+            )
+            .map((text) => text.data)
+            .whereType<String>()
+            .where((value) => value.length > 1)
+            .first,
+    ];
+    expect(choiceTexts.every(english.contains), isTrue);
+    // The prompt is one of the Subanen forms.
+    expect(
+      subanen.any((word) => find.text(word).evaluate().isNotEmpty),
+      isTrue,
+    );
+  });
+
   testWidgets('category filter and completed vocabulary quiz are saved', (
     tester,
   ) async {

@@ -6,7 +6,9 @@ import '../../widgets/decorative_border.dart';
 import '../../widgets/icon_badge.dart';
 import '../../widgets/learnlite_card.dart';
 import '../../widgets/learnlite_text_field.dart';
+import '../../core/vocabulary_context.dart';
 import '../auth/auth_models.dart';
+import '../content/local_vocabulary.dart';
 import 'tutor_gateway.dart';
 
 class TutorScreen extends StatefulWidget {
@@ -15,6 +17,7 @@ class TutorScreen extends StatefulWidget {
     this.idTokenProvider,
     this.onSignIn,
     this.apiBaseUrl,
+    this.vocabularyLookup,
     super.key,
   });
 
@@ -22,6 +25,11 @@ class TutorScreen extends StatefulWidget {
   final Future<String?> Function()? idTokenProvider;
   final VoidCallback? onSignIn;
   final String? apiBaseUrl;
+
+  /// Returns workbook entries related to a question. They are sent to the
+  /// Tutor (labelled pending review) and listed under its reply.
+  final Future<List<LocalVocabularyEntry>> Function(String question)?
+  vocabularyLookup;
 
   @override
   State<TutorScreen> createState() => _TutorScreenState();
@@ -97,8 +105,21 @@ class _TutorScreenState extends State<TutorScreen> {
       TutorMessage(role: TutorMessageRole.user, content: prompt),
     ];
 
+    var related = const <LocalVocabularyEntry>[];
+    final lookup = widget.vocabularyLookup;
+    if (lookup != null) {
+      try {
+        related = await lookup(prompt);
+      } on Exception {
+        related = const [];
+      }
+    }
+
     try {
-      final reply = await _gateway.sendMessages(requestMessages);
+      final reply = await _gateway.sendMessages(
+        requestMessages,
+        context: tutorContext(related),
+      );
       if (!mounted) return;
       setState(() {
         _conversation
@@ -114,6 +135,10 @@ class _TutorScreenState extends State<TutorScreen> {
           _DisplayedMessage(
             role: TutorMessageRole.assistant,
             content: reply.content,
+            sharedEntries: [
+              for (final entry in related)
+                '${entry.subanen.trim()} = ${entry.english.trim()}',
+            ],
           ),
         );
         _modelName = reply.model;
@@ -320,10 +345,17 @@ class _TutorScreenState extends State<TutorScreen> {
 }
 
 class _DisplayedMessage {
-  const _DisplayedMessage({required this.role, required this.content});
+  const _DisplayedMessage({
+    required this.role,
+    required this.content,
+    this.sharedEntries = const [],
+  });
 
   final TutorMessageRole role;
   final String content;
+
+  /// Workbook entries sent with the question, shown under the reply.
+  final List<String> sharedEntries;
 }
 
 class _MessageBubble extends StatelessWidget {
@@ -352,12 +384,35 @@ class _MessageBubble extends StatelessWidget {
             border: isLearner ? null : Border.all(color: AppColors.borderSoft),
             boxShadow: AppShadows.card,
           ),
-          child: SelectableText(
-            message.content,
-            style: TextStyle(
-              color: isLearner ? AppColors.white : AppColors.darkBackground,
-              height: 1.45,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(
+                message.content,
+                style: TextStyle(
+                  color: isLearner ? AppColors.white : AppColors.darkBackground,
+                  height: 1.45,
+                ),
+              ),
+              if (message.sharedEntries.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 6),
+                Text(
+                  'Workbook entries shared with the Tutor (pending review):',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.goldDeep,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  message.sharedEntries.join(' · '),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.inkSoft,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),

@@ -75,7 +75,13 @@ class OllamaTutorGateway {
     return null;
   }
 
-  Future<TutorReply> sendMessages(List<TutorMessage> messages) async {
+  /// Sends the chat. [context] optionally carries workbook entries
+  /// (`english`, `subanen`, `status`) related to the question; the backend
+  /// passes them to the model labelled as pending review.
+  Future<TutorReply> sendMessages(
+    List<TutorMessage> messages, {
+    List<Map<String, String>> context = const [],
+  }) async {
     final configurationError = configurationMessage;
     if (configurationError != null) {
       throw TutorFailure(configurationError);
@@ -118,6 +124,7 @@ class OllamaTutorGateway {
             },
             body: jsonEncode({
               'messages': messages.map((message) => message.toJson()).toList(),
+              if (context.isNotEmpty) 'context': context.take(12).toList(),
             }),
           )
           .timeout(timeout);

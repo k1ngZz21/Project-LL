@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/learning_snapshot.dart';
+import '../core/vocabulary_context.dart';
 import '../features/auth/auth_gateway.dart';
 import '../features/auth/avatar_creation_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
@@ -388,6 +389,16 @@ class _AppShellState extends State<AppShell> {
           isGuest: widget.isGuest,
           idTokenProvider: tokenProvider,
           onSignIn: widget.onSignIn,
+          vocabularyLookup: gateway is DictionaryGateway
+              ? (question) async {
+                  final catalog = await (gateway as DictionaryGateway)
+                      .localVocabulary();
+                  return relevantVocabulary(question, [
+                    ...catalog.vocabulary,
+                    ...catalog.starterList,
+                  ]);
+                }
+              : null,
         ),
       ),
     );

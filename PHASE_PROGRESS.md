@@ -7,14 +7,14 @@ A phase is COMPLETED only after its verification has passed. The plan is in [MAS
 |---|---|---|---|
 | 0 | Baseline and decisions | COMPLETED | 2026-11-19 |
 | 1 | Fix existing defects | PARTIALLY COMPLETED | 2026-11-19 |
-| 2 | Live Firebase authentication verification | NOT STARTED | — |
-| 3 | SQLite hardening | COMPLETED (commit awaiting approval) | 2026-11-19 |
-| 4 | Complete the offline learning modules | NOT STARTED | — |
-| 5 | AI Tutor integration | NOT STARTED | — |
+| 2 | Live Firebase authentication verification | IN PROGRESS (owner checks pending) | 2026-11-19 |
+| 3 | SQLite hardening | COMPLETED (commit `4e7454f`) | 2026-11-20 |
+| 4 | Complete the offline learning modules | PARTIALLY COMPLETED (audio/PDF need source files) | 2026-11-20 |
+| 5 | AI Tutor integration | COMPLETED (classroom LAN run still to do) | 2026-11-20 |
 | 6 | Firebase cloud sync | DEFERRED (D2) | 2026-11-19 |
-| 7 | Security and error handling | NOT STARTED | — |
-| 8 | UI/UX polish and physical device testing | NOT STARTED | — |
-| 9 | Release build and documentation | NOT STARTED | — |
+| 7 | Security and error handling | PARTIALLY COMPLETED (Console items for the owner) | 2026-11-20 |
+| 8 | UI/UX polish and physical device testing | PARTIALLY COMPLETED | 2026-11-20 |
+| 9 | Release build and documentation | PARTIALLY COMPLETED (owner keystore, app ID) | 2026-11-20 |
 
 The earlier plan (`mobile/.cursor/rules/Phase.md.txt`) had a Phase 4, "Offline Learning Modules". It is
 **PARTIALLY COMPLETED** (D7): offline lessons, quizzes and persistence were verified for the guest profile,
@@ -72,7 +72,7 @@ Status: **IN PROGRESS.** The remaining checks need the owner at the emulator.
 
 ## Phase 3: SQLite hardening
 
-Status: **COMPLETED** (pending the owner's commit approval). All Phase 3 tasks are implemented and verified on desktop tests and on emulator-5554.
+Status: **COMPLETED.** Committed as `4e7454f` and pushed to `origin/learnlite-roadmap` on 2026-11-20. All Phase 3 tasks are implemented and verified on desktop tests and on emulator-5554.
 
 | Task | Status | Evidence |
 |---|---|---|
@@ -84,6 +84,39 @@ Status: **COMPLETED** (pending the owner's commit approval). All Phase 3 tasks a
 | 3.6 Migration and persistence tests | COMPLETED | v1 to v3 upgrade keeps learner and XP and fills in `last_login`; progress survives two close-and-reopen cycles. |
 | 3.8 Admin-edit fix (F9, approved) | COMPLETED | `saveVocabulary` updates in place and never changes `source_key`, `source_file` or `source_row`. Regression test: an edited workbook entry stays in the offline list, keeps its identity, and is not duplicated by the next import; verified, active, review status, pronunciation and audio are preserved; workbook text stays the source of truth. |
 | 3.7 Verify | COMPLETED | `verify.ps1 -Build`: analyze clean, **76/76 tests** (75 plus the regression test), debug APK built. Pre-install check: same package `com.example.learnlite` 1.0.0, same signing certificate (SHA-256 `2fab0f91…264a`), target emulator-5554 only. Installed with `adb install -r` (data kept). On-device database before and after: identical learner records (guest XP 27, 2 quiz results, 2 completions, 5 history; account A XP 0); 315 vocabulary rows, **0 duplicate keys** after the first real import; fingerprint stored; 0 ownerless rows; integrity ok. Still signed in as account A after the update. |
+
+---
+
+## Phase 4: Complete the offline learning modules
+
+Status: **PARTIALLY COMPLETED.** Tasks 4.1–4.3 and 4.5 are implemented and verified. Task 4.4 (audio and PDF) is blocked: no source files exist.
+
+| Task | Status | Evidence |
+|---|---|---|
+| 4.1 Lessons from the workbook | COMPLETED | `lib/core/workbook_modules.dart` turns `LearnLite-Subanen-Vocabulary.xlsx` into **5 modules and 19 lessons** (one per workbook topic). Each lesson shows its rows as word cards: Subanen form, English, Cebuano/Bisaya, dialect, other forms and notes as recorded, review status, source row. The only added text is fixed factual wording; no Subanen content is invented. The starter list (82) and still-needed list (68) stay in the dictionary and practice. |
+| 4.2 Quizzes from the same data | COMPLETED | Up to 5 questions per lesson, spread over the lesson's rows. The answer is the row's Subanen form; distractors are Subanen forms from the same module; each explanation cites the workbook row. Deterministic. Test: every answer and choice exists in the workbook module, no duplicate choices. |
+| 4.3 Identification mode and module filter | COMPLETED | Quiz tab: "English → Subanen" / "Subanen → English" and a Module filter (category list follows the module). Widget test for identification mode. |
+| 4.4 Audio and PDF | NOT STARTED | No source audio or PDF files exist. Every word card states "No recorded audio in the workbook"; nothing is presented as available. |
+| 4.5 Data safety | COMPLETED | No schema change. Modules install once and are rewritten **in place** (same module ID) only when the workbook or generator version changes, so completions, quiz results and resume positions are kept. Test: an updated workbook keeps module IDs and a learner's completed lesson. **Emulator:** after the generator update (v1 → v2), still 6 modules (no duplicates), new descriptions shown, and the guest's "Numbers 1–10" still showed **Resume**. Seeding errors are caught so the app always opens. |
+| 4.6 Verify | COMPLETED | `verify.ps1 -Build`: analyze clean, **85/85 tests** (78 + 6 module tests + 1 practice test), debug APK built, installed with `adb install -r` (data kept). **Airplane mode on emulator-5554** (airplane on, Wi-Fi and data off, ping unreachable): workbook modules listed, the "Numbers 1–10" lesson showed its word cards, its 5-question quiz opened, Back returned to the lesson, and the Quiz tab's module filter and identification mode worked. Network restored afterwards. |
+
+**Startup cost (debug, emulator):** first install of the modules 8.8 s once; regeneration after a change 3.3 s once; normal launches 21 ms for the check.
+
+**Not done on JanJan's account:** testing used the offline guest profile only; no quiz was submitted.
+
+---
+
+## Phase 8: UI/UX polish and physical device testing
+
+Status: **PARTIALLY COMPLETED.** Done early as the demo sprint and redesign (commit `29be31f`) and the launcher icon (`152602d`).
+
+| Item | Status | Evidence |
+|---|---|---|
+| Screen states and navigation review | COMPLETED | Redesign of every learner screen; Back fixes (tabs, quiz results); Settings sign-out fix. Emulator walkthroughs recorded in the session reports. |
+| App label and icon | COMPLETED | "LearnLite" with the LearnLite logo, including an adaptive icon. Verified in the emulator app drawer. |
+| Physical phone | PARTIALLY COMPLETED | Debug APK installed and opened on a TECNO Spark Go 2 (Android 15). The full online/offline pass on the phone is still to do. |
+
+---
 
 **G1:** guest progress stays separate from accounts (current behaviour, unchanged). Verified on the device database: the guest's records and account A's are stored under separate learner IDs with no crossover.
 

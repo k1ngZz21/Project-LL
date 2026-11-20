@@ -109,3 +109,10 @@ id_ecdsa
 .env
 .env.*
 !.env.example
+
+# Device UI dumps (may contain account details)
+window_dump*.xml
+
+# Tutor bridge local environment and runtime data
+backend/.venv/
+backend/data/

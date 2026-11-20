@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
 import '../../core/offline_content_store.dart';
+import '../../core/user_message.dart';
 import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/icon_badge.dart';
@@ -136,7 +137,11 @@ class _OfflineContentScreenState extends State<OfflineContentScreen> {
                                     const SizedBox(height: 2),
                                     Text(
                                       snapshot.hasError
-                                          ? 'Storage usage is unavailable: ${snapshot.error}'
+                                          ? userMessage(
+                                              snapshot.error,
+                                              fallback:
+                                                  'Storage usage is unavailable right now.',
+                                            )
                                           : '${_formatSize(snapshot.data ?? 0)} stored on this device',
                                       style: Theme.of(context)
                                           .textTheme

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_colors.dart';
+import '../../core/user_message.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/learnlite_card.dart';
 import '../../widgets/section_header.dart';
@@ -295,7 +296,10 @@ class _AdminContentScreenState extends State<AdminContentScreen> {
                   }
                   if (snapshot.hasError) {
                     return _FeedbackBanner(
-                      message: snapshot.error.toString(),
+                      message: userMessage(
+                        snapshot.error,
+                        fallback: 'This information could not be loaded.',
+                      ),
                       isError: true,
                     );
                   }
@@ -333,7 +337,10 @@ class _AdminContentScreenState extends State<AdminContentScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return _FeedbackBanner(
-                      message: snapshot.error.toString(),
+                      message: userMessage(
+                        snapshot.error,
+                        fallback: 'This information could not be loaded.',
+                      ),
                       isError: true,
                     );
                   }
