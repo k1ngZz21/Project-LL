@@ -59,6 +59,8 @@ A permanent fix is to move the project out of a OneDrive-synced folder. That is 
 | 2026-11-20 | 5 | Bridge: `/ai/chat` accepts any verified Firebase user; revocation check only with a service-account file; optional vocabulary `context`. App: `relevantVocabulary()` sends matching workbook entries and lists them under the reply. Backend tests in `backend/tests`. |
 | 2026-11-20 | 7 | `userMessage()` replaces raw error text; UI dumps untracked; `.gitignore` covers dumps, `backend/.venv`, `backend/data`. |
 | 2026-11-20 | 9 | Release signing from `android/key.properties`; README rewritten. |
+| 2026-11-20 | 4–9 | Committed as `5bab2fc`. |
+| 2026-11-20 | 5, 7 | `d6e87fe`: LAN-HTTP opt-in for release builds (F13); admin-created entries listed and deactivated entries hidden (F11). 92 tests. Release APK smoke-tested on the emulator; database unchanged across release ↔ debug installs. |
 
 ## Workbook modules
 
@@ -70,7 +72,10 @@ A permanent fix is to move the project out of a OneDrive-synced folder. That is 
 
 - Run it as described in the README. In this workspace a venv lives at `%LOCALAPPDATA%\learnlite_backend_venv` and runtime data at `%LOCALAPPDATA%\learnlite_backend_data` (outside OneDrive).
 - `POST /ai/chat` body: `messages` (1–10, user/assistant) and optional `context` (≤ 12 objects with `english`, `subanen`, `status`, each ≤ 200 characters).
-- Debug builds allow `http://`; release builds require `https://` (`OllamaTutorGateway.configurationMessage`).
+- Debug builds allow `http://`; release builds require `https://` (`OllamaTutorGateway.configurationMessage`) unless built with `--dart-define=LEARNLITE_ALLOW_LAN_HTTP=true`, which also allows `http://` to a private IPv4 literal (`isPrivateNetworkAddress`). Host names are never allowed over HTTP in release.
+- Emulator → PC: `http://10.0.2.2:8000`. The bridge logs these requests as coming from `127.0.0.1`.
+- On this 7.6 GB PC, close Gradle daemons (`gradlew --stop`) and other heavy apps before running the emulator and Ollama together (F14).
+- Root works on this emulator image (`adb root`), so ANR traces can be read from `/data/anr/`. In Git Bash set `MSYS_NO_PATHCONV=1` first, or device paths get rewritten.
 
 ## Vocabulary import
 

@@ -124,7 +124,16 @@ on the same network.
 
    For a phone connected by USB, `adb reverse tcp:8000 tcp:8000` and
    `LEARNLITE_API_BASE_URL=http://127.0.0.1:8000` work without a firewall rule.
-   **Release builds require an `https://` address** (see Limitations).
+   **Release builds require an `https://` address**, unless you opt in to a
+   plain-HTTP classroom computer on the local network:
+
+   ```powershell
+   flutter build apk --release --dart-define=LEARNLITE_API_BASE_URL=http://192.168.1.20:8000 --dart-define=LEARNLITE_ALLOW_LAN_HTTP=true
+   ```
+
+   The opt-in accepts only private IPv4 addresses (10.x, 172.16–31.x,
+   192.168.x). On that network the learner's sign-in token is sent
+   unencrypted, so use it only on a trusted classroom network.
 
 Bridge tests (no Firebase needed; the live-reply test runs when Ollama is up):
 
@@ -146,8 +155,8 @@ cd backend
 - All workbook vocabulary is pending review by a fluent Subanen speaker.
 - No recorded pronunciation audio is bundled yet.
 - The Tutor is local-network AI, not on-device AI, and is unavailable without
-  the classroom PC. Release builds accept only an HTTPS Tutor address, so a
-  plain-HTTP classroom setup works with debug builds only.
+  the classroom PC. Release builds accept an HTTPS Tutor address, or a
+  private-network HTTP address when built with the LAN opt-in above.
 - Admin edits change a single device's database; they are not distributed.
 - Android only (no web or iOS build is maintained).
 - The application ID is still `com.example.learnlite`; changing it needs a new

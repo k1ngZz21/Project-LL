@@ -99,9 +99,10 @@ C3, F1, F2 and F3 were addressed in Phase 1. See PHASE_PROGRESS.md for verificat
 | S4 | **Fixed.** The new README states Android only. |
 | S5 | Firebase packages have minor updates and no security advisories; not upgraded before the demo. Stale build folders were not deleted. |
 | F10 | Measured, not changed: debug launches spend 1.5–5 s opening the database on the emulator; most of the debug start-up time is Dart JIT, which release builds remove. |
-| F11 | Open (unchanged). |
+| F11 | **Fixed (2026-11-20, `d6e87fe`).** Active admin-created entries are listed with the workbook vocabulary, labelled "added on this device" instead of a workbook row. Also fixed: the offline list ignored `is_active`, so entries an admin deactivated still showed in practice and lessons; they are now hidden. Regression test added. The emulator database has no admin-created or deactivated entries, so nothing changes there. |
 | F12 (new) | **Fixed.** Raw error text (exceptions, SQL, paths) was shown to learners on five screens and four admin screens. Replaced by `userMessage()`, which keeps LearnLite's own messages and logs the rest. |
-| F13 (new) | Release builds accept only an `https://` Tutor address, so a plain-HTTP classroom setup works with debug builds only. Decision needed: HTTPS on the classroom PC, or allow the classroom address over HTTP. |
+| F13 (new) | **Fixed (2026-11-20, `d6e87fe`).** Decided without the owner (they asked for autonomous work), choosing the conservative option: HTTPS stays the default; a build made with `--dart-define=LEARNLITE_ALLOW_LAN_HTTP=true` also accepts `http://` to a private IPv4 address only. Trade-off: on classroom Wi-Fi the Firebase ID token (1-hour lifetime) travels unencrypted. Verified with a release build on the emulator. Reversible by building without the flag. |
+| F14 (new) | Open (environment). On this PC (7.6 GB RAM), running the emulator, Ollama, Gradle and the editor together caused "isn't responding" dialogs for LearnLite and for Android's System UI. LearnLite threads were idle; the device's `system_server` and the host were saturated. Recheck on the physical phone with the Tutor PC separate. |
 
 ## 4. Documentation conflicts and their resolution
 

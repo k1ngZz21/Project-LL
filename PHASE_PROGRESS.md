@@ -10,11 +10,11 @@ A phase is COMPLETED only after its verification has passed. The plan is in [MAS
 | 2 | Live Firebase authentication verification | IN PROGRESS (owner checks pending) | 2026-11-19 |
 | 3 | SQLite hardening | COMPLETED (commit `4e7454f`) | 2026-11-20 |
 | 4 | Complete the offline learning modules | PARTIALLY COMPLETED (audio/PDF need source files) | 2026-11-20 |
-| 5 | AI Tutor integration | COMPLETED (classroom LAN run still to do) | 2026-11-20 |
+| 5 | AI Tutor integration | COMPLETED (release build verified over LAN HTTP on the emulator; physical-phone run still to do) | 2026-11-20 |
 | 6 | Firebase cloud sync | DEFERRED (D2) | 2026-11-19 |
-| 7 | Security and error handling | PARTIALLY COMPLETED (Console items for the owner) | 2026-11-20 |
-| 8 | UI/UX polish and physical device testing | PARTIALLY COMPLETED | 2026-11-20 |
-| 9 | Release build and documentation | PARTIALLY COMPLETED (owner keystore, app ID) | 2026-11-20 |
+| 7 | Security and error handling | PARTIALLY COMPLETED (only the API-key restriction, an owner Console task, is open) | 2026-11-20 |
+| 8 | UI/UX polish and physical device testing | PARTIALLY COMPLETED (physical-phone pass) | 2026-11-20 |
+| 9 | Release build and documentation | PARTIALLY COMPLETED (owner keystore, app ID, screenshots) | 2026-11-20 |
 
 The earlier plan (`mobile/.cursor/rules/Phase.md.txt`) had a Phase 4, "Offline Learning Modules". It is
 **PARTIALLY COMPLETED** (D7): offline lessons, quizzes and persistence were verified for the guest profile,
@@ -103,6 +103,54 @@ Status: **PARTIALLY COMPLETED.** Tasks 4.1–4.3 and 4.5 are implemented and ver
 **Startup cost (debug, emulator):** first install of the modules 8.8 s once; regeneration after a change 3.3 s once; normal launches 21 ms for the check.
 
 **Not done on JanJan's account:** testing used the offline guest profile only; no quiz was submitted.
+
+---
+
+## Phase 5: AI Tutor integration
+
+Status: **COMPLETED** for the emulator. Committed in `5bab2fc` and `d6e87fe`.
+
+| Task | Status | Evidence |
+|---|---|---|
+| 5.1 `/ai/chat` without a backend learner row (C1, D1) | COMPLETED | Backend tests (9/9 on 2026-11-20), including token checks without a service-account file. |
+| 5.2 Run instructions | COMPLETED | README "Set up the AI Tutor". |
+| 5.3 `LEARNLITE_API_BASE_URL` for emulator and phone | COMPLETED | Emulator: `http://10.0.2.2:8000`. Phone: the PC's LAN address, see F13 below. |
+| 5.4 Local vocabulary context (G5) | COMPLETED | `relevantVocabulary()`; tests in `vocabulary_context_test.dart`. |
+| 5.5 Live reply and error paths | COMPLETED | Live `qwen2.5:3b` reply (backend test and emulator); stopped Ollama and timeout give clear 503 messages (backend tests). |
+| F13 Release builds and plain-HTTP classroom PCs | COMPLETED | HTTPS stays the default. Opt-in `--dart-define=LEARNLITE_ALLOW_LAN_HTTP=true` allows `http://` only to a private IPv4 address (10/8, 172.16/12, 192.168/16). 3 new tests. **Emulator, release build:** "good morning" answered by `qwen2.5:3b` with "gempya seselem" (Pending review) and the shared workbook entries listed. |
+
+**Observation (2026-11-20):** during the release test the emulator showed "LearnLite isn't responding" and later "System UI isn't responding". The ANR trace shows the main thread waiting inside Android's own `SurfaceControl` call, all LearnLite threads at 0% CPU, `system_server` at 143%, and the host PC at 81% CPU with 0.5–0.7 GB of 7.6 GB RAM free (emulator, Ollama model, Gradle, editor and browser at once). This is host resource exhaustion, not an app defect, but it should be rechecked on the physical phone with the Tutor PC separate (F14).
+
+---
+
+## Phase 7: Security and error handling
+
+Status: **PARTIALLY COMPLETED.** Every item is done or justified except the API-key restriction, which only the owner can do in the Google Cloud Console.
+
+| Check | Result |
+|---|---|
+| Restrict the Firebase API key (S3) | **OPEN (owner).** Console → APIs & Services → Credentials → restrict the Android key to package `com.example.learnlite` + the signing SHA-1, and to the Identity Toolkit / Token Service APIs. |
+| No cleartext HTTP in release | PASSED. Release builds require HTTPS; plain HTTP only with the explicit LAN opt-in and only to private IPv4 addresses (F13). |
+| Admin claim | PASSED. `verifyAdministrator()` checks the Firebase custom claim (`admin`, `role`, or `roles`) and is called by every admin read and write (11 methods). Claims can only be set with the Admin SDK. Edits stay local to the device (F5). |
+| Committed UI dumps (S2) | PASSED. Untracked and git-ignored. They remain in older commits (partial username, no passwords); rewriting history was not done. |
+| Secrets in git history | PASSED. `git log --all -p` scanned for private keys, service-account files, keystores, `.env`, tokens and passwords. Only the Firebase Android API key in `google-services.json` (public by design, see S3) and documentation placeholders were found. |
+| Package review (S5) | JUSTIFIED. Minor updates for firebase_core/firebase_auth and a major one for file_picker (`flutter pub outdated`, 2026-11-20); no advisories were recorded in the earlier review (S5). Not upgraded before the demo to avoid regressions. |
+| Raw error text (F12) | PASSED. `userMessage()` on all learner and admin screens. |
+
+---
+
+## Phase 9: Release build and documentation
+
+| Task | Status | Evidence |
+|---|---|---|
+| 9.1 Real application ID | BLOCKED (owner) | Needs a new Firebase Android app registration and `google-services.json`. |
+| 9.2 Release signing | PARTIALLY COMPLETED | Gradle reads `android/key.properties`; without it the debug key is used. The owner must create and keep the keystore. |
+| 9.3 Release APK smoke test | COMPLETED (emulator) | `flutter build apk --release` (57 MB). Installed with `adb install -r` over the debug build (same certificate `2fab0f91…264a`): opened signed in as account A; Home, Lessons (modules listed), Quiz and Progress correct; Tutor answered over LAN HTTP. Reinstalling the debug build afterwards: on-device database **identical** to the snapshot taken before (integrity ok, 2 learners, XP 27/27, 315 vocabulary rows, 0 duplicate keys, same counts in every table). |
+| 9.4 README and docs | COMPLETED | README rewritten; this file, SYSTEM_AUDIT and IMPLEMENTATION_NOTES updated. |
+| 9.5 Screenshots | NOT STARTED | Emulator screenshots were taken for testing only (temp folder); curated screenshots need a stable device. |
+| 9.6 Stale build folders | NOT STARTED | Left for the owner's approval (deletion). |
+
+**APK for the owner:** `release/LearnLite-1.0.0-release-tutor-10.0.10.5.apk` (git-ignored, SHA-256 `5070f473…03aa36`). Release mode, **signed with the debug key (testing only)**, Tutor address `http://10.0.10.5:8000` (this PC's Wi-Fi address on 2026-11-20, assigned by DHCP so it may change) with the LAN opt-in. The phone needs inbound TCP 8000 allowed in Windows Firewall and the bridge running.
 
 ---
 
