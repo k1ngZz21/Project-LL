@@ -41,16 +41,45 @@ class OllamaTutorGateway {
     String? apiBaseUrl,
     http.Client? client,
     this.timeout = const Duration(seconds: 100),
+    bool? releaseMode,
+    bool? allowLanHttp,
   }) : _apiBaseUrl =
            (apiBaseUrl ??
                    const String.fromEnvironment('LEARNLITE_API_BASE_URL'))
                .trim(),
+       _releaseMode = releaseMode ?? kReleaseMode,
+       _allowLanHttp =
+           allowLanHttp ??
+           const bool.fromEnvironment('LEARNLITE_ALLOW_LAN_HTTP'),
        _client = client ?? http.Client();
 
   final Future<String?> Function() idTokenProvider;
   final String _apiBaseUrl;
+  final bool _releaseMode;
+
+  /// Release builds require HTTPS. When the build sets
+  /// `--dart-define=LEARNLITE_ALLOW_LAN_HTTP=true`, plain HTTP is also allowed,
+  /// but only to a private-network IPv4 address (the classroom computer, D6).
+  final bool _allowLanHttp;
   final http.Client _client;
   final Duration timeout;
+
+  /// True for 10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16 IPv4 literals.
+  static bool isPrivateNetworkAddress(String host) {
+    final parts = host.split('.');
+    if (parts.length != 4) return false;
+    final octets = <int>[];
+    for (final part in parts) {
+      final value = int.tryParse(part);
+      if (value == null || value < 0 || value > 255 || part != '$value') {
+        return false;
+      }
+      octets.add(value);
+    }
+    return octets[0] == 10 ||
+        (octets[0] == 172 && octets[1] >= 16 && octets[1] <= 31) ||
+        (octets[0] == 192 && octets[1] == 168);
+  }
 
   String? get configurationMessage {
     if (_apiBaseUrl.isEmpty) {
@@ -69,8 +98,14 @@ class OllamaTutorGateway {
       return 'The Tutor API address is invalid. Check '
           'LEARNLITE_API_BASE_URL and try again.';
     }
-    if (kReleaseMode && uri.scheme != 'https') {
-      return 'The Tutor API must use HTTPS in release builds.';
+    if (_releaseMode && uri.scheme != 'https') {
+      final lanHttpAllowed = _allowLanHttp && isPrivateNetworkAddress(uri.host);
+      if (!lanHttpAllowed) {
+        return _allowLanHttp
+            ? 'The Tutor API must use HTTPS unless it is a classroom '
+                  'computer on the local network (for example 192.168.1.10).'
+            : 'The Tutor API must use HTTPS in release builds.';
+      }
     }
     return null;
   }

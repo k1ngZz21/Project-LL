@@ -1068,7 +1068,7 @@ class _SourceLabel extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                '${entry.sourceFile} · row ${entry.sourceRow}',
+                entry.sourceLabel,
                 style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(color: AppColors.gray),
               ),

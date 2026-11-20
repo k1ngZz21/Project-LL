@@ -390,8 +390,13 @@ class LearningDatabase {
     final stillNeeded = <LocalVocabularyEntry>[];
     final starterList = <LocalVocabularyEntry>[];
     for (final row in rows) {
+      // Entries an admin deactivated are hidden everywhere learners look.
+      if (row['is_active'] == 0) continue;
       final sourceKey = row['source_key']! as String;
-      final sourceRow = row['source_row'];
+      final kind = sourceKey.split(':').first;
+      // Admin-created entries have no workbook row (F11); they are listed
+      // with the workbook vocabulary using row 0 ("not from a workbook row").
+      final sourceRow = row['source_row'] ?? (kind == 'admin' ? 0 : null);
       if (sourceRow is! int) continue;
       final entryProgress = progressById[row['id']];
       final entry = LocalVocabularyEntry(
@@ -401,18 +406,19 @@ class LearningDatabase {
         subanen: row['subanen']! as String,
         module: row['module']! as String,
         topic: row['topic']! as String,
-        variety: row['variety']! as String,
-        alternateForms: row['alternate_forms']! as String,
-        source: row['source']! as String,
-        reviewStatus: row['review_status']! as String,
-        notes: row['notes']! as String,
-        sourceFile: row['source_file']! as String,
+        variety: row['variety'] as String? ?? '',
+        alternateForms: row['alternate_forms'] as String? ?? '',
+        source: row['source'] as String? ?? '',
+        reviewStatus: row['review_status'] as String? ?? 'Pending review',
+        notes: row['notes'] as String? ?? '',
+        sourceFile: row['source_file'] as String? ?? 'LearnLite local entry',
         sourceRow: sourceRow,
         isLearned: entryProgress?['is_learned'] == 1,
         isBookmarked: entryProgress?['is_bookmarked'] == 1,
       );
-      switch (sourceKey.split(':').first) {
+      switch (kind) {
         case 'vocabulary':
+        case 'admin':
           vocabulary.add(entry);
         case 'still-needed':
           stillNeeded.add(entry);
