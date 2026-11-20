@@ -53,10 +53,57 @@ void main() {
     expect(find.byKey(const ValueKey('practice-choice-0')), findsOneWidget);
     expect(find.textContaining('· row '), findsOneWidget);
   });
+
+  testWidgets('category filter and completed vocabulary quiz are saved', (
+    tester,
+  ) async {
+    final gateway = _PracticeGateway();
+    tester.view.physicalSize = const Size(390, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(home: VocabularyPracticeScreen(gateway: gateway)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('practice-category-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Nature').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 of 2'), findsOneWidget);
+    await tester.tap(find.text('Quiz'));
+    await tester.pumpAndSettle();
+    expect(find.text('Question 1 of 2'), findsOneWidget);
+
+    for (var index = 0; index < 2; index++) {
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('practice-choice-0')),
+      );
+      await tester.tap(find.byKey(const ValueKey('practice-choice-0')));
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('practice-check-answer')),
+      );
+      await tester.tap(find.byKey(const ValueKey('practice-check-answer')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('practice-check-answer')),
+      );
+      await tester.tap(find.byKey(const ValueKey('practice-check-answer')));
+      await tester.pumpAndSettle();
+    }
+
+    expect(gateway.vocabularyQuizAttempts, hasLength(1));
+    expect(gateway.vocabularyQuizAttempts.single.category, 'Nature');
+    expect(find.text('Result saved to your quiz history.'), findsOneWidget);
+    expect(find.textContaining('Quiz history'), findsOneWidget);
+  });
 }
 
 class _PracticeGateway implements DictionaryGateway {
   final Set<int> learnedVocabularyIds = {};
+  final List<VocabularyQuizAttempt> vocabularyQuizAttempts = [];
 
   final List<LocalVocabularyEntry> _entries = const [
     LocalVocabularyEntry(
@@ -95,7 +142,7 @@ class _PracticeGateway implements DictionaryGateway {
       bisaya: '',
       subanen: 'adlaw',
       module: '',
-      topic: '',
+      topic: 'Nature',
       variety: '',
       alternateForms: '',
       source: 'Workbook',
@@ -110,7 +157,7 @@ class _PracticeGateway implements DictionaryGateway {
       bisaya: '',
       subanen: 'kahoy',
       module: '',
-      topic: '',
+      topic: 'Nature',
       variety: '',
       alternateForms: '',
       source: 'Workbook',
@@ -120,6 +167,25 @@ class _PracticeGateway implements DictionaryGateway {
       sourceRow: 5,
     ),
   ];
+
+  @override
+  Future<VocabularyQuizAttempt> saveVocabularyQuizAttempt({
+    required String category,
+    required List<VocabularyQuizResponse> responses,
+  }) async {
+    final attempt = VocabularyQuizAttempt(
+      id: 'attempt-${vocabularyQuizAttempts.length + 1}',
+      category: category,
+      completedAt: DateTime.utc(2026, 1, 1),
+      responses: List.unmodifiable(responses),
+    );
+    vocabularyQuizAttempts.add(attempt);
+    return attempt;
+  }
+
+  @override
+  Future<List<VocabularyQuizAttempt>> fetchVocabularyQuizAttempts() async =>
+      List.unmodifiable(vocabularyQuizAttempts);
 
   @override
   Future<LocalVocabularyCatalog> localVocabulary() async =>

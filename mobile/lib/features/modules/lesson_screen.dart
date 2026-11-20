@@ -5,7 +5,13 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../core/display_format.dart';
+import '../../widgets/answer_option_tile.dart';
+import '../../widgets/decorative_border.dart';
+import '../../widgets/icon_badge.dart';
 import '../../widgets/learnlite_card.dart';
+import '../../widgets/learnlite_progress_indicator.dart';
+import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
 import '../content/content_gateway.dart';
 
@@ -179,6 +185,13 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
       Navigator.of(context).pop(_module);
       return;
     }
+    await _openLesson(nextIndex);
+  }
+
+  Future<void> _openPreviousLesson() => _openLesson(_lesson.index - 1);
+
+  Future<void> _openLesson(int lessonIndex) async {
+    if (lessonIndex < 0 || lessonIndex >= _module.lessonCount) return;
     setState(() {
       _isSaving = true;
       _errorMessage = null;
@@ -186,12 +199,12 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
     try {
       final updated = await widget.gateway.startModuleLesson(
         _module.id,
-        nextIndex,
+        lessonIndex,
       );
       if (!mounted) return;
       setState(() {
         _module = updated;
-        _lesson = updated.lessons[nextIndex];
+        _lesson = updated.lessons[lessonIndex];
         _answers = [];
         _result = null;
         _showReview = false;
@@ -234,6 +247,19 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
       _LessonView.quiz => 'Quiz',
       _LessonView.results => 'Quiz Results',
     };
+    // System Back behaves exactly like the app-bar arrow: from the quiz or
+    // its results it returns to the lesson page; on the lesson page it
+    // leaves and hands the updated module back so progress refreshes.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _goBack();
+      },
+      child: _buildScaffold(title),
+    );
+  }
+
+  Widget _buildScaffold(String title) {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -242,13 +268,24 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
           onPressed: _goBack,
           icon: const Icon(Icons.arrow_back),
         ),
+        bottom: weaveAppBarBottom,
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
         children: [
-          if (_view == _LessonView.lesson) _buildLesson(),
-          if (_view == _LessonView.quiz) _buildQuiz(),
-          if (_view == _LessonView.results) _buildResults(),
+          AnimatedSwitcher(
+            duration: MediaQuery.maybeDisableAnimationsOf(context) ?? false
+                ? Duration.zero
+                : const Duration(milliseconds: 240),
+            child: KeyedSubtree(
+              key: ValueKey(_view),
+              child: switch (_view) {
+                _LessonView.lesson => _buildLesson(),
+                _LessonView.quiz => _buildQuiz(),
+                _LessonView.results => _buildResults(),
+              },
+            ),
+          ),
           if (_errorMessage != null) ...[
             const SizedBox(height: 16),
             Text(
@@ -258,9 +295,22 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
           ],
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-        child: _buildAction(),
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x145A3A1A),
+              blurRadius: 18,
+              offset: Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+          child: _buildAction(),
+        ),
       ),
     );
   }
@@ -269,82 +319,94 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
     final progress = _module.lessonCount == 0
         ? 0.0
         : (_lesson.index + 1) / _module.lessonCount;
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          _module.title,
-          style: Theme.of(context).textTheme.titleMedium
-              ?.copyWith(color: AppColors.gray),
-        ),
-        const SizedBox(height: 10),
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            Expanded(
-              child: Text(
-                'Lesson ${_lesson.index + 1} of ${_module.lessonCount}',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
+            StatusPill(
+              label: 'Lesson ${_lesson.index + 1} of ${_module.lessonCount}',
+              icon: Icons.menu_book_rounded,
+              tone: IconBadgeTone.dark,
             ),
             if (_lesson.completed)
-              const Text(
-                'Completed',
-                style: TextStyle(color: AppColors.primary),
+              const StatusPill(
+                label: 'Completed',
+                icon: Icons.check_rounded,
+                tone: IconBadgeTone.red,
               ),
           ],
         ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: progress,
-          color: AppColors.primary,
-          backgroundColor: AppColors.lightPink,
+        const SizedBox(height: 12),
+        Text(
+          _module.title,
+          style: textTheme.labelLarge?.copyWith(color: AppColors.inkSoft),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
+        LearnLiteProgressIndicator(progress: progress.clamp(0.0, 1.0)),
+        const SizedBox(height: 22),
         if (_lesson.phrase != null ||
             _lesson.pronunciation != null ||
             _lesson.audioUrl != null)
           _buildPhraseCard(),
         if (_lesson.imageUrl != null) ...[
-          const SizedBox(height: 14),
           _buildLessonImage(_lesson.imageUrl!),
+          const SizedBox(height: 14),
         ],
         LearnLiteCard(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Lesson', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const IconBadge(icon: Icons.notes_rounded, size: 34),
+                  const SizedBox(width: 10),
+                  Text('Lesson', style: textTheme.titleMedium),
+                ],
+              ),
+              const SizedBox(height: 14),
               SelectableText(
                 _lesson.content,
-                style: Theme.of(context).textTheme.bodyLarge
-                    ?.copyWith(height: 1.7),
+                style: textTheme.bodyLarge?.copyWith(height: 1.7),
               ),
             ],
           ),
         ),
         const SizedBox(height: 14),
         LearnLiteCard(
+          backgroundColor: AppColors.lightPink,
+          padding: const EdgeInsets.all(16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CircleAvatar(
-                backgroundColor: AppColors.lightPink,
-                foregroundColor: AppColors.primary,
-                child: Icon(Icons.face_outlined),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: AppColors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.face_retouching_natural_rounded,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Learning coach',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
+                    Text('Learning coach', style: textTheme.titleSmall),
                     const SizedBox(height: 4),
                     Text(
                       'Take your time with this lesson. Continue when you are ready.',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.inkSoft,
+                      ),
                     ),
                   ],
                 ),
@@ -355,48 +417,109 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
         if (_lesson.culturalNote != null) ...[
           const SizedBox(height: 14),
           LearnLiteCard(
-            backgroundColor: AppColors.cream,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Cultural note',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 8),
-                Text(_lesson.culturalNote!),
-              ],
+            backgroundColor: AppColors.goldSoft,
+            padding: EdgeInsets.zero,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(width: 5, color: AppColors.gold),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.diamond_outlined,
+                                size: 18,
+                                color: AppColors.goldDeep,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Cultural note',
+                                style: textTheme.titleSmall?.copyWith(
+                                  color: AppColors.goldDeep,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _lesson.culturalNote!,
+                            style: textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
         if (_lesson.keywords.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Text('Keywords', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
+          const SizedBox(height: 22),
+          const SectionHeader(title: 'Keywords'),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
-            runSpacing: 4,
+            runSpacing: 8,
             children: [
               for (final keyword in _lesson.keywords)
                 Chip(
                   label: Text(keyword),
-                  backgroundColor: AppColors.lightPink,
-                  side: BorderSide.none,
+                  avatar: const Icon(
+                    Icons.tag_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  backgroundColor: AppColors.white,
                 ),
             ],
           ),
         ],
         if (_lesson.quiz.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Text('Quiz', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text(
-            'A quiz is available for this lesson.',
-            style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(color: AppColors.gray),
+          const SizedBox(height: 22),
+          LearnLiteCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const IconBadge(
+                      icon: Icons.quiz_rounded,
+                      tone: IconBadgeTone.gold,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Quiz', style: textTheme.titleMedium),
+                          Text(
+                            'A quiz is available for this lesson.',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.inkSoft,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    StatusPill(
+                      label: '${_lesson.quiz.length} '
+                          '${_lesson.quiz.length == 1 ? 'question' : 'questions'}',
+                      tone: IconBadgeTone.gold,
+                    ),
+                  ],
+                ),
+                _buildQuizHistory(),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          _buildQuizHistory(),
         ],
       ],
     );
@@ -437,46 +560,79 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
   }
 
   Widget _buildPhraseCard() {
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: LearnLiteCard(
-        backgroundColor: AppColors.lightPink,
+        backgroundColor: AppColors.charcoal,
+        padding: EdgeInsets.zero,
+        elevated: true,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Phrase', style: Theme.of(context).textTheme.titleSmall),
-            if (_lesson.phrase != null) ...[
-              const SizedBox(height: 8),
-              SelectableText(
-                _lesson.phrase!,
-                style: Theme.of(context).textTheme.headlineSmall,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Phrase',
+                    style: textTheme.labelLarge?.copyWith(
+                      color: AppColors.gold,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                  if (_lesson.phrase != null) ...[
+                    const SizedBox(height: 8),
+                    SelectableText(
+                      _lesson.phrase!,
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ],
+                  if (_lesson.pronunciation != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Pronunciation: ${_lesson.pronunciation}',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.white.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                  if (_lesson.audioUrl != null) ...[
+                    const SizedBox(height: 14),
+                    FilledButton.icon(
+                      onPressed: _playAudio,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.gold,
+                        foregroundColor: AppColors.darkBackground,
+                        minimumSize: const Size(0, 44),
+                      ),
+                      icon: Icon(
+                        _playerState == PlayerState.playing
+                            ? Icons.pause_rounded
+                            : Icons.volume_up_rounded,
+                      ),
+                      label: Text(
+                        _playerState == PlayerState.playing
+                            ? 'Pause audio'
+                            : 'Play pronunciation',
+                      ),
+                    ),
+                    if (_audioError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          _audioError!,
+                          style: const TextStyle(color: AppColors.gold),
+                        ),
+                      ),
+                  ],
+                ],
               ),
-            ],
-            if (_lesson.pronunciation != null) ...[
-              const SizedBox(height: 8),
-              Text('Pronunciation: ${_lesson.pronunciation}'),
-            ],
-            if (_lesson.audioUrl != null) ...[
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: _playAudio,
-                icon: Icon(
-                  _playerState == PlayerState.playing
-                      ? Icons.pause
-                      : Icons.volume_up_outlined,
-                ),
-                label: Text(
-                  _playerState == PlayerState.playing
-                      ? 'Pause audio'
-                      : 'Play pronunciation',
-                ),
-              ),
-              if (_audioError != null)
-                Text(
-                  _audioError!,
-                  style: const TextStyle(color: AppColors.primary),
-                ),
-            ],
+            ),
+            const DecorativeBorder(height: 8),
           ],
         ),
       ),
@@ -516,20 +672,27 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 12),
+            const Divider(),
+            const SizedBox(height: 10),
             Text(
               'Previous attempts',
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 2),
             for (final attempt in attempts.reversed.take(3))
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.history, color: AppColors.primary),
+                leading: const IconBadge(
+                  icon: Icons.history_rounded,
+                  tone: IconBadgeTone.cream,
+                  size: 38,
+                ),
                 title: Text(
                   '${attempt.correctAnswers} of ${attempt.totalQuestions} correct',
                 ),
                 subtitle: Text(
-                  'Completed ${attempt.completedAt.toLocal()}',
+                  'Completed ${friendlyDateTime(attempt.completedAt)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -544,48 +707,51 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
 
   Widget _buildQuiz() {
     final answeredQuestions = _answers.where((answer) => answer >= 0).length;
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
-            const CircleAvatar(
-              backgroundColor: AppColors.lightPink,
-              foregroundColor: AppColors.primary,
-              child: Icon(Icons.face_outlined),
-            ),
+            const IconBadge(icon: Icons.quiz_rounded, size: 42),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                _lesson.title,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              child: Text(_lesson.title, style: textTheme.titleMedium),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        LinearProgressIndicator(
-          value: answeredQuestions / _lesson.quiz.length,
-          color: AppColors.primary,
-          backgroundColor: AppColors.lightPink,
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: LearnLiteProgressIndicator(
+                progress: _lesson.quiz.isEmpty
+                    ? 0
+                    : answeredQuestions / _lesson.quiz.length,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '$answeredQuestions of ${_lesson.quiz.length} answered',
+              style: textTheme.labelMedium?.copyWith(color: AppColors.inkSoft),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          '$answeredQuestions of ${_lesson.quiz.length} answered',
-          style: Theme.of(context).textTheme.bodySmall
-              ?.copyWith(color: AppColors.gray),
-        ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         LearnLiteCard(
-          backgroundColor: AppColors.cream,
+          backgroundColor: AppColors.goldSoft,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              const Icon(Icons.stars_outlined, color: AppColors.primary),
+              const Icon(Icons.bolt_rounded, color: AppColors.goldDeep),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Earn 1 XP per correct answer when you improve your best score.',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -601,6 +767,7 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
 
   Widget _buildQuestion(int questionIndex, QuizQuestion question) {
     return LearnLiteCard(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -612,39 +779,32 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
           const SizedBox(height: 8),
           Text(
             question.question,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Material(
-            color: Colors.transparent,
-            child: RadioGroup<int>(
-              groupValue: _answers[questionIndex] < 0
-                  ? null
-                  : _answers[questionIndex],
-              onChanged: (value) {
-                if (value == null || _isSaving) return;
-                setState(() {
-                  _answers[questionIndex] = value;
-                  _errorMessage = null;
-                });
-              },
-              child: Column(
-                children: [
-                  for (
-                    var answerIndex = 0;
-                    answerIndex < question.choices.length;
-                    answerIndex++
-                  )
-                    RadioListTile<int>(
-                      value: answerIndex,
-                      title: Text(question.choices[answerIndex]),
-                      contentPadding: EdgeInsets.zero,
-                      activeColor: AppColors.primary,
-                    ),
-                ],
-              ),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontSize: 17,
             ),
           ),
+          const SizedBox(height: 14),
+          for (
+            var answerIndex = 0;
+            answerIndex < question.choices.length;
+            answerIndex++
+          )
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: AnswerOptionTile(
+                index: answerIndex,
+                label: question.choices[answerIndex],
+                state: _answers[questionIndex] == answerIndex
+                    ? AnswerOptionState.selected
+                    : AnswerOptionState.idle,
+                onTap: _isSaving
+                    ? null
+                    : () => setState(() {
+                        _answers[questionIndex] = answerIndex;
+                        _errorMessage = null;
+                      }),
+              ),
+            ),
         ],
       ),
     );
@@ -660,75 +820,109 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         LearnLiteCard(
-          backgroundColor: AppColors.cream,
+          padding: EdgeInsets.zero,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
-                Icons.celebration_outlined,
-                size: 44,
-                color: AppColors.primary,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _showReview ? 'Quiz review' : 'Quiz complete',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${result.score} / ${result.totalQuestions}',
-                style: Theme.of(context).textTheme.headlineMedium
-                    ?.copyWith(color: AppColors.primary),
-              ),
-              const Text('correct answers'),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _ResultCount(
-                    label: 'Correct',
-                    count: result.correctAnswers,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 24),
-                  _ResultCount(
-                    label: 'Incorrect',
-                    count: result.incorrectAnswers,
-                    color: AppColors.gray,
-                  ),
-                ],
-              ),
-              if (result.xpAwarded != null) ...[
-                const SizedBox(height: 14),
-                Text(
-                  '+${result.totalXpAwarded} XP',
-                  style: Theme.of(context).textTheme.titleLarge
-                      ?.copyWith(color: AppColors.primary),
-                ),
-                Text('Quiz XP: +${result.xpAwarded}'),
-                if (result.lessonXpAwarded > 0)
-                  Text('Lesson completion XP: +${result.lessonXpAwarded}'),
-              ],
-              if (leveledUp) ...[
-                const SizedBox(height: 12),
-                Text(
-                  'Level up! You reached Level ${result.currentLevel}.',
-                  style: Theme.of(context).textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        LearnLiteCard(
-          child: Row(
-            children: [
-              const Icon(Icons.lock_outline, color: AppColors.gray),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Outfit rewards are unavailable until approved customization items are added.',
-                  style: Theme.of(context).textTheme.bodyMedium,
+              const DecorativeBorder(height: 8),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+                child: Column(
+                  children: [
+                    Text(
+                      _showReview ? 'Quiz review' : 'Quiz complete',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 18),
+                    ScoreRing(
+                      progress: result.totalQuestions == 0
+                          ? 0
+                          : result.correctAnswers / result.totalQuestions,
+                      // `score` is a percentage in local results, so the
+                      // headline uses the correct-answer count instead.
+                      center: Text(
+                        '${result.correctAnswers} / ${result.totalQuestions}',
+                        key: const ValueKey('quiz-result-score'),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(color: AppColors.primary),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      result.totalQuestions == 0
+                          ? 'correct answers'
+                          : 'correct answers · '
+                                '${(100 * result.correctAnswers / result.totalQuestions).round()}%',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ResultCount(
+                            label: 'Correct',
+                            count: result.correctAnswers,
+                            color: AppColors.success,
+                            background: AppColors.successSoft,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _ResultCount(
+                            label: 'Incorrect',
+                            count: result.incorrectAnswers,
+                            color: AppColors.primary,
+                            background: AppColors.lightPink,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (result.xpAwarded != null) ...[
+                      const SizedBox(height: 14),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.goldSoft,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              '+${result.totalXpAwarded} XP',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(color: AppColors.goldDeep),
+                            ),
+                            const SizedBox(height: 2),
+                            Text('Quiz XP: +${result.xpAwarded}'),
+                            if (result.lessonXpAwarded > 0)
+                              Text(
+                                'Lesson completion XP: +${result.lessonXpAwarded}',
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (leveledUp) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.charcoal,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          'Level up! You reached Level ${result.currentLevel}.',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(color: AppColors.gold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
@@ -751,12 +945,25 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: LearnLiteCard(
+        padding: const EdgeInsets.all(16),
+        borderColor: (isCorrect ? AppColors.success : AppColors.primary)
+            .withValues(alpha: 0.35),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Question ${index + 1}',
-              style: Theme.of(context).textTheme.labelLarge,
+            Row(
+              children: [
+                Icon(
+                  isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                  size: 20,
+                  color: isCorrect ? AppColors.success : AppColors.primary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Question ${index + 1}',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ],
             ),
             const SizedBox(height: 6),
             Text(
@@ -820,27 +1027,16 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
         ],
       );
     }
-    if (_lesson.quiz.isNotEmpty) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          FilledButton(
-            onPressed: _isSaving ? null : _startQuiz,
-            child: Text(_lesson.completed ? 'Retake Quiz' : 'Start Quiz'),
-          ),
-          if (_lesson.completed) ...[
-            const SizedBox(height: 8),
-            _buildNextLessonButton(),
-          ],
-        ],
-      );
-    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (!_lesson.completed)
+        if (_lesson.quiz.isNotEmpty)
+          FilledButton(
+            onPressed: _isSaving ? null : _startQuiz,
+            child: Text(_lesson.completed ? 'Retake Quiz' : 'Start Quiz'),
+          )
+        else if (!_lesson.completed)
           FilledButton(
             onPressed: _isSaving ? null : _completeLesson,
             child: _isSaving
@@ -856,7 +1052,30 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.primary),
           ),
-        if (_lesson.completed) ...[
+        if (_lesson.index > 0 || _lesson.index + 1 < _module.lessonCount) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              if (_lesson.index > 0)
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _isSaving ? null : _openPreviousLesson,
+                    child: const Text('Previous Lesson'),
+                  ),
+                ),
+              if (_lesson.index > 0 && _lesson.index + 1 < _module.lessonCount)
+                const SizedBox(width: 8),
+              if (_lesson.index + 1 < _module.lessonCount)
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _isSaving ? null : _openNextLesson,
+                    child: const Text('Next Lesson'),
+                  ),
+                ),
+            ],
+          ),
+        ],
+        if (_lesson.completed && _lesson.index + 1 == _module.lessonCount) ...[
           const SizedBox(height: 8),
           _buildNextLessonButton(),
         ],
@@ -879,22 +1098,38 @@ class _ResultCount extends StatelessWidget {
     required this.label,
     required this.count,
     required this.color,
+    required this.background,
   });
 
   final String label;
   final int count;
   final Color color;
+  final Color background;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          '$count',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: color),
-        ),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '$count',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(color: color),
+          ),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: AppColors.inkSoft,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -533,6 +533,10 @@ abstract interface class AuthGateway {
   Future<bool> isUsernameAvailable(String username);
   Future<LearnerProfile> fetchProfile();
   Future<LearnerProfile> updateAvatarProfile(LearnerProfile profile);
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
   Future<List<LearningModule>> fetchModules({String search = ''});
   Future<LearningModule> fetchModule(int moduleId);
   Future<LearningModule> startModuleLesson(int moduleId, int lessonIndex);

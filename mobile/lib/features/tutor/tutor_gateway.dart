@@ -54,8 +54,9 @@ class OllamaTutorGateway {
 
   String? get configurationMessage {
     if (_apiBaseUrl.isEmpty) {
-      return 'The Tutor API address is not configured. Set '
-          'LEARNLITE_API_BASE_URL to the existing LearnLite API address.';
+      return 'The AI Tutor is not configured on this device yet. It needs '
+          'the LearnLite classroom computer. Your lessons, vocabulary and '
+          'quizzes still work offline.';
     }
     final uri = Uri.tryParse(_apiBaseUrl);
     if (uri == null ||

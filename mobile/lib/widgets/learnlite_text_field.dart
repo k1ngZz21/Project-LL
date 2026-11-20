@@ -53,6 +53,8 @@ class LearnLiteTextField extends StatelessWidget {
         labelText: label,
         hintText: hint,
         helperText: helperText,
+        helperMaxLines: 2,
+        errorMaxLines: 2,
         prefixIcon: prefixIcon == null ? null : Icon(prefixIcon),
         suffixIcon: suffixIcon,
       ),

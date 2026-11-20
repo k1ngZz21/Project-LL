@@ -5,13 +5,19 @@ import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
+    show
+        debugPrint,
+        defaultTargetPlatform,
+        kIsWeb,
+        kReleaseMode,
+        TargetPlatform;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/bundled_learning_content.dart';
 import '../../core/learning_database.dart';
+import '../../core/local_day.dart';
 import '../../core/offline_content_store.dart';
 import '../../firebase_options.dart';
 import '../content/content_gateway.dart';
@@ -50,9 +56,7 @@ class FirebaseAuthGateway
       throw const AuthFailure('Sign in to use the AI Tutor.');
     }
     if (!user.emailVerified) {
-      throw const AuthFailure(
-        'Verify your email before using the AI Tutor.',
-      );
+      throw const AuthFailure('Verify your email before using the AI Tutor.');
     }
     try {
       return await user.getIdToken();
@@ -64,15 +68,26 @@ class FirebaseAuthGateway
     }
   }
 
-  static Future<FirebaseAuthGateway> initialize() async {
+  static Future<AuthGateway> initialize() async {
+    if (kIsWeb) {
+      return const UnavailableAuthGateway();
+    }
+
+    // Startup timing (debug and profile builds only) so slow steps are
+    // measured rather than guessed.
+    final timer = _StartupTimer();
     final database = LearningDatabase.instance;
     await database.database;
-    await database.seedVocabulary(await LocalVocabularyRepository().load());
+    timer.lap('open database');
+    await database.seedVocabularyIfChanged(LocalVocabularyRepository());
+    timer.lap('vocabulary seed check');
     await _migrateLegacyCache(database, OfflineContentStore());
+    timer.lap('legacy cache check');
     await database.seedBundledModule(
       key: bundledOfflineModuleKey,
       module: bundledOfflineModule,
     );
+    timer.lap('bundled module');
 
     FirebaseAuth? auth;
     String? authError;
@@ -97,12 +112,49 @@ class FirebaseAuthGateway
       authError =
           'Firebase initialization failed (${error.code}). Check the LearnLite Firebase options and Android package registration.';
     }
+    timer
+      ..lap('firebase init')
+      ..report();
 
     return FirebaseAuthGateway(
       firebaseAuth: auth,
       database: database,
       initializationError: authError,
     );
+  }
+
+  @override
+  Future<VocabularyQuizAttempt> saveVocabularyQuizAttempt({
+    required String category,
+    required List<VocabularyQuizResponse> responses,
+  }) async {
+    if (responses.isEmpty) {
+      throw const AuthFailure('A vocabulary quiz must contain answers.');
+    }
+    final uid = await _ownerUid();
+    final attempt = VocabularyQuizAttempt(
+      id: const Uuid().v4(),
+      category: category,
+      completedAt: DateTime.now().toUtc(),
+      responses: List.unmodifiable(responses),
+    );
+    await _database.addHistory(
+      id: '${uid}_vocabulary_quiz_${attempt.id}',
+      uid: uid,
+      eventType: 'vocabulary_quiz_completed',
+      entityId: category,
+      eventData: attempt.toHistoryJson(),
+    );
+    return attempt;
+  }
+
+  @override
+  Future<List<VocabularyQuizAttempt>> fetchVocabularyQuizAttempts() async {
+    final rows = await _database.historyEvents(
+      uid: await _ownerUid(),
+      eventType: 'vocabulary_quiz_completed',
+    );
+    return rows.map(VocabularyQuizAttempt.fromHistory).toList();
   }
 
   static Future<void> _migrateLegacyCache(
@@ -190,6 +242,38 @@ class FirebaseAuthGateway
     return _profileFromRow(row, user.uid);
   }
 
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final auth = firebaseAuth;
+    if (auth == null) throw AuthFailure(_configurationError);
+    final user = _requireUser();
+    final email = user.email;
+    if (email == null || email.isEmpty) {
+      throw const AuthFailure('This account does not have an email address.');
+    }
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'wrong-password' ||
+          error.code == 'invalid-credential' ||
+          error.code == 'invalid-login-credentials') {
+        throw const AuthFailure('Your current password is incorrect.');
+      }
+      throw AuthFailure(
+        _firebaseErrorMessage(error.code),
+        isOffline: error.code == 'network-request-failed',
+      );
+    }
+  }
+
   Future<LearnerProfile> _profileFromRow(
     Map<String, Object?> row,
     String uid,
@@ -217,7 +301,26 @@ class FirebaseAuthGateway
   @override
   Future<LearnerProfile> updateAvatarProfile(LearnerProfile profile) async {
     final user = _requireUser();
+    final fullName = profile.fullName.trim();
+    if (fullName.isEmpty || fullName.length > 80) {
+      throw const AuthFailure('Name must be between 1 and 80 characters.');
+    }
+    final existing = await _database.learner(user.uid);
+    if (existing == null) {
+      throw const AuthFailure('Your learner profile could not be loaded.');
+    }
+    if (existing['full_name'] != fullName) {
+      try {
+        await user.updateDisplayName(fullName);
+      } on FirebaseAuthException catch (error) {
+        throw AuthFailure(
+          _firebaseErrorMessage(error.code),
+          isOffline: error.code == 'network-request-failed',
+        );
+      }
+    }
     await _database.updateLearner(user.uid, {
+      'full_name': fullName,
       'nickname': profile.nickname,
       'avatar_id': profile.avatarId,
       'outfit_color': profile.outfitColor,
@@ -298,12 +401,15 @@ class FirebaseAuthGateway
   Future<RewardsOverview> fetchRewards() async {
     final uid = await _ownerUid();
     final db = await _database.database;
-    final today = DateTime.now().toUtc();
-    final todayKey = _dateKey(today);
+    // Rewards follow the learner's local calendar day (stored times are UTC).
+    final now = _database.clock();
+    final today = localCalendarDate(now);
+    final todayKey = dateKeyOf(today);
+    final localWeek = localWeekStart(now);
     final weekStart = DateTime.utc(
-      today.year,
-      today.month,
-      today.day - (today.weekday - 1),
+      localWeek.year,
+      localWeek.month,
+      localWeek.day,
     );
     final completions = await db.query(
       'lesson_completions',
@@ -312,34 +418,27 @@ class FirebaseAuthGateway
       whereArgs: [uid],
       orderBy: 'completed_at DESC',
     );
-    final activeDates =
-        completions
-            .map((row) => DateTime.parse(row['completed_at']! as String))
-            .map((date) => DateTime.utc(date.year, date.month, date.day))
-            .toSet()
-            .toList()
-          ..sort((a, b) => b.compareTo(a));
-    final todayLessons = completions
-        .where((row) => (row['completed_at']! as String).startsWith(todayKey))
+    final completionTimes = completions
+        .map((row) => DateTime.parse(row['completed_at']! as String))
+        .toList();
+    final activeDates = completionTimes.map(localCalendarDate).toSet().toList()
+      ..sort((a, b) => b.compareTo(a));
+    final todayLessons = completionTimes
+        .where((time) => localDateKey(time) == todayKey)
         .length;
-    final thisWeekLessons = completions
-        .where(
-          (row) =>
-              !DateTime.parse(row['completed_at']! as String)
-                  .isBefore(weekStart),
-        )
+    final thisWeekLessons = completionTimes
+        .where((time) => !time.isBefore(localWeek))
         .length;
     final streak = await _currentStreak(uid);
+    final longestStreak = _longestStreak(activeDates);
     final calendar = List.generate(7, (index) {
       final date = DateTime.utc(today.year, today.month, today.day - 6 + index);
       return RewardCalendarDay(
         date: date,
         weekday: _weekday(date.weekday),
         active: activeDates.contains(date),
-        isToday: _dateKey(date) == todayKey,
-        isFuture: date.isAfter(
-          DateTime.utc(today.year, today.month, today.day),
-        ),
+        isToday: dateKeyOf(date) == todayKey,
+        isFuture: date.isAfter(today),
       );
     });
     final badges = [
@@ -374,10 +473,10 @@ class FirebaseAuthGateway
     ];
     final certificates = await _completedCertificates(uid);
     return RewardsOverview(
-      timezone: 'UTC',
-      today: DateTime.utc(today.year, today.month, today.day),
+      timezone: now.timeZoneName,
+      today: today,
       streak: streak,
-      longestStreak: streak,
+      longestStreak: longestStreak,
       activeDates: activeDates,
       calendar: calendar,
       dailyQuest: DailyQuestStatus(
@@ -402,7 +501,7 @@ class FirebaseAuthGateway
             await _hasHistoryEvent(
               uid,
               'weekly_bonus_awarded',
-              _dateKey(weekStart),
+              dateKeyOf(weekStart),
             )
             ? 25
             : 0,
@@ -441,7 +540,7 @@ class FirebaseAuthGateway
               pw.SizedBox(height: 12),
               pw.Text('completed ${certificate.single.moduleTitle}'),
               pw.SizedBox(height: 28),
-              pw.Text(_dateKey(certificate.single.issuedAt)),
+              pw.Text(localDateKey(certificate.single.issuedAt)),
             ],
           ),
         ),
@@ -460,7 +559,7 @@ class FirebaseAuthGateway
     if (normalized.isEmpty) return const [];
     final sourceColumn = _languageColumn(sourceLanguage);
     final targetColumn = _languageColumn(targetLanguage);
-    final rows = await _database.searchVerifiedVocabulary(
+    final rows = await _database.searchVocabulary(
       column: sourceColumn,
       query: normalized,
     );
@@ -478,6 +577,7 @@ class FirebaseAuthGateway
             'topic': row['topic'],
             'source': row['source'],
             'review_status': row['review_status'],
+            'is_verified': row['is_verified'] == 1,
           });
           return DictionaryTranslation(
             entry: entry,
@@ -1033,18 +1133,37 @@ class FirebaseAuthGateway
     );
     final dates = rows
         .map((row) => DateTime.parse(row['completed_at']! as String))
-        .map((date) => _dateKey(date))
+        .map(localDateKey)
         .toSet();
-    var current = DateTime.now().toUtc();
-    if (!dates.contains(_dateKey(current))) {
-      current = current.subtract(const Duration(days: 1));
-    }
+    // Walk back one local calendar day at a time (date arithmetic, not
+    // 24-hour durations).
+    var current = localCalendarDate(_database.clock());
+    DateTime previousDay(DateTime date) =>
+        DateTime.utc(date.year, date.month, date.day - 1);
+    if (!dates.contains(dateKeyOf(current))) current = previousDay(current);
     var streak = 0;
-    while (dates.contains(_dateKey(current))) {
+    while (dates.contains(dateKeyOf(current))) {
       streak++;
-      current = current.subtract(const Duration(days: 1));
+      current = previousDay(current);
     }
     return streak;
+  }
+
+  int _longestStreak(List<DateTime> activeDates) {
+    final dates = activeDates.toSet().toList()..sort();
+    var longest = 0;
+    var current = 0;
+    DateTime? previous;
+    for (final date in dates) {
+      if (previous != null && date.difference(previous).inDays == 1) {
+        current++;
+      } else {
+        current = 1;
+      }
+      if (current > longest) longest = current;
+      previous = date;
+    }
+    return longest;
   }
 
   Future<bool> _hasPerfectQuiz(String uid) async {
@@ -1171,11 +1290,6 @@ class FirebaseAuthGateway
     _ => throw const AuthFailure('This language pair is not supported.'),
   };
 
-  String _dateKey(DateTime date) =>
-      '${date.year.toString().padLeft(4, '0')}-'
-      '${date.month.toString().padLeft(2, '0')}-'
-      '${date.day.toString().padLeft(2, '0')}';
-
   String _weekday(int weekday) => const [
     'Monday',
     'Tuesday',
@@ -1225,6 +1339,28 @@ class FirebaseAuthGateway
   };
 }
 
+/// Records how long each startup step takes and prints one summary line in
+/// debug and profile builds (never in release builds).
+class _StartupTimer {
+  final _stopwatch = Stopwatch()..start();
+  final _laps = <String>[];
+  Duration _last = Duration.zero;
+
+  void lap(String step) {
+    final now = _stopwatch.elapsed;
+    _laps.add('$step ${(now - _last).inMilliseconds}ms');
+    _last = now;
+  }
+
+  void report() {
+    if (kReleaseMode) return;
+    debugPrint(
+      'LearnLite startup: ${_laps.join(' · ')} · '
+      'total ${_stopwatch.elapsedMilliseconds}ms',
+    );
+  }
+}
+
 class UnavailableAuthGateway implements AuthGateway {
   const UnavailableAuthGateway();
 
@@ -1249,6 +1385,12 @@ class UnavailableAuthGateway implements AuthGateway {
   @override
   Future<LearnerProfile> updateAvatarProfile(LearnerProfile profile) =>
       Future.error(_failure);
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => Future.error(_failure);
 
   @override
   Future<List<LearningModule>> fetchModules({String search = ''}) =>

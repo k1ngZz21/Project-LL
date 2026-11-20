@@ -25,7 +25,9 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
   }
 
   void _refresh() {
-    setState(() => _summaryFuture = widget.gateway.fetchAdminSummary());
+    setState(() {
+      _summaryFuture = widget.gateway.fetchAdminSummary();
+    });
   }
 
   @override

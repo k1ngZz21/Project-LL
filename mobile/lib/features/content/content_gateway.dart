@@ -16,6 +16,7 @@ class DictionaryEntry {
     this.audioUrl,
     this.source,
     this.reviewStatus,
+    this.isVerified = false,
   });
 
   final int id;
@@ -30,6 +31,10 @@ class DictionaryEntry {
   final String? audioUrl;
   final String? source;
   final String? reviewStatus;
+
+  /// Whether an administrator verified this entry against a cited source.
+  /// Unverified entries must be shown with a "Pending review" label.
+  final bool isVerified;
 
   factory DictionaryEntry.fromJson(Map<String, dynamic> json) {
     final id = json['id'];
@@ -51,6 +56,7 @@ class DictionaryEntry {
       audioUrl: json['audio_url'] as String?,
       source: json['source'] as String?,
       reviewStatus: json['review_status'] as String?,
+      isVerified: json['is_verified'] == true,
     );
   }
 }
@@ -112,6 +118,92 @@ class ContentPackDescriptor {
   }
 }
 
+class VocabularyQuizResponse {
+  const VocabularyQuizResponse({
+    required this.english,
+    required this.selectedAnswer,
+    required this.correctAnswer,
+  });
+
+  final String english;
+  final String selectedAnswer;
+  final String correctAnswer;
+
+  bool get isCorrect => selectedAnswer == correctAnswer;
+
+  Map<String, String> toJson() => {
+    'english': english,
+    'selected_answer': selectedAnswer,
+    'correct_answer': correctAnswer,
+  };
+
+  factory VocabularyQuizResponse.fromJson(Map<String, dynamic> json) {
+    final english = json['english'];
+    final selectedAnswer = json['selected_answer'];
+    final correctAnswer = json['correct_answer'];
+    if (english is! String ||
+        selectedAnswer is! String ||
+        correctAnswer is! String) {
+      throw const FormatException('Vocabulary quiz answer fields are missing.');
+    }
+    return VocabularyQuizResponse(
+      english: english,
+      selectedAnswer: selectedAnswer,
+      correctAnswer: correctAnswer,
+    );
+  }
+}
+
+class VocabularyQuizAttempt {
+  const VocabularyQuizAttempt({
+    required this.id,
+    required this.category,
+    required this.completedAt,
+    required this.responses,
+  });
+
+  final String id;
+  final String category;
+  final DateTime completedAt;
+  final List<VocabularyQuizResponse> responses;
+
+  int get correctAnswers =>
+      responses.where((answer) => answer.isCorrect).length;
+  int get totalQuestions => responses.length;
+  int get score =>
+      totalQuestions == 0 ? 0 : (100 * correctAnswers / totalQuestions).round();
+
+  Map<String, dynamic> toHistoryJson() => {
+    'category': category,
+    'responses': responses.map((answer) => answer.toJson()).toList(),
+  };
+
+  factory VocabularyQuizAttempt.fromHistory(Map<String, dynamic> json) {
+    final id = json['id'];
+    final completedAt = json['created_at'];
+    final eventData = json['event_data'];
+    if (id is! String ||
+        completedAt is! String ||
+        eventData is! Map ||
+        eventData['category'] is! String ||
+        eventData['responses'] is! List) {
+      throw const FormatException('Vocabulary quiz history is incomplete.');
+    }
+    return VocabularyQuizAttempt(
+      id: id,
+      category: eventData['category'] as String,
+      completedAt: DateTime.parse(completedAt),
+      responses: (eventData['responses'] as List)
+          .map(
+            (answer) => VocabularyQuizResponse.fromJson(
+              Map<String, dynamic>.from(answer as Map),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
 abstract interface class DictionaryGateway {
   Future<LocalVocabularyCatalog> localVocabulary();
   Future<void> setVocabularyLearningStatus({
@@ -119,6 +211,11 @@ abstract interface class DictionaryGateway {
     required bool learned,
     required bool bookmarked,
   });
+  Future<VocabularyQuizAttempt> saveVocabularyQuizAttempt({
+    required String category,
+    required List<VocabularyQuizResponse> responses,
+  });
+  Future<List<VocabularyQuizAttempt>> fetchVocabularyQuizAttempts();
   Future<List<DictionaryTranslation>> searchDictionary(
     String query, {
     String sourceLanguage = 'Subanen',

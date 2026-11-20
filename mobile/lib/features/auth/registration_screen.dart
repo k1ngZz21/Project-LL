@@ -9,6 +9,7 @@ import '../../widgets/learnlite_button.dart';
 import '../../widgets/learnlite_brand_mark.dart';
 import '../../widgets/learnlite_card.dart';
 import '../../widgets/learnlite_text_field.dart';
+import '../../widgets/section_header.dart';
 import 'auth_gateway.dart';
 
 enum LearningPreference { language, culture, both }
@@ -123,6 +124,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     try {
       final username = _usernameController.text.trim();
       final available = await _gateway.isUsernameAvailable(username);
+      if (!mounted) return;
       if (!available) {
         setState(() {
           _usernameAvailable = false;
@@ -160,11 +162,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             Text('LearnLite'),
           ],
         ),
+        backgroundColor: AppColors.darkBackground,
+        foregroundColor: AppColors.gold,
+        titleTextStyle: const TextStyle(
+          color: AppColors.gold,
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+        ),
         leading: IconButton(
           tooltip: 'Back to login',
-          onPressed: _returnToLogin,
+          onPressed: _isSubmitting ? null : _returnToLogin,
           icon: const Icon(Icons.arrow_back),
         ),
+        bottom: weaveAppBarBottom,
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -173,7 +183,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               constraints.maxWidth,
             );
             return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(padding, 8, padding, 28),
+              padding: EdgeInsets.fromLTRB(padding, 22, padding, 28),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 560),
@@ -319,10 +329,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 },
                               ),
                               const SizedBox(height: 22),
-                              Text(
-                                'Learning preference',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
+                              const SectionHeader(title: 'Learning preference'),
                               const SizedBox(height: 10),
                               Wrap(
                                 spacing: 8,
@@ -339,17 +346,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                               _preference = preference;
                                               _errorMessage = null;
                                             }),
-                                      selectedColor: AppColors.lightPink,
-                                      side: BorderSide(
-                                        color: _preference == preference
-                                            ? AppColors.primary
-                                            : AppColors.border,
-                                      ),
-                                      labelStyle: TextStyle(
-                                        color: _preference == preference
-                                            ? AppColors.primary
-                                            : AppColors.darkBackground,
-                                      ),
                                     ),
                                 ],
                               ),
@@ -487,12 +483,12 @@ class _RegistrationStepIndicator extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 28,
-          height: 28,
+          width: 30,
+          height: 30,
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.primary,
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(10),
           ),
           child: const Text(
             '1',
