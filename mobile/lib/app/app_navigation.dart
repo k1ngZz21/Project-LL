@@ -56,6 +56,19 @@ class _AppShellState extends State<AppShell> {
     super.initState();
     _destination = widget.isGuest ? AppDestination.learn : AppDestination.home;
     _profile = widget.profile;
+    // Guests start from an empty placeholder; load their saved progress.
+    if (widget.isGuest) _refreshProfileQuietly();
+  }
+
+  /// Reloads XP, level, streak and lessons from the device database without
+  /// interrupting the learner if it fails (the last values stay on screen).
+  Future<void> _refreshProfileQuietly() async {
+    try {
+      final updated = await widget.authGateway.fetchProfile();
+      if (mounted) setState(() => _profile = updated);
+    } on Object catch (error) {
+      debugPrint('LearnLite: profile refresh skipped: $error');
+    }
   }
 
   @override
@@ -66,6 +79,13 @@ class _AppShellState extends State<AppShell> {
 
   void _selectDestination(AppDestination destination) {
     setState(() => _destination = destination);
+    // Lessons and quizzes taken from any tab change XP and streaks, so the
+    // tabs that show them read the latest saved values.
+    if (destination == AppDestination.home ||
+        destination == AppDestination.progress ||
+        destination == AppDestination.profile) {
+      _refreshProfileQuietly();
+    }
   }
 
   /// The tab a learner starts on: Home, or Lessons for offline guests.
@@ -339,8 +359,12 @@ class _AppShellState extends State<AppShell> {
           ),
         ),
       );
-      if (updatedModule != null && mounted && !widget.isGuest) {
-        await _reloadProfile();
+      if (updatedModule != null && mounted) {
+        if (widget.isGuest) {
+          await _refreshProfileQuietly();
+        } else {
+          await _reloadProfile();
+        }
       }
     } on AuthFailure catch (error) {
       if (mounted) {

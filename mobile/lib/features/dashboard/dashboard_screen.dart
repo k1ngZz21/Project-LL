@@ -525,6 +525,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
+/// Nickname, then full name, then "learner"; blank values are skipped so the
+/// greeting never reads "Welcome, ".
+String _displayName(LearningSnapshot snapshot) => [
+  snapshot.nickname,
+  snapshot.fullName,
+].map((value) => value?.trim() ?? '').firstWhere(
+  (value) => value.isNotEmpty,
+  orElse: () => 'learner',
+);
+
 class _WelcomeCard extends StatelessWidget {
   const _WelcomeCard({required this.snapshot});
 
@@ -603,7 +613,7 @@ class _WelcomeCard extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 3),
                                   Text(
-                                    'Welcome, ${snapshot.nickname ?? snapshot.fullName ?? 'learner'}',
+                                    'Welcome, ${_displayName(snapshot)}',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: textTheme.titleLarge?.copyWith(

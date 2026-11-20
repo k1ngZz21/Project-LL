@@ -131,8 +131,8 @@ class _OfflineContentScreenState extends State<OfflineContentScreen> {
               children: [
                 const SectionHeader(
                   title: 'Offline Content Packs',
-                  subtitle:
-                      'Only published lessons and verified dictionary entries are available to download.',
+                  subtitle: 'Save lessons and the word list on this device '
+                      'so they open without internet.',
                 ),
                 const SizedBox(height: 16),
                 FutureBuilder<int>(

@@ -1153,6 +1153,53 @@ void main() {
     expect(find.text('Retake Quiz'), findsOneWidget);
   });
 
+  testWidgets('starting a quiz after scrolling a long lesson shows question 1', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final lesson = ModuleLesson(
+      index: 0,
+      title: 'Long lesson',
+      content: List.generate(80, (i) => 'Lesson line $i.').join('\n'),
+      completed: false,
+      quiz: const [
+        QuizQuestion(question: 'First question?', choices: ['One', 'Two']),
+        QuizQuestion(question: 'Second question?', choices: ['Three', 'Four']),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ModuleLessonScreen(
+          gateway: _FakeAuthGateway(),
+          module: LearningModule(
+            id: 3,
+            title: 'Module',
+            description: 'Description',
+            lessonCount: 1,
+            completedLessons: 0,
+            lessons: [lesson],
+          ),
+          lesson: lesson,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -3000));
+    await tester.pumpAndSettle();
+    expect(find.text('Lesson line 0.'), findsNothing,
+        reason: 'the lesson was scrolled down');
+
+    await tester.tap(find.text('Start Quiz'));
+    await tester.pumpAndSettle();
+    final question = find.textContaining('Question 1 of 2');
+    expect(question, findsOneWidget);
+    expect(tester.getRect(question).top, lessThan(800),
+        reason: 'question 1 is on screen, not scrolled past');
+  });
+
   testWidgets('registration rejects required fields before account creation', (
     WidgetTester tester,
   ) async {

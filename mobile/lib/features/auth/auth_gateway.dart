@@ -265,7 +265,18 @@ class FirebaseAuthGateway
 
   @override
   Future<LearnerProfile> fetchProfile() async {
-    final user = _requireUser();
+    final user = firebaseAuth?.currentUser;
+    if (user == null) {
+      // Offline guest: the same local profile that owns guest progress.
+      final uid = await _ownerUid();
+      final row = await _database.learner(uid);
+      if (row == null) {
+        throw const AuthFailure(
+          'Your local learner profile could not be loaded.',
+        );
+      }
+      return _profileFromRow(row, uid);
+    }
     await _database.ensureLearner(
       uid: user.uid,
       email: user.email ?? '',

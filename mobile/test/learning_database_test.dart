@@ -444,6 +444,28 @@ void main() {
     expect((await database.learner('offline-guest'))?['xp'], 16);
   });
 
+  test('a guest profile shows the guest\'s saved progress, not zeros', () async {
+    await database.seedBundledModule(
+      key: bundledOfflineModuleKey,
+      module: bundledOfflineModule,
+    );
+    final gateway = FirebaseAuthGateway(database: database);
+
+    final fresh = await gateway.fetchProfile();
+    expect(fresh.xp, 0);
+    expect(fresh.userLevel, 1, reason: 'same formula as accounts');
+    expect(fresh.fullName, isNotEmpty);
+
+    final module = (await gateway.fetchModules()).single;
+    await gateway.startModuleLesson(module.id, 0);
+    await gateway.submitLessonQuiz(module.id, 0, [0]);
+
+    final after = await gateway.fetchProfile();
+    expect(after.xp, 16);
+    expect(after.completedLessons, 1);
+    expect(after.userLevel, 1);
+  });
+
   test(
     'vocabulary quiz history survives closing and reopening SQLite',
     () async {

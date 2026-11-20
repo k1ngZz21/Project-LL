@@ -297,6 +297,9 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
         bottom: weaveAppBarBottom,
       ),
       body: ListView(
+        // A new scroll position per view, so the quiz opens at question 1
+        // and results open at the score, not at the lesson's scroll offset.
+        key: ValueKey('lesson-scroll-$_view'),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
         children: [
           AnimatedSwitcher(
