@@ -84,6 +84,26 @@ Each problem is labelled with the phase that will address it.
 
 C3, F1, F2 and F3 were addressed in Phase 1. See PHASE_PROGRESS.md for verification status.
 
+### Status update (2026-11-20, Phases 4, 5, 7 and 9)
+| ID | Status |
+|---|---|
+| C1 | **Fixed and verified end to end.** `/ai/chat` no longer needs a backend learner row (D1). Without a service-account file the bridge verifies tokens with Google's public keys (signature, project, issuer, expiry, verified email); with one, Firebase Admin also checks revocation. Found and fixed during testing: the Admin SDK rejected every token without credentials. 9 backend tests pass, including a live `qwen2.5:3b` reply. **Emulator:** signed in as account A, the Tutor answered "How do I say good morning?" with the workbook form labelled pending review, and listed the shared workbook entries. |
+| C2 | Open: owner checks for Phase 2. |
+| C4 | Worked around with `verify.ps1`. |
+| G2, G4 | **Fixed (Phase 4).** 5 workbook modules, 19 lessons, generated quizzes, flashcards, identification mode and module filter. |
+| G3, F4 | Open: no audio or PDF source files exist. Word cards state that no audio is recorded. |
+| G5 | **Fixed (Phase 5).** The app sends matching workbook entries, labelled unverified, with each Tutor question and lists them under the reply. |
+| S1 | Label and icon fixed. Release signing now reads the owner's `key.properties` (falls back to the debug key for test builds). Package ID unchanged (needs a Firebase app registration). |
+| S2 | UI dumps removed from tracking and git-ignored (they held a partial username, no passwords). They remain in older commits. The `.docx` was left in place as a project document. |
+| S3 | Open: restrict the API key in the Google Cloud Console (owner). |
+| S4 | **Fixed.** The new README states Android only. |
+| S5 | Firebase packages have minor updates and no security advisories; not upgraded before the demo. Stale build folders were not deleted. |
+| F10 | Measured, not changed: debug launches spend 1.5–5 s opening the database on the emulator; most of the debug start-up time is Dart JIT, which release builds remove. |
+| F11 | **Fixed (2026-11-20, `d6e87fe`).** Active admin-created entries are listed with the workbook vocabulary, labelled "added on this device" instead of a workbook row. Also fixed: the offline list ignored `is_active`, so entries an admin deactivated still showed in practice and lessons; they are now hidden. Regression test added. The emulator database has no admin-created or deactivated entries, so nothing changes there. |
+| F12 (new) | **Fixed.** Raw error text (exceptions, SQL, paths) was shown to learners on five screens and four admin screens. Replaced by `userMessage()`, which keeps LearnLite's own messages and logs the rest. |
+| F13 (new) | **Fixed (2026-11-20, `d6e87fe`).** Decided without the owner (they asked for autonomous work), choosing the conservative option: HTTPS stays the default; a build made with `--dart-define=LEARNLITE_ALLOW_LAN_HTTP=true` also accepts `http://` to a private IPv4 address only. Trade-off: on classroom Wi-Fi the Firebase ID token (1-hour lifetime) travels unencrypted. Verified with a release build on the emulator. Reversible by building without the flag. |
+| F14 (new) | Open (environment). On this PC (7.6 GB RAM), running the emulator, Ollama, Gradle and the editor together caused "isn't responding" dialogs for LearnLite and for Android's System UI. LearnLite threads were idle; the device's `system_server` and the host were saturated. Recheck on the physical phone with the Tutor PC separate. |
+
 ## 4. Documentation conflicts and their resolution
 
 All seven conflicts were resolved on 2026-11-19. See decisions D1–D7 in

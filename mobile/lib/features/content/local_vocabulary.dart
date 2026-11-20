@@ -56,6 +56,16 @@ class LocalVocabularyEntry {
   ].join(' ').toLowerCase();
 
   String get category => topic.trim().isNotEmpty ? topic.trim() : module.trim();
+
+  /// Row 0 marks an entry added on this device by an admin, not a workbook row.
+  bool get isLocalEntry => sourceRow <= 0;
+
+  String get sourceLabel {
+    final file = sourceFile.trim().isEmpty
+        ? 'LearnLite local entry'
+        : sourceFile.trim();
+    return isLocalEntry ? '$file · added on this device' : '$file · row $sourceRow';
+  }
 }
 
 class LocalVocabularyCatalog {

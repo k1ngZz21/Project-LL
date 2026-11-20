@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../core/user_message.dart';
 import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/icon_badge.dart';
@@ -219,8 +220,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Downloaded storage could not be loaded: '
-                                '${snapshot.error}',
+                                userMessage(
+                                  snapshot.error,
+                                  fallback:
+                                      'Downloaded storage could not be loaded right now.',
+                                ),
                                 style: const TextStyle(
                                   color: AppColors.primary,
                                 ),

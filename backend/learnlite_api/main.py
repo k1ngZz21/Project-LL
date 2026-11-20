@@ -384,6 +384,38 @@ def firebase_auth(settings: Settings) -> Any:
     return auth
 
 
+def verify_firebase_token(settings: Settings, token: str) -> dict[str, Any]:
+    """Verifies a Firebase ID token and returns its claims.
+
+    With a service-account file, Firebase Admin verifies the token and also
+    checks that it has not been revoked. Without one, the Admin SDK cannot run
+    (it needs Google credentials), so the token is verified against Google's
+    public signing keys instead: signature, audience (the Firebase project),
+    issuer, expiry and subject. Raises ValueError for an invalid token.
+    """
+    if settings.firebase_admin_credentials:
+        return firebase_auth(settings).verify_id_token(token, check_revoked=True)
+
+    project_id = settings.firebase_project_id
+    if not project_id:
+        raise HTTPException(
+            status_code=503,
+            detail="Firebase is not configured. Set FIREBASE_PROJECT_ID.",
+        )
+    from google.auth.transport import requests as google_requests
+    from google.oauth2 import id_token as google_id_token
+
+    claims = google_id_token.verify_firebase_token(
+        token, google_requests.Request(), audience=project_id
+    )
+    if not claims or claims.get("iss") != f"https://securetoken.google.com/{project_id}":
+        raise ValueError("The token was not issued for this Firebase project.")
+    subject = claims.get("sub")
+    if not isinstance(subject, str) or not subject:
+        raise ValueError("The token has no subject.")
+    return {**claims, "uid": subject}
+
+
 def get_current_uid(request: Request) -> str:
     settings: Settings = request.app.state.settings
     if not settings.firebase_enabled:
@@ -393,7 +425,7 @@ def get_current_uid(request: Request) -> str:
     if scheme.lower() != "bearer" or not token:
         raise HTTPException(status_code=401, detail="A Firebase ID token is required.")
     try:
-        decoded = firebase_auth(settings).verify_id_token(token, check_revoked=True)
+        decoded = verify_firebase_token(settings, token)
     except HTTPException:
         raise
     except Exception as error:
@@ -1372,8 +1404,8 @@ def _make_app(settings: Settings) -> FastAPI:
 
     @app.post("/ai/chat")
     async def ai_chat(body: dict[str, Any], request: Request, uid: str = Depends(user)) -> dict[str, Any]:
-        with db() as connection:
-            learner_exists(connection, uid)
+        # D1: any verified Firebase user may use the Tutor. Learning data lives
+        # in the app's SQLite database, so no backend learner row is required.
         messages = body.get("messages")
         if not isinstance(messages, list) or not messages or len(messages) > 10:
             raise HTTPException(status_code=422, detail="Send between 1 and 10 chat messages.")
@@ -1393,6 +1425,35 @@ def _make_app(settings: Settings) -> FastAPI:
             "translations, cultural facts, or pronunciation; say when verified source "
             "material is unavailable. Do not claim to have accessed learner records."
         )
+        # Optional workbook rows the app found for the learner's question. They
+        # come from the bundled workbook and are not verified, so the model may
+        # quote them only with that label and must not add other Subanen forms.
+        context = body.get("context")
+        if context is not None:
+            if not isinstance(context, list) or len(context) > 12:
+                raise HTTPException(status_code=422, detail="Send at most 12 vocabulary context entries.")
+            lines = []
+            for item in context:
+                if not isinstance(item, dict):
+                    raise HTTPException(status_code=422, detail="Vocabulary context entries must be objects.")
+                fields = {}
+                for key in ("english", "subanen", "status"):
+                    value = item.get(key, "")
+                    if not isinstance(value, str) or len(value) > 200:
+                        raise HTTPException(status_code=422, detail="Vocabulary context fields must be short text.")
+                    fields[key] = " ".join(value.split())
+                if fields["english"] and fields["subanen"]:
+                    lines.append(
+                        f'- "{fields["english"]}" -> "{fields["subanen"]}" '
+                        f'({fields["status"] or "Pending review"})'
+                    )
+            if lines:
+                system_message += (
+                    "\n\nWorkbook vocabulary from the learner's device that may be relevant. "
+                    "These entries are NOT verified; if you use one, quote it exactly and say "
+                    "it is pending review by a fluent speaker. Do not give any other Subanen "
+                    "forms:\n" + "\n".join(lines)
+                )
         payload = {
             "model": settings.ollama_model,
             "messages": [{"role": "system", "content": system_message}, *safe_messages],

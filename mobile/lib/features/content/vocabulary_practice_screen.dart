@@ -5,6 +5,8 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../app/app_colors.dart';
 import '../../core/display_format.dart';
+import '../../core/user_message.dart';
+import '../../core/workbook_modules.dart';
 import '../../widgets/answer_option_tile.dart';
 import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
@@ -47,8 +49,15 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
   late Future<LocalVocabularyCatalog> _catalogFuture;
   late Future<List<VocabularyQuizAttempt>> _quizHistoryFuture;
   late _PracticeMode _mode;
+  static const _allModules = 'All modules';
+
   String _source = 'All';
+  String _module = _allModules;
   String _category = 'All categories';
+
+  /// Identification mode: see the Subanen form, choose the English meaning.
+  /// Off: see the English meaning, choose the Subanen form.
+  bool _identify = false;
   int _cardIndex = 0;
   bool _showSubanen = false;
   bool _isSaving = false;
@@ -88,10 +97,74 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
       if (entry.english.trim().isEmpty || entry.subanen.trim().isEmpty) {
         continue;
       }
+      if (_module != _allModules &&
+          workbookModuleName(entry.module) != _module) {
+        continue;
+      }
       unique.putIfAbsent(entry.subanen.trim().toLowerCase(), () => entry);
     }
     return unique.values.toList();
   }
+
+  /// Modules present in the vocabulary, numbered workbook modules first.
+  List<String> _modules(LocalVocabularyCatalog catalog) {
+    final numbered = <int, String>{};
+    final others = <String>{};
+    for (final entry in [
+      ...catalog.vocabulary,
+      ...catalog.starterList,
+      ...catalog.stillNeeded,
+    ]) {
+      final name = workbookModuleName(entry.module);
+      if (name.isEmpty) continue;
+      final number = workbookModuleNumber(entry.module);
+      if (number != null) {
+        numbered.putIfAbsent(number, () => name);
+      } else {
+        others.add(name);
+      }
+    }
+    final ordered = numbered.keys.toList()..sort();
+    final numberedNames = [for (final n in ordered) numbered[n]!];
+    return [
+      ...numberedNames,
+      ...(others.difference(numberedNames.toSet()).toList()..sort()),
+    ];
+  }
+
+  /// Categories inside the selected module (all categories when none is).
+  List<String> _categories(LocalVocabularyCatalog catalog) {
+    if (_module == _allModules) return catalog.categories;
+    return {
+      for (final entry in [
+        ...catalog.vocabulary,
+        ...catalog.starterList,
+        ...catalog.stillNeeded,
+      ])
+        if (workbookModuleName(entry.module) == _module &&
+            entry.category.isNotEmpty)
+          entry.category,
+    }.toList()..sort();
+  }
+
+  void _selectModule(String module) {
+    setState(() {
+      _module = module;
+      _category = 'All categories';
+      _cardIndex = 0;
+      _showSubanen = false;
+      _quizStarted = false;
+      _quizFinished = false;
+      _quizResponses = [];
+      _errorMessage = null;
+    });
+  }
+
+  String _prompt(LocalVocabularyEntry entry) =>
+      (_identify ? entry.subanen : entry.english).trim();
+
+  String _answer(LocalVocabularyEntry entry) =>
+      (_identify ? entry.english : entry.subanen).trim();
 
   void _selectSource(String source) {
     setState(() {
@@ -151,11 +224,11 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
     List<LocalVocabularyEntry> entries,
   ) {
     final options = <String, String>{
-      question.subanen.trim().toLowerCase(): question.subanen.trim(),
+      _answer(question).toLowerCase(): _answer(question),
     };
     final candidates = [...entries]..shuffle(Random());
     for (final candidate in candidates) {
-      final word = candidate.subanen.trim();
+      final word = _answer(candidate);
       if (word.isEmpty) continue;
       options.putIfAbsent(word.toLowerCase(), () => word);
       if (options.length == 4) break;
@@ -173,7 +246,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
     }
     final isCorrect =
         _choices[_selectedAnswer].toLowerCase() ==
-        question.subanen.trim().toLowerCase();
+        _answer(question).toLowerCase();
     if (isCorrect && question.id != null) {
       setState(() {
         _isSaving = true;
@@ -208,10 +281,12 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
         _answerChecked = true;
         if (isCorrect) _correctAnswers++;
         _quizResponses.add(
+          // `english` holds the prompt shown: the English meaning, or the
+          // Subanen form in identification mode.
           VocabularyQuizResponse(
-            english: question.english,
+            english: _prompt(question),
             selectedAnswer: _choices[_selectedAnswer],
-            correctAnswer: question.subanen,
+            correctAnswer: _answer(question),
           ),
         );
         _errorMessage = null;
@@ -320,7 +395,11 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
           return EmptyState(
             icon: Icons.error_outline,
             title: 'Vocabulary could not be loaded',
-            message: snapshot.error.toString(),
+            message: userMessage(
+              snapshot.error,
+              fallback:
+                  'The vocabulary on this device could not be opened. Restart LearnLite and try again.',
+            ),
           );
         }
         final entries = _entries(snapshot.data!);
@@ -380,8 +459,41 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
+                      key: const ValueKey('practice-module-filter'),
+                      initialValue: _module,
+                      isExpanded: true,
+                      borderRadius: BorderRadius.circular(16),
+                      decoration: const InputDecoration(
+                        labelText: 'Module',
+                        prefixIcon: Icon(Icons.auto_stories_outlined),
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: _allModules,
+                          child: Text(_allModules),
+                        ),
+                        for (final module in _modules(snapshot.data!))
+                          DropdownMenuItem(
+                            value: module,
+                            child: Text(
+                              module,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) _selectModule(value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    // Re-created when the module changes, so the selection
+                    // resets to "All categories".
+                    KeyedSubtree(
+                      key: ValueKey('category-for-$_module'),
+                      child: DropdownButtonFormField<String>(
                       key: const ValueKey('practice-category-filter'),
                       initialValue: _category,
+                      isExpanded: true,
                       borderRadius: BorderRadius.circular(16),
                       decoration: const InputDecoration(
                         labelText: 'Category',
@@ -392,15 +504,19 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                           value: 'All categories',
                           child: Text('All categories'),
                         ),
-                        for (final category in snapshot.data!.categories)
+                        for (final category in _categories(snapshot.data!))
                           DropdownMenuItem(
                             value: category,
-                            child: Text(category),
+                            child: Text(
+                              category,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                       ],
                       onChanged: (value) {
                         if (value != null) _selectCategory(value);
                       },
+                    ),
                     ),
                     const SizedBox(height: 12),
                     SegmentedButton<_PracticeMode>(
@@ -429,6 +545,28 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                         }
                       },
                     ),
+                    if (_mode == _PracticeMode.quiz) ...[
+                      const SizedBox(height: 10),
+                      SegmentedButton<bool>(
+                        key: const ValueKey('practice-direction'),
+                        showSelectedIcon: false,
+                        segments: const [
+                          ButtonSegment(
+                            value: false,
+                            label: Text('English → Subanen'),
+                          ),
+                          ButtonSegment(
+                            value: true,
+                            label: Text('Subanen → English'),
+                          ),
+                        ],
+                        selected: {_identify},
+                        onSelectionChanged: (selection) {
+                          _identify = selection.single;
+                          _startQuiz(entries);
+                        },
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     if (entries.isEmpty)
                       const EmptyState(
@@ -583,7 +721,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
 
   AnswerOptionState _optionState(int index, LocalVocabularyEntry question) {
     final isAnswer =
-        _choices[index].toLowerCase() == question.subanen.trim().toLowerCase();
+        _choices[index].toLowerCase() == _answer(question).toLowerCase();
     if (_answerChecked) {
       if (isAnswer) return AnswerOptionState.correct;
       if (index == _selectedAnswer) return AnswerOptionState.incorrect;
@@ -688,7 +826,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
     final selectedIsCorrect =
         _selectedAnswer >= 0 &&
         _choices[_selectedAnswer].toLowerCase() ==
-            question.subanen.trim().toLowerCase();
+            _answer(question).toLowerCase();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -727,14 +865,16 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'Choose the Subanen form for',
+                      _identify
+                          ? 'Choose the English meaning of'
+                          : 'Choose the Subanen form for',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: AppColors.gold,
                       ),
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      question.english,
+                      _prompt(question),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(color: AppColors.white),
@@ -790,7 +930,7 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                     child: Text(
                       selectedIsCorrect
                           ? 'Correct. Your workbook record is marked as learned.'
-                          : 'Not quite. The source-list answer is ${question.subanen}.',
+                          : 'Not quite. The source-list answer is ${_answer(question)}.',
                       style: TextStyle(
                         color: selectedIsCorrect
                             ? AppColors.success
@@ -842,7 +982,10 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
         return EmptyState(
           icon: Icons.history_outlined,
           title: 'Quiz history unavailable',
-          message: '${snapshot.error}',
+          message: userMessage(
+            snapshot.error,
+            fallback: 'Saved quiz results could not be loaded right now.',
+          ),
         );
       }
       final attempts = snapshot.data ?? const [];
@@ -925,7 +1068,7 @@ class _SourceLabel extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                '${entry.sourceFile} · row ${entry.sourceRow}',
+                entry.sourceLabel,
                 style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(color: AppColors.gray),
               ),

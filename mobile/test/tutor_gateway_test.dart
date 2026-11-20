@@ -61,6 +61,55 @@ void main() {
     expect(gateway.configurationMessage, contains('not configured'));
   });
 
+  group('release builds (F13)', () {
+    OllamaTutorGateway gatewayFor(String url, {bool allowLanHttp = false}) {
+      final gateway = OllamaTutorGateway(
+        apiBaseUrl: url,
+        idTokenProvider: () async => 'verified-token',
+        releaseMode: true,
+        allowLanHttp: allowLanHttp,
+      );
+      addTearDown(gateway.close);
+      return gateway;
+    }
+
+    test('require HTTPS by default', () {
+      expect(gatewayFor('https://tutor.example.org').configurationMessage,
+          isNull);
+      expect(gatewayFor('http://192.168.1.10:8000').configurationMessage,
+          contains('HTTPS'));
+    });
+
+    test('allow HTTP to a private address only when opted in', () {
+      for (final url in [
+        'http://192.168.1.10:8000',
+        'http://10.0.2.2:8000',
+        'http://172.20.0.5:8000',
+      ]) {
+        expect(gatewayFor(url, allowLanHttp: true).configurationMessage,
+            isNull, reason: url);
+      }
+      for (final url in [
+        'http://tutor.example.org',
+        'http://8.8.8.8:8000',
+        'http://172.32.0.1:8000',
+        'http://192.168.1.10.example.org',
+        'http://localhost:8000',
+      ]) {
+        expect(gatewayFor(url, allowLanHttp: true).configurationMessage,
+            contains('HTTPS'), reason: url);
+      }
+    });
+
+    test('private address check rejects malformed hosts', () {
+      expect(OllamaTutorGateway.isPrivateNetworkAddress('192.168.001.1'),
+          isFalse);
+      expect(OllamaTutorGateway.isPrivateNetworkAddress('10.0.0'), isFalse);
+      expect(OllamaTutorGateway.isPrivateNetworkAddress('10.0.0.256'), isFalse);
+      expect(OllamaTutorGateway.isPrivateNetworkAddress('10.1.2.3'), isTrue);
+    });
+  });
+
   test('surfaces the existing API error detail without a fake reply', () async {
     final gateway = OllamaTutorGateway(
       apiBaseUrl: 'http://127.0.0.1:8000',

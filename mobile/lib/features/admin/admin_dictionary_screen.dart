@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_colors.dart';
+import '../../core/user_message.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/learnlite_card.dart';
 import '../../widgets/section_header.dart';
@@ -228,7 +229,10 @@ class _AdminDictionaryScreenState extends State<AdminDictionaryScreen> {
                   }
                   if (snapshot.hasError) {
                     return _DictionaryFeedback(
-                      message: snapshot.error.toString(),
+                      message: userMessage(
+                        snapshot.error,
+                        fallback: 'Dictionary entries could not be loaded.',
+                      ),
                       isError: true,
                     );
                   }

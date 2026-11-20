@@ -54,6 +54,29 @@ A permanent fix is to move the project out of a OneDrive-synced folder. That is 
 
 | 2026-11-19 | 3 | Startup step timing; vocabulary import skipped unless the bundled-data fingerprint changes, and existing rows updated instead of skipped; retry after a failed database open; `addHistory` requires an owner; `integrityProblems()`; v1-to-v3 and double-reopen tests; `saveVocabulary` keeps an entry's identity on edit (F9). 76 tests. Emulator: data kept on `install -r`; steady startup setup 2.9–4.2 s (debug). |
 
+| 2026-11-20 | 8 | Design system and redesign of all learner screens, Back fixes, Settings sign-out fix, launcher icon and "LearnLite" label (commits `29be31f`, `152602d`). 78 tests. |
+| 2026-11-20 | 4 | Workbook modules (`lib/core/workbook_modules.dart`): 5 modules / 19 lessons with word cards and generated quizzes; identification mode and module filter in practice. 85 tests. |
+| 2026-11-20 | 5 | Bridge: `/ai/chat` accepts any verified Firebase user; revocation check only with a service-account file; optional vocabulary `context`. App: `relevantVocabulary()` sends matching workbook entries and lists them under the reply. Backend tests in `backend/tests`. |
+| 2026-11-20 | 7 | `userMessage()` replaces raw error text; UI dumps untracked; `.gitignore` covers dumps, `backend/.venv`, `backend/data`. |
+| 2026-11-20 | 9 | Release signing from `android/key.properties`; README rewritten. |
+| 2026-11-20 | 4–9 | Committed as `5bab2fc`. |
+| 2026-11-20 | 5, 7 | `d6e87fe`: LAN-HTTP opt-in for release builds (F13); admin-created entries listed and deactivated entries hidden (F11). 92 tests. Release APK smoke-tested on the emulator; database unchanged across release ↔ debug installs. |
+
+## Workbook modules
+
+- `buildWorkbookModules()` turns rows of `LearnLite-Subanen-Vocabulary.xlsx` with a numbered module ("1 · Basic Greetings") and a topic into one module per number and one lesson per topic. It never adds Subanen text.
+- `seedWorkbookModulesIfChanged()` stores `g<generator version>:<vocabulary fingerprint>` in `app_metadata.workbook_modules_fingerprint_v1`. When it changes, each module is rewritten **in place** (same ID, found through `bundled_module:workbook-module-N`), so progress keyed by module ID and lesson index survives. **Bump `workbookModulesGeneratorVersion`** when lesson or quiz generation changes.
+- Lesson word cards are found at display time with `isWorkbookLessonEntry()` (module name + topic), so no schema change was needed. Renaming a topic in the workbook moves its progress to the lesson at the same index.
+
+## Tutor bridge
+
+- Run it as described in the README. In this workspace a venv lives at `%LOCALAPPDATA%\learnlite_backend_venv` and runtime data at `%LOCALAPPDATA%\learnlite_backend_data` (outside OneDrive).
+- `POST /ai/chat` body: `messages` (1–10, user/assistant) and optional `context` (≤ 12 objects with `english`, `subanen`, `status`, each ≤ 200 characters).
+- Debug builds allow `http://`; release builds require `https://` (`OllamaTutorGateway.configurationMessage`) unless built with `--dart-define=LEARNLITE_ALLOW_LAN_HTTP=true`, which also allows `http://` to a private IPv4 literal (`isPrivateNetworkAddress`). Host names are never allowed over HTTP in release.
+- Emulator → PC: `http://10.0.2.2:8000`. The bridge logs these requests as coming from `127.0.0.1`.
+- On this 7.6 GB PC, close Gradle daemons (`gradlew --stop`) and other heavy apps before running the emulator and Ollama together (F14).
+- Root works on this emulator image (`adb root`), so ANR traces can be read from `/data/anr/`. In Git Bash set `MSYS_NO_PATHCONV=1` first, or device paths get rewritten.
+
 ## Vocabulary import
 
 - `LocalVocabularyRepository.fingerprint()` hashes the three bundled JSON files plus `importerVersion`. **Bump `importerVersion`** whenever the column-to-field mapping changes, so every device re-imports.

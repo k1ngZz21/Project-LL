@@ -870,6 +870,42 @@ void main() {
       );
     });
 
+    test('admin-created entries are listed and deactivated entries are hidden (F11)', () async {
+      await database.seedVocabularyIfChanged(
+        LocalVocabularyRepository(
+          bundle: _MemoryBundle(_vocabularyFiles(english: 'Good day')),
+        ),
+      );
+      final before = (await database.vocabularyCatalog()).vocabulary.length;
+
+      final createdId = await database.saveVocabulary({
+        'subanen_word': 'test-form',
+        'english_translation': 'Test word',
+        'bisaya_translation': '',
+        'source': '',
+      });
+      var catalog = await database.vocabularyCatalog();
+      final created = catalog.vocabulary.singleWhere((e) => e.id == createdId);
+      expect(catalog.vocabulary, hasLength(before + 1));
+      expect(created.isLocalEntry, isTrue);
+      expect(created.reviewStatus, 'Pending review');
+      expect(created.sourceLabel, contains('added on this device'));
+      expect(created.sourceLabel, isNot(contains('row')));
+
+      final workbookEntry =
+          catalog.vocabulary.firstWhere((e) => !e.isLocalEntry);
+      expect(workbookEntry.sourceLabel, contains('row ${workbookEntry.sourceRow}'));
+
+      await database.deactivateVocabulary(createdId);
+      await database.deactivateVocabulary(workbookEntry.id!);
+      catalog = await database.vocabularyCatalog();
+      expect(catalog.vocabulary.map((e) => e.id),
+          isNot(contains(createdId)));
+      expect(catalog.vocabulary.map((e) => e.id),
+          isNot(contains(workbookEntry.id)));
+      expect(catalog.vocabulary, hasLength(before - 1));
+    });
+
     test('a failed database open is retried on the next call', () async {
       final factory = _FlakyFactory();
       final flaky = LearningDatabase(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../core/user_message.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/learnlite_card.dart';
 import '../../widgets/section_header.dart';
@@ -76,7 +77,10 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                     return LearnLiteCard(
                       backgroundColor: AppColors.lightPink,
                       child: Text(
-                        snapshot.error.toString(),
+                        userMessage(
+                          snapshot.error,
+                          fallback: 'Reports could not be loaded.',
+                        ),
                         style: const TextStyle(color: AppColors.primary),
                       ),
                     );

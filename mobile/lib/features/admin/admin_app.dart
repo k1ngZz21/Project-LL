@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../core/user_message.dart';
 import '../auth/auth_gateway.dart';
 import 'admin_content_screen.dart';
 import 'admin_dictionary_screen.dart';
@@ -39,7 +40,10 @@ class AdminAuthGate extends StatelessWidget {
           }
           if (verification.hasError) {
             return _AdminAccessDenied(
-              message: verification.error.toString(),
+              message: userMessage(
+                verification.error,
+                fallback: 'Administrator access could not be verified.',
+              ),
               onSignOut: gateway.signOut,
             );
           }

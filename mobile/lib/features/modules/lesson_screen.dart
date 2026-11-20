@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
 import '../../core/display_format.dart';
+import '../../core/workbook_modules.dart';
 import '../../widgets/answer_option_tile.dart';
 import '../../widgets/decorative_border.dart';
 import '../../widgets/icon_badge.dart';
@@ -14,6 +15,7 @@ import '../../widgets/learnlite_progress_indicator.dart';
 import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
 import '../content/content_gateway.dart';
+import '../content/local_vocabulary.dart';
 
 enum _LessonView { lesson, quiz, results }
 
@@ -41,6 +43,7 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
   late LearningModule _module;
   late ModuleLesson _lesson;
   late Future<List<QuizResult>> _quizHistory;
+  late Future<List<LocalVocabularyEntry>> _lessonWords;
   List<int> _answers = [];
   QuizResult? _result;
   _LessonView _view = _LessonView.lesson;
@@ -56,6 +59,7 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
     _module = widget.module;
     _lesson = widget.lesson;
     _quizHistory = _loadQuizHistory();
+    _lessonWords = _loadLessonWords();
     _playerSubscription = _audioPlayer.onPlayerStateChanged.listen((state) {
       if (mounted) setState(() => _playerState = state);
     });
@@ -73,6 +77,27 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
       return Future.value(const []);
     }
     return widget.gateway.fetchLessonQuizAttempts(_module.id, _lesson.index);
+  }
+
+  /// The workbook rows taught by this lesson (for lessons generated from the
+  /// workbook); empty for other lessons or when vocabulary is unavailable.
+  Future<List<LocalVocabularyEntry>> _loadLessonWords() async {
+    final gateway = widget.gateway;
+    if (gateway is! DictionaryGateway) return const [];
+    try {
+      final catalog = await (gateway as DictionaryGateway).localVocabulary();
+      return catalog.vocabulary
+          .where(
+            (entry) => isWorkbookLessonEntry(
+              entry,
+              moduleTitle: _module.title,
+              lessonTitle: _lesson.title,
+            ),
+          )
+          .toList();
+    } on Exception {
+      return const [];
+    }
   }
 
   void _startQuiz() {
@@ -210,6 +235,7 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
         _showReview = false;
         _view = _LessonView.lesson;
         _quizHistory = _loadQuizHistory();
+        _lessonWords = _loadLessonWords();
       });
     } on AuthFailure catch (error) {
       if (mounted) setState(() => _errorMessage = error.message);
@@ -376,6 +402,7 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
             ],
           ),
         ),
+        _buildLessonWords(),
         const SizedBox(height: 14),
         LearnLiteCard(
           backgroundColor: AppColors.lightPink,
@@ -524,6 +551,33 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
       ],
     );
   }
+
+  Widget _buildLessonWords() => FutureBuilder<List<LocalVocabularyEntry>>(
+    future: _lessonWords,
+    builder: (context, snapshot) {
+      final words = snapshot.data ?? const <LocalVocabularyEntry>[];
+      if (words.isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(top: 22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SectionHeader(
+              title: 'Words in this lesson',
+              subtitle:
+                  '${words.length} workbook '
+                  '${words.length == 1 ? 'entry' : 'entries'} · pending review',
+            ),
+            const SizedBox(height: 12),
+            for (final word in words) ...[
+              _WorkbookWordCard(entry: word),
+              const SizedBox(height: 10),
+            ],
+          ],
+        ),
+      );
+    },
+  );
 
   Widget _buildLessonImage(String imageUrl) {
     final contentGateway = widget.gateway;
@@ -1090,6 +1144,115 @@ class _ModuleLessonScreenState extends State<ModuleLessonScreen> {
           ? 'Next Lesson'
           : 'Back to Module',
     ),
+  );
+}
+
+/// One workbook row: Subanen form, English and Cebuano/Bisaya meanings, the
+/// dialect and notes as recorded, the review status and the source row.
+class _WorkbookWordCard extends StatelessWidget {
+  const _WorkbookWordCard({required this.entry});
+
+  final LocalVocabularyEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final review = entry.reviewStatus.trim().isEmpty
+        ? 'Pending review'
+        : entry.reviewStatus.trim();
+    final variety = entry.variety.trim();
+    return LearnLiteCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  entry.subanen.trim().isEmpty
+                      ? 'Subanen form not recorded'
+                      : entry.subanen,
+                  style: textTheme.titleLarge?.copyWith(
+                    color: entry.subanen.trim().isEmpty
+                        ? AppColors.gray
+                        : AppColors.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusPill(label: review, tone: IconBadgeTone.gold),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(entry.english, style: textTheme.titleSmall),
+          if (entry.bisaya.trim().isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              'Cebuano/Bisaya: ${entry.bisaya}',
+              style: textTheme.bodySmall?.copyWith(color: AppColors.inkSoft),
+            ),
+          ],
+          if (variety.isNotEmpty && variety.toLowerCase() != 'not stated') ...[
+            const SizedBox(height: 2),
+            Text(
+              'Dialect: $variety',
+              style: textTheme.bodySmall?.copyWith(color: AppColors.inkSoft),
+            ),
+          ],
+          if (entry.alternateForms.trim().isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              'Other forms: ${entry.alternateForms}',
+              style: textTheme.bodySmall?.copyWith(color: AppColors.inkSoft),
+            ),
+          ],
+          if (entry.notes.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(entry.notes, style: textTheme.bodySmall),
+          ],
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 12,
+            runSpacing: 4,
+            children: [
+              _WordMeta(
+                icon: Icons.volume_off_outlined,
+                text: 'No recorded audio in the workbook',
+              ),
+              _WordMeta(
+                icon: Icons.description_outlined,
+                text: 'Workbook row ${entry.sourceRow}',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WordMeta extends StatelessWidget {
+  const _WordMeta({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 14, color: AppColors.gray),
+      const SizedBox(width: 4),
+      Flexible(
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.labelSmall
+              ?.copyWith(color: AppColors.gray),
+        ),
+      ),
+    ],
   );
 }
 
