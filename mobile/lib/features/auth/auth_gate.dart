@@ -26,10 +26,35 @@ class _AuthGateState extends State<AuthGate> {
   String? _verifiedUid;
   Future<LearnerProfile>? _profileFuture;
 
+  /// The latest profile the learner saved. Kept here instead of replacing
+  /// [_profileFuture], because a new future shows the splash for a frame and
+  /// rebuilds the whole shell, sending the learner back to Home.
+  LearnerProfile? _savedProfile;
+
+  /// Subscribed once. `authStateChanges` returns a new stream on each access,
+  /// and passing a new stream to [StreamBuilder] restarts it in the waiting
+  /// state: the splash would flash and the app shell would be rebuilt (back
+  /// to the Home tab) every time this gate rebuilt, e.g. after a profile save.
+  late Stream<AuthSession?> _authStates;
+
+  @override
+  void initState() {
+    super.initState();
+    _authStates = widget.gateway.authStateChanges;
+  }
+
+  @override
+  void didUpdateWidget(covariant AuthGate oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.gateway != oldWidget.gateway) {
+      _authStates = widget.gateway.authStateChanges;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<AuthSession?>(
-      stream: widget.gateway.authStateChanges,
+      stream: _authStates,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const _LearnLiteSplash();
@@ -45,6 +70,7 @@ class _AuthGateState extends State<AuthGate> {
           _profileUid = null;
           _verifiedUid = null;
           _profileFuture = null;
+          _savedProfile = null;
           if (_showOfflineLearning) {
             return AppShell(
               profile: const LearnerProfile(username: '', fullName: ''),
@@ -69,6 +95,7 @@ class _AuthGateState extends State<AuthGate> {
                   _verifiedUid = session.uid;
                   _profileUid = session.uid;
                   _profileFuture = widget.gateway.fetchProfile();
+                  _savedProfile = null;
                 });
               },
             );
@@ -76,6 +103,7 @@ class _AuthGateState extends State<AuthGate> {
           if (_profileUid != session.uid) {
             _profileUid = session.uid;
             _profileFuture = widget.gateway.fetchProfile();
+            _savedProfile = null;
           }
           return FutureBuilder<LearnerProfile>(
             future: _profileFuture,
@@ -91,18 +119,19 @@ class _AuthGateState extends State<AuthGate> {
                   onRetry: () {
                     setState(() {
                       _profileFuture = widget.gateway.fetchProfile();
+                      _savedProfile = null;
                     });
                   },
                   onSignOut: _signOut,
                 );
               }
-              final profile = profileSnapshot.data!;
+              final profile = _savedProfile ?? profileSnapshot.data!;
               if (!profile.avatarCompleted) {
                 return AvatarCreationScreen(
                   profile: profile,
                   authGateway: widget.gateway,
                   onSaved: (updated) => setState(() {
-                    _profileFuture = Future.value(updated);
+                    _savedProfile = updated;
                   }),
                   onSignOut: _signOut,
                 );
@@ -111,7 +140,7 @@ class _AuthGateState extends State<AuthGate> {
                 profile: profile,
                 authGateway: widget.gateway,
                 onProfileUpdated: (updated) => setState(() {
-                  _profileFuture = Future.value(updated);
+                  _savedProfile = updated;
                 }),
                 onSignOut: _signOut,
               );

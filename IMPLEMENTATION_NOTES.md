@@ -81,6 +81,13 @@ A permanent fix is to move the project out of a OneDrive-synced folder. That is 
 - Gradle looks for `key.properties` in `LEARNLITE_KEY_PROPERTIES`, then that folder, then `android/key.properties`; without one it signs with the debug key and warns on release tasks.
 - A release-signed APK cannot replace a debug-signed install (signature mismatch). Don't install release builds on `Flutter_Emulator` unless losing its local data is acceptable.
 
+## Avatars
+
+- `lib/core/avatar_design.dart` holds the choices and the `sbn1:` string stored in `learners.avatar_id` (outfit colour also in `outfit_color` as hex). `tryParse` returns null for anything else, so old or empty values show the generic icon. **Add a new prefix (e.g. `sbn2:`) if the meaning of existing fields ever changes.**
+- `lib/widgets/subanen_avatar.dart` draws it with `CustomPainter` in a 0–1 unit space; `LearnerAvatar(avatarId: …)` uses it everywhere.
+- Builder controls: `lib/features/profile/avatar_builder.dart`, used by `AvatarCreationScreen` (onboarding and "Customize avatar" on Profile). Guests have no Profile tab, so avatars are for accounts.
+- To preview many designs without a device, render `SubanenAvatar` widgets in a test and save `RenderRepaintBoundary.toImage()` (see `docs/screenshots/16-avatar-gallery.png`).
+
 ## Word-list PDF
 
 - `lib/core/vocabulary_pdf.dart` builds the PDF from the SQLite vocabulary catalog; it is stored as content pack `vocabulary-pdf` (bytes in `content_packs.media_json`) and opened with `printing`. Regenerate it after vocabulary changes by removing and downloading it again.

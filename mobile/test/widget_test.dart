@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:learnlite/core/avatar_design.dart';
 import 'package:learnlite/core/learning_snapshot.dart';
 import 'package:learnlite/features/auth/auth_gateway.dart';
 import 'package:learnlite/features/auth/avatar_creation_screen.dart';
@@ -312,19 +313,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Create Your Avatar'), findsOneWidget);
-    expect(find.text('Avatar designs are coming soon'), findsOneWidget);
+    expect(find.text('Avatar designs are coming soon'), findsNothing);
     expect(find.byKey(const ValueKey('profile-preview-name')), findsOneWidget);
+    expect(find.byKey(const ValueKey('avatar-preview')), findsOneWidget);
     expect(find.text('Start Learning'), findsOneWidget);
     expect(find.byKey(const ValueKey('profile-nickname')), findsOneWidget);
-    expect(
-      find.text(
-        'Outfits and colors will unlock when customization items are available.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Design your avatar'), findsOneWidget);
+    expect(find.byKey(const ValueKey('avatar-gender-female')), findsOneWidget);
+    expect(find.byKey(const ValueKey('avatar-gender-male')), findsOneWidget);
   });
 
-  testWidgets('avatar customization saves nickname without choosing fake art', (
+  testWidgets('avatar builder saves the drawn design and the nickname', (
     WidgetTester tester,
   ) async {
     final gateway = _FakeAuthGateway();
@@ -355,16 +354,42 @@ void main() {
       find.byKey(const ValueKey('profile-nickname')),
       'River',
     );
+    expect(find.text('Avatar designs are coming soon'), findsNothing);
+    Future<void> tapKey(String key) async {
+      await tester.ensureVisible(find.byKey(ValueKey(key)));
+      await tester.tap(find.byKey(ValueKey(key)));
+      await tester.pumpAndSettle();
+    }
+
+    await tapKey('avatar-gender-male');
+    expect(find.text('Short'), findsOneWidget, reason: 'male hair styles');
+    await tapKey('avatar-skin-4');
+    await tapKey('avatar-hair-1');
+    await tapKey('avatar-outfit-1');
+    await tapKey('avatar-pattern-1');
+    await tapKey('avatar-head-cloth');
+    await tapKey('avatar-background-3');
+    // The preview follows the choices.
+    expect(find.bySemanticsLabel(RegExp('^Man avatar, deep skin')),
+        findsWidgets);
+
     await tester.ensureVisible(find.text('Start Learning'));
     await tester.tap(find.text('Start Learning'));
     await tester.pumpAndSettle();
 
     expect(savedProfile?.nickname, 'River');
     expect(savedProfile?.fullName, 'River Learner');
-    expect(savedProfile?.avatarId, isNull);
-    expect(savedProfile?.outfitColor, isNull);
     expect(savedProfile?.avatarCompleted, isTrue);
-    expect(find.text('Avatar designs are coming soon'), findsOneWidget);
+    final saved = AvatarDesign.tryParse(savedProfile?.avatarId);
+    expect(saved, isNotNull);
+    expect(saved!.gender, AvatarGender.male);
+    expect(saved.skinTone, 4);
+    expect(saved.hairStyle, 1);
+    expect(saved.outfitColor, 1);
+    expect(saved.pattern, AvatarPattern.diamond);
+    expect(saved.headCloth, isTrue);
+    expect(saved.background, 3);
+    expect(savedProfile?.outfitColor, saved.outfitHex);
   });
 
   testWidgets('starting learning saves profile and opens the dashboard', (
@@ -811,31 +836,52 @@ void main() {
     expect(find.textContaining('Progress: 0 of 1'), findsOneWidget);
   });
 
-  testWidgets('avatar customization tabs stay locked without approved assets', (
+  testWidgets('profile offers avatar creation and shows the saved avatar', (
     WidgetTester tester,
   ) async {
     tester.view.physicalSize = const Size(390, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    final gateway = _FakeAuthGateway(authenticated: true);
 
-    await tester.pumpWidget(
-      LearnLiteApp(authGateway: _FakeAuthGateway(authenticated: true)),
-    );
+    await tester.pumpWidget(LearnLiteApp(authGateway: gateway));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
 
     expect(find.text('My Avatar'), findsOneWidget);
-    expect(find.text('Outfit'), findsOneWidget);
-    expect(find.text('Accessories'), findsOneWidget);
-    expect(find.text('Background'), findsOneWidget);
-    expect(find.text('Outfits are locked'), findsOneWidget);
-    await tester.drag(find.byType(ListView).last, const Offset(0, -500));
+    expect(find.text('Outfits are locked'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('customize-avatar')),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.drag(find.byType(ListView).last, const Offset(0, -150));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Accessories'));
+    expect(find.text('Create your avatar'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('customize-avatar')));
     await tester.pumpAndSettle();
-    expect(find.text('Accessories are locked'), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('avatar-gender-male')));
+    await tester.tap(find.byKey(const ValueKey('avatar-gender-male')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Save Changes'));
+    await tester.tap(find.text('Save Changes'));
+    await tester.pumpAndSettle();
+
+    expect(
+      AvatarDesign.tryParse(gateway.savedProfile?.avatarId)?.gender,
+      AvatarGender.male,
+    );
+    await tester.scrollUntilVisible(
+      find.text('Your avatar'),
+      -200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Your avatar'), findsOneWidget);
+    expect(find.text('Customize avatar'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('^Man avatar')), findsWidgets);
     expect(find.text('Current level'), findsOneWidget);
     expect(find.text('Badges earned'), findsOneWidget);
   });

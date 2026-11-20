@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
 import '../../app/responsive_layout.dart';
+import '../../core/avatar_design.dart';
 import '../../widgets/decorative_border.dart';
-import '../../widgets/empty_state.dart';
 import '../../widgets/learnlite_button.dart';
 import '../../widgets/learnlite_card.dart';
 import '../../widgets/learnlite_text_field.dart';
 import '../../widgets/learner_avatar.dart';
+import '../profile/avatar_builder.dart';
 import 'auth_gateway.dart';
 
 class AvatarCreationScreen extends StatefulWidget {
@@ -31,12 +32,15 @@ class AvatarCreationScreen extends StatefulWidget {
 class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
   late final TextEditingController _fullNameController;
   late final TextEditingController _nicknameController;
+  late AvatarDesign _design;
   bool _isSaving = false;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+    _design =
+        AvatarDesign.tryParse(widget.profile.avatarId) ?? const AvatarDesign();
     _fullNameController = TextEditingController(text: widget.profile.fullName);
     _nicknameController = TextEditingController(
       text: widget.profile.nickname ?? '',
@@ -75,8 +79,8 @@ class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
         nickname: _nicknameController.text.trim().isEmpty
             ? null
             : _nicknameController.text.trim(),
-        avatarId: widget.profile.avatarId,
-        outfitColor: widget.profile.outfitColor,
+        avatarId: _design.encode(),
+        outfitColor: _design.outfitHex,
         avatarCompleted: true,
         userLevel: widget.profile.userLevel,
         xp: widget.profile.xp,
@@ -143,8 +147,10 @@ class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
                         child: Column(
                           children: [
                             LearnerAvatar(
-                              size: 112,
-                              backgroundColor: AppColors.lightPink,
+                              key: const ValueKey('avatar-preview'),
+                              design: _design,
+                              size: 140,
+                              borderColor: AppColors.gold,
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -189,21 +195,21 @@ class _AvatarCreationScreenState extends State<AvatarCreationScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Choose an avatar',
+                              'Design your avatar',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
-                            const SizedBox(height: 16),
-                            const EmptyState(
-                              icon: Icons.face_retouching_natural_outlined,
-                              title: 'Avatar designs are coming soon',
-                              message: 'A generic avatar is shown until approved avatar designs are added.',
-                            ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 4),
                             Text(
-                              'Outfits and colors will unlock when customization items are available.',
-                              textAlign: TextAlign.center,
+                              'Pick a character, then style it. Changes show '
+                              'in the preview above.',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: AppColors.gray),
+                            ),
+                            const SizedBox(height: 14),
+                            AvatarBuilder(
+                              design: _design,
+                              onChanged: (design) =>
+                                  setState(() => _design = design),
                             ),
                           ],
                         ),

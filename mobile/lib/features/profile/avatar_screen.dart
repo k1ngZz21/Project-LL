@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
 import '../../app/responsive_layout.dart';
+import '../../core/avatar_design.dart';
 import '../../widgets/decorative_border.dart';
 import '../../widgets/icon_badge.dart';
 import '../../widgets/learner_avatar.dart';
@@ -38,7 +39,6 @@ class AvatarScreen extends StatefulWidget {
 
 class _AvatarScreenState extends State<AvatarScreen> {
   late Future<RewardsOverview> _rewardsFuture;
-  int _selectedTab = 0;
 
   @override
   void initState() {
@@ -109,33 +109,9 @@ class _AvatarScreenState extends State<AvatarScreen> {
                     const SizedBox(height: 26),
                     const SectionHeader(title: 'Customization'),
                     const SizedBox(height: 12),
-                    DefaultTabController(
-                      length: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: AppColors.borderSoft),
-                            ),
-                            child: TabBar(
-                              onTap: (index) {
-                                setState(() => _selectedTab = index);
-                              },
-                              tabs: const [
-                                Tab(text: 'Outfit', height: 40),
-                                Tab(text: 'Accessories', height: 40),
-                                Tab(text: 'Background', height: 40),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _LockedItems(tabIndex: _selectedTab),
-                        ],
-                      ),
+                    _CustomizeAvatarCard(
+                      avatarId: widget.profile.avatarId,
+                      onCustomize: widget.onEditNickname,
                     ),
                     const SizedBox(height: 26),
                     const SectionHeader(title: 'Account'),
@@ -266,8 +242,9 @@ class _ProfileHero extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
             child: Column(
               children: [
-                const LearnerAvatar(
-                  size: 92,
+                LearnerAvatar(
+                  avatarId: profile.avatarId,
+                  size: 104,
                   backgroundColor: AppColors.lightPink,
                   borderColor: AppColors.gold,
                 ),
@@ -281,7 +258,9 @@ class _ProfileHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Avatar art is not available yet.',
+                  AvatarDesign.tryParse(profile.avatarId) == null
+                      ? 'Design your avatar below.'
+                      : 'Your LearnLite avatar',
                   style: textTheme.bodySmall?.copyWith(
                     color: AppColors.white.withValues(alpha: 0.6),
                   ),
@@ -476,34 +455,48 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _LockedItems extends StatelessWidget {
-  const _LockedItems({required this.tabIndex});
+class _CustomizeAvatarCard extends StatelessWidget {
+  const _CustomizeAvatarCard({required this.avatarId, this.onCustomize});
 
-  final int tabIndex;
+  final String? avatarId;
+  final VoidCallback? onCustomize;
 
   @override
   Widget build(BuildContext context) {
-    final title = switch (tabIndex) {
-      0 => 'Outfits are locked',
-      1 => 'Accessories are locked',
-      _ => 'Backgrounds are locked',
-    };
+    final design = AvatarDesign.tryParse(avatarId);
+    final textTheme = Theme.of(context).textTheme;
     return LearnLiteCard(
-      child: Column(
+      child: Row(
         children: [
-          const IconBadge(
-            icon: Icons.lock_outline_rounded,
-            tone: IconBadgeTone.cream,
-            size: 48,
-          ),
-          const SizedBox(height: 10),
-          Text(title, style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 4),
-          Text(
-            'Customization items will appear here when approved assets are available.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: AppColors.gray),
+          LearnerAvatar(avatarId: avatarId, size: 64),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  design == null ? 'Create your avatar' : 'Your avatar',
+                  style: textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Female or male character, skin tone, hair, outfit, woven '
+                  'band, beads and background. No photo needed.',
+                  style: textTheme.bodySmall?.copyWith(color: AppColors.gray),
+                ),
+                if (onCustomize != null) ...[
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    key: const ValueKey('customize-avatar'),
+                    onPressed: onCustomize,
+                    icon: const Icon(Icons.brush_outlined, size: 18),
+                    label: Text(
+                      design == null ? 'Create avatar' : 'Customize avatar',
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
       ),

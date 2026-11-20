@@ -4,6 +4,7 @@ class LearningSnapshot {
     this.username,
     this.nickname,
     this.avatarUrl,
+    this.avatarId,
     this.userLevel = 0,
     this.xp = 0,
     this.streak = 0,
@@ -21,6 +22,9 @@ class LearningSnapshot {
   final String? username;
   final String? nickname;
   final String? avatarUrl;
+
+  /// Stored LearnLite avatar design (`learners.avatar_id`).
+  final String? avatarId;
   final int userLevel;
   final int xp;
   final int streak;

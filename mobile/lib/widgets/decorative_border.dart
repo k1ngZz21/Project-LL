@@ -38,6 +38,8 @@ class _GeometricBorderPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // The last tile can extend past the right edge; keep it inside the border.
+    canvas.clipRect(Offset.zero & size);
     canvas.drawRect(
       Offset.zero & size,
       Paint()..color = AppColors.darkBackground,

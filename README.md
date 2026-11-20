@@ -21,6 +21,7 @@ network.
 | Word list PDF | Offline downloads → "Subanen word list (PDF)": made on the phone from the workbooks, every entry with its review status; opens, prints, saves and shares without internet. |
 | Progress | XP, levels, daily streaks, daily quest, weekly chest, badges, quiz history and per-module progress, all stored on the device. |
 | Accounts | Firebase email/password sign-in with email verification. An offline guest mode keeps its own separate progress. |
+| Avatar | Build a drawn avatar (female or male; skin tone, hair, outfit colour, woven band, beads, earrings, head cloth, background) in LearnLite's red, gold and black woven style. No photo upload; drawn on the phone, works offline. An inspired design, not official Subanen attire. |
 | AI Tutor | Optional. Sends the learner's question, plus any matching workbook entries labelled as unverified, to the classroom computer. |
 
 | Home | Lesson | Word list PDF (offline) | Progress |

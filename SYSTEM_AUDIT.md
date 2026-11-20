@@ -118,7 +118,10 @@ C3, F1, F2 and F3 were addressed in Phase 1. See PHASE_PROGRESS.md for verificat
 | F18 (new) | **Fixed.** Start Quiz opened at the last question (lesson scroll offset reused). |
 | F19 (new) | **Fixed.** Offline downloads text claimed only verified entries. |
 | F20 (new) | Open (environment). Android 7.0 system image could not be downloaded; the minimum-version / low-end emulator test is pending. |
-| G-Avatar | Open (by design). Avatar artwork needs approved designs; the screen says so instead of showing placeholders. |
+| G-Avatar | **Done (owner request, 2026-11-20).** Drawn avatar builder: female/male, 5 skin tones, 3 hair styles each, 4 hair colours, 5 outfit colours, zigzag/diamond/stripes/plain woven band, bead necklace, earrings, head cloth, 5 backgrounds, "Surprise me". Vector drawing in code (`lib/widgets/subanen_avatar.dart`): no photos, no uploads, no image files, works offline. Stored in the existing `avatar_id` column (`sbn1:` format), no schema change. Labelled as inspired by LearnLite's woven style, not official or ceremonial Subanen attire. Verified on `LL_Phone_API36` with an Auth-emulator account: create, save, shown on Home and Profile, kept after restart. |
+| F21 (new) | **Fixed.** `AuthGate` passed a new auth stream to `StreamBuilder` on every rebuild, so any profile save flashed the splash and rebuilt the app shell (learner sent back to Home). The stream is now subscribed once and the saved profile is held in state. Widget test. |
+| F22 (new) | **Fixed.** The woven divider drew past its right edge inside cards (painter not clipped). |
+| F23 (new) | **Fixed.** Selected chips in the avatar builder used gold text on pale backgrounds (low contrast). |
 
 ## 4. Documentation conflicts and their resolution
 

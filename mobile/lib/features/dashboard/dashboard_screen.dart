@@ -594,6 +594,7 @@ class _WelcomeCard extends StatelessWidget {
                           children: [
                             LearnerAvatar(
                               imageUrl: snapshot.avatarUrl,
+                              avatarId: snapshot.avatarId,
                               size: 56,
                               backgroundColor: AppColors.lightPink,
                               borderColor: AppColors.gold,
