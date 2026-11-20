@@ -17,6 +17,7 @@ import 'package:learnlite/features/content/content_gateway.dart';
 import 'package:learnlite/features/content/local_vocabulary.dart';
 import 'package:learnlite/features/dashboard/progress_screen.dart';
 import 'package:learnlite/features/modules/lesson_screen.dart';
+import 'package:learnlite/features/profile/avatar_screen.dart';
 import 'package:learnlite/features/settings/settings_screen.dart';
 import 'package:learnlite/main.dart';
 
@@ -149,12 +150,13 @@ void main() {
       LearnLiteApp(authGateway: _FakeDictionaryGateway(authenticated: true)),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('More tools'));
+    expect(find.byTooltip('More tools'), findsNothing);
+    await tester.tap(find.text('Lessons').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Dictionary'));
+    await tester.tap(find.byKey(const ValueKey('lessons-open-dictionary')));
     await tester.pumpAndSettle();
 
-    expect(find.text('AI Search and Translator'), findsOneWidget);
+    expect(find.text('Search the dictionary'), findsOneWidget);
     expect(
       find.text(
         'Results come only from the bundled vocabulary workbooks. Entries marked "Pending review" have not been verified yet.',
@@ -176,9 +178,9 @@ void main() {
       LearnLiteApp(authGateway: _FakeDictionaryGateway(authenticated: true)),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('More tools'));
+    await tester.tap(find.text('Lessons').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Offline downloads'));
+    await tester.tap(find.byKey(const ValueKey('lessons-open-downloads')));
     await tester.pumpAndSettle();
 
     expect(find.text('Offline Content Packs'), findsOneWidget);
@@ -187,6 +189,29 @@ void main() {
       find.textContaining('No learning modules are available'),
       findsNothing,
     );
+  });
+
+  testWidgets('system back on a secondary tab returns to Home', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      LearnLiteApp(authGateway: _FakeDictionaryGateway(authenticated: true)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lessons').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Learning Modules'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Learning Modules'), findsNothing);
+    expect(find.text('Your learning snapshot'), findsOneWidget);
   });
 
   testWidgets('bottom navigation exposes Home Lessons Quiz Progress Profile', (
@@ -576,6 +601,47 @@ void main() {
     expect(gateway.lastCurrentPassword, 'Current123');
     expect(gateway.lastNewPassword, 'BetterPassword123');
     expect(find.text('Your password has been updated.'), findsOneWidget);
+  });
+
+  testWidgets('signing out from Settings closes the Settings page', (
+    WidgetTester tester,
+  ) async {
+    final gateway = _FakeAuthGateway();
+    var signOutCalls = 0;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AvatarScreen(
+            profile: const LearnerProfile(
+              username: 'test_user',
+              fullName: 'Test Learner',
+            ),
+            gateway: gateway,
+            onSignOut: () async => signOutCalls++,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Settings & account'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Settings & account'));
+    await tester.pumpAndSettle();
+
+    final signOut = find.byKey(const ValueKey('settings-sign-out'));
+    await tester.ensureVisible(signOut);
+    await tester.pumpAndSettle();
+    await tester.tap(signOut);
+    await tester.pumpAndSettle();
+
+    expect(signOutCalls, 1);
+    expect(signOut, findsNothing);
+    expect(find.text('My Avatar'), findsOneWidget);
   });
 
   testWidgets('unverified email accounts are held at email verification', (
@@ -1069,10 +1135,7 @@ void main() {
     expect(find.text('Quiz XP: +1'), findsOneWidget);
     expect(find.text('Lesson completion XP: +10'), findsOneWidget);
     expect(find.textContaining('Level up!'), findsNothing);
-    expect(
-      find.textContaining('Outfit rewards are unavailable'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('Outfit rewards are unavailable'), findsNothing);
 
     await tester.ensureVisible(find.text('Review Answers'));
     await tester.tap(find.text('Review Answers'));
@@ -1080,6 +1143,14 @@ void main() {
     expect(find.text('Administrator-provided explanation.'), findsOneWidget);
     expect(find.textContaining('Administrator choice two'), findsWidgets);
     expect(find.text('Administrator choice one'), findsNothing);
+
+    // System Back on the results returns to the lesson page, not out of it.
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Quiz complete'), findsNothing);
+    expect(find.text('Administrator-provided phrase'), findsOneWidget);
+    expect(find.text('Start Quiz'), findsNothing);
+    expect(find.text('Retake Quiz'), findsOneWidget);
   });
 
   testWidgets('registration rejects required fields before account creation', (

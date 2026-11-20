@@ -92,8 +92,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const _BrandHeader(),
                       Container(
-                        color: AppColors.cream,
-                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        decoration: const BoxDecoration(
+                          color: AppColors.cream,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(28),
+                          ),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
                         child: Form(
                           key: _formKey,
                           child: Column(
@@ -116,6 +121,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _usernameController,
                                 label: 'Email',
                                 hint: 'Enter your email address',
+                                prefixIcon: Icons.mail_outline_rounded,
+                                keyboardType: TextInputType.emailAddress,
                                 textCapitalization: TextCapitalization.none,
                                 onChanged: (_) {
                                   if (_errorMessage != null) {
@@ -130,6 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _passwordController,
                                 label: 'Password',
                                 hint: '••••••••',
+                                prefixIcon: Icons.lock_outline_rounded,
                                 obscureText: _obscurePassword,
                                 suffixIcon: IconButton(
                                   key: const ValueKey(

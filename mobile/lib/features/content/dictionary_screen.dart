@@ -2,8 +2,12 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/icon_badge.dart';
+import '../../widgets/learnlite_button.dart';
 import '../../widgets/learnlite_card.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
 import 'content_gateway.dart';
@@ -126,62 +130,33 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SectionHeader(title: 'AI Search and Translator'),
-                const SizedBox(height: 8),
-                Text(
-                  'Results come only from the bundled vocabulary workbooks. Entries marked "Pending review" have not been verified yet.',
-                  style: Theme.of(context).textTheme.bodyMedium
-                      ?.copyWith(color: AppColors.gray),
+                const SectionHeader(
+                  title: 'Search the dictionary',
+                  subtitle: 'Bundled vocabulary is available offline.',
                 ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => Scaffold(
-                          appBar: AppBar(
-                            title: const Text('Offline Vocabulary Reference'),
-                          ),
-                          body: SafeArea(
-                            child: LocalVocabularyScreen(
-                              gateway: widget.gateway,
-                            ),
-                          ),
-                        ),
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: Icon(
+                        Icons.info_outline_rounded,
+                        size: 16,
+                        color: AppColors.gray,
                       ),
                     ),
-                    icon: const Icon(Icons.offline_pin_outlined),
-                    label: const Text('Browse workbook vocabulary offline'),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.offline_pin_outlined,
-                      size: 18,
-                      color: AppColors.gray,
-                    ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Bundled vocabulary is available offline.',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        'Results come only from the bundled vocabulary workbooks. Entries marked "Pending review" have not been verified yet.',
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: AppColors.inkSoft),
                       ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) =>
-                              OfflineContentScreen(gateway: widget.gateway),
-                        ),
-                      ),
-                      icon: const Icon(Icons.download_outlined),
-                      label: const Text('Offline content'),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 LearnLiteCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -225,8 +200,12 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                             ),
                           ),
                           const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: Icon(Icons.swap_horiz),
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: IconBadge(
+                              icon: Icons.arrow_forward_rounded,
+                              tone: IconBadgeTone.dark,
+                              size: 34,
+                            ),
                           ),
                           Expanded(
                             child: DropdownButtonFormField<String>(
@@ -258,24 +237,73 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                         onSubmitted: (_) => _search(),
                         decoration: const InputDecoration(
                           hintText: 'Enter a word or phrase',
-                          prefixIcon: Icon(Icons.search),
+                          prefixIcon: Icon(Icons.search_rounded),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      FilledButton.icon(
+                      const SizedBox(height: 14),
+                      LearnLiteButton(
                         onPressed: _isSearching ? null : _search,
-                        icon: const Icon(Icons.translate),
-                        label: const Text('Search dictionary'),
+                        isLoading: _isSearching,
+                        icon: Icons.translate_rounded,
+                        label: 'Search dictionary',
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _DictionaryLink(
+                        icon: Icons.menu_book_rounded,
+                        label: 'Browse vocabulary',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => Scaffold(
+                              appBar: AppBar(
+                                title: const Text(
+                                  'Offline Vocabulary Reference',
+                                ),
+                                bottom: weaveAppBarBottom,
+                              ),
+                              body: SafeArea(
+                                child: LocalVocabularyScreen(
+                                  gateway: widget.gateway,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _DictionaryLink(
+                        icon: Icons.download_for_offline_rounded,
+                        tone: IconBadgeTone.gold,
+                        label: 'Offline content',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => Scaffold(
+                              appBar: AppBar(
+                                title: const Text('Offline Content Packs'),
+                                bottom: weaveAppBarBottom,
+                              ),
+                              body: SafeArea(
+                                child: OfflineContentScreen(
+                                  gateway: widget.gateway,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 if (_recentSearches.isNotEmpty) ...[
                   const SizedBox(height: 22),
-                  Text(
-                    'Recent searches',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  const SectionHeader(title: 'Recent searches'),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -283,6 +311,11 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                     children: [
                       for (final search in _recentSearches)
                         ActionChip(
+                          avatar: const Icon(
+                            Icons.history_rounded,
+                            size: 16,
+                            color: AppColors.gray,
+                          ),
                           label: Text(search),
                           onPressed: () => _search(search),
                         ),
@@ -291,9 +324,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                 ],
                 const SizedBox(height: 22),
                 if (_isSearching)
-                  const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  )
+                  const LoadingCard(height: 140)
                 else if (_errorMessage != null)
                   _ErrorMessage(message: _errorMessage!)
                 else if (_results.isNotEmpty)
@@ -349,33 +380,50 @@ class _DictionaryResultCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Chip(
-            key: ValueKey(
-              entry.isVerified
-                  ? 'dictionary-verified-${entry.id}'
-                  : 'dictionary-pending-${entry.id}',
-            ),
-            avatar: Icon(
-              entry.isVerified
-                  ? Icons.verified_outlined
-                  : Icons.pending_outlined,
-              size: 18,
-            ),
-            label: Text(entry.isVerified ? 'Verified' : 'Pending review'),
-            visualDensity: VisualDensity.compact,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  entry.subanenWord,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusPill(
+                key: ValueKey(
+                  entry.isVerified
+                      ? 'dictionary-verified-${entry.id}'
+                      : 'dictionary-pending-${entry.id}',
+                ),
+                icon: entry.isVerified
+                    ? Icons.verified_rounded
+                    : Icons.pending_outlined,
+                label: entry.isVerified ? 'Verified' : 'Pending review',
+                tone: entry.isVerified
+                    ? IconBadgeTone.dark
+                    : IconBadgeTone.gold,
+              ),
+            ],
           ),
           const SizedBox(height: 6),
-          Text(
-            entry.subanenWord,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            result.translation,
-            style: Theme.of(context).textTheme.titleLarge,
+          Row(
+            children: [
+              const Icon(
+                Icons.subdirectory_arrow_right_rounded,
+                size: 18,
+                color: AppColors.gray,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  result.translation,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+            ],
           ),
           if (entry.pronunciation != null) ...[
             const SizedBox(height: 10),
@@ -413,6 +461,39 @@ class _DictionaryResultCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DictionaryLink extends StatelessWidget {
+  const _DictionaryLink({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.tone = IconBadgeTone.red,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final IconBadgeTone tone;
+
+  @override
+  Widget build(BuildContext context) => LearnLiteCard(
+    onTap: onTap,
+    padding: const EdgeInsets.all(14),
+    child: Row(
+      children: [
+        IconBadge(icon: icon, tone: tone, size: 36),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 2,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _ErrorMessage extends StatelessWidget {

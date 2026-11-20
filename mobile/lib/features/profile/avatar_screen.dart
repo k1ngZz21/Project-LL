@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
 import '../../app/responsive_layout.dart';
+import '../../widgets/decorative_border.dart';
+import '../../widgets/icon_badge.dart';
 import '../../widgets/learner_avatar.dart';
 import '../../widgets/learnlite_button.dart';
 import '../../widgets/learnlite_card.dart';
+import '../../widgets/learnlite_progress_indicator.dart';
+import '../../widgets/loading_indicator.dart';
+import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
 import '../content/content_gateway.dart';
@@ -74,124 +79,91 @@ class _AvatarScreenState extends State<AvatarScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SectionHeader(title: 'My Avatar'),
-                    const SizedBox(height: 18),
-                    LearnLiteCard(
-                      backgroundColor: AppColors.lightPink,
-                      child: Column(
-                        children: [
-                          const LearnerAvatar(
-                            size: 96,
-                            backgroundColor: AppColors.white,
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            widget.profile.nickname ?? widget.profile.fullName,
-                            style: Theme.of(context).textTheme.titleLarge,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Avatar art is not available yet.',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: AppColors.gray),
-                          ),
-                        ],
+                    const SizedBox(height: 14),
+                    EntranceFade(
+                      child: _ProfileHero(
+                        profile: widget.profile,
+                        levelProgress: levelProgress,
                       ),
                     ),
-                    const SizedBox(height: 18),
-                    _AvatarStats(
-                      profile: widget.profile,
-                      rewardsFuture: _rewardsFuture,
+                    const SizedBox(height: 16),
+                    EntranceFade(
+                      delayIndex: 1,
+                      child: _AvatarStats(
+                        profile: widget.profile,
+                        rewardsFuture: _rewardsFuture,
+                      ),
                     ),
                     if (widget.onOpenRewards != null) ...[
                       const SizedBox(height: 12),
-                      LearnLiteButton(
-                        label: 'Badges & certificates',
-                        icon: Icons.workspace_premium_outlined,
-                        variant: LearnLiteButtonVariant.outlined,
-                        onPressed: widget.onOpenRewards,
+                      LearnLiteCard(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: _ProfileMenuRow(
+                          icon: Icons.workspace_premium_rounded,
+                          tone: IconBadgeTone.gold,
+                          label: 'Badges & certificates',
+                          onTap: widget.onOpenRewards!,
+                        ),
                       ),
                     ],
-                    const SizedBox(height: 18),
-                    LearnLiteCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Level ${widget.profile.userLevel}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium,
-                                ),
-                              ),
-                              Text(
-                                '${widget.profile.xp} XP',
-                                style: Theme.of(context).textTheme.labelLarge
-                                    ?.copyWith(color: AppColors.primary),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 9),
-                          LinearProgressIndicator(
-                            value: levelProgress,
-                            color: AppColors.primary,
-                            backgroundColor: AppColors.lightPink,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${widget.profile.xp.remainder(100)} of 100 XP toward the next level',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: AppColors.gray),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 26),
                     const SectionHeader(title: 'Customization'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     DefaultTabController(
                       length: 3,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          TabBar(
-                            onTap: (index) {
-                              setState(() => _selectedTab = index);
-                            },
-                            tabs: const [
-                              Tab(text: 'Outfit'),
-                              Tab(text: 'Accessories'),
-                              Tab(text: 'Background'),
-                            ],
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(color: AppColors.borderSoft),
+                            ),
+                            child: TabBar(
+                              onTap: (index) {
+                                setState(() => _selectedTab = index);
+                              },
+                              tabs: const [
+                                Tab(text: 'Outfit', height: 40),
+                                Tab(text: 'Accessories', height: 40),
+                                Tab(text: 'Background', height: 40),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 12),
                           _LockedItems(tabIndex: _selectedTab),
                         ],
                       ),
                     ),
-                    if (widget.onEditNickname != null) ...[
-                      const SizedBox(height: 18),
-                      LearnLiteButton(
-                        label: 'Edit profile',
-                        icon: Icons.edit_outlined,
-                        variant: LearnLiteButtonVariant.outlined,
-                        onPressed: widget.onEditNickname,
+                    const SizedBox(height: 26),
+                    const SectionHeader(title: 'Account'),
+                    const SizedBox(height: 12),
+                    LearnLiteCard(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Column(
+                        children: [
+                          if (widget.onEditNickname != null)
+                            _ProfileMenuRow(
+                              icon: Icons.edit_rounded,
+                              label: 'Edit profile',
+                              onTap: widget.onEditNickname!,
+                            ),
+                          _ProfileMenuRow(
+                            icon: Icons.settings_rounded,
+                            tone: IconBadgeTone.cream,
+                            label: 'Settings & account',
+                            onTap: _openSettings,
+                          ),
+                        ],
                       ),
-                    ],
-                    const SizedBox(height: 10),
-                    LearnLiteButton(
-                      label: 'Settings & account',
-                      icon: Icons.settings_outlined,
-                      variant: LearnLiteButtonVariant.outlined,
-                      onPressed: _openSettings,
                     ),
                     if (widget.onSignOut != null) ...[
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 16),
                       LearnLiteButton(
                         label: 'Sign out',
-                        icon: Icons.logout,
+                        icon: Icons.logout_rounded,
                         variant: LearnLiteButtonVariant.outlined,
                         onPressed: () async {
                           try {
@@ -227,13 +199,27 @@ class _AvatarScreenState extends State<AvatarScreen> {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (settingsContext) => Scaffold(
-          appBar: AppBar(title: const Text('Settings')),
+          appBar: AppBar(
+            title: const Text('Settings'),
+            bottom: weaveAppBarBottom,
+          ),
           body: SafeArea(
             child: SettingsScreen(
               gateway: gateway,
               profile: widget.profile,
               accountEmail: accountEmail,
-              onSignOut: widget.onSignOut,
+              // After signing out, close Settings (and anything opened from
+              // it) so the login screen underneath is shown immediately.
+              onSignOut: widget.onSignOut == null
+                  ? null
+                  : () async {
+                      await widget.onSignOut!();
+                      if (settingsContext.mounted) {
+                        Navigator.of(
+                          settingsContext,
+                        ).popUntil((route) => route.isFirst);
+                      }
+                    },
               onManageDownloads: dictionaryGateway == null
                   ? null
                   : () => Navigator.of(settingsContext).push<void>(
@@ -241,6 +227,7 @@ class _AvatarScreenState extends State<AvatarScreen> {
                         builder: (_) => Scaffold(
                           appBar: AppBar(
                             title: const Text('Offline Content Packs'),
+                            bottom: weaveAppBarBottom,
                           ),
                           body: SafeArea(
                             child: OfflineContentScreen(
@@ -256,6 +243,123 @@ class _AvatarScreenState extends State<AvatarScreen> {
       ),
     );
   }
+}
+
+class _ProfileHero extends StatelessWidget {
+  const _ProfileHero({required this.profile, required this.levelProgress});
+
+  final LearnerProfile profile;
+  final double levelProgress;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return LearnLiteCard(
+      backgroundColor: AppColors.charcoal,
+      padding: EdgeInsets.zero,
+      elevated: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const DecorativeBorder(height: 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+            child: Column(
+              children: [
+                const LearnerAvatar(
+                  size: 92,
+                  backgroundColor: AppColors.lightPink,
+                  borderColor: AppColors.gold,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  profile.nickname ?? profile.fullName,
+                  style: textTheme.headlineSmall?.copyWith(
+                    color: AppColors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Avatar art is not available yet.',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.white.withValues(alpha: 0.6),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Level ${profile.userLevel}',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${profile.xp} XP',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 9),
+                LearnLiteProgressIndicator(
+                  progress: levelProgress.clamp(0.0, 1.0),
+                  color: AppColors.gold,
+                  backgroundColor: AppColors.white.withValues(alpha: 0.12),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${profile.xp.remainder(100)} of 100 XP toward the next level',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.white.withValues(alpha: 0.65),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileMenuRow extends StatelessWidget {
+  const _ProfileMenuRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.tone = IconBadgeTone.red,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final IconBadgeTone tone;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          IconBadge(icon: icon, tone: tone, size: 40),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(label, style: Theme.of(context).textTheme.titleSmall),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.gray),
+        ],
+      ),
+    ),
+  );
 }
 
 class _AvatarStats extends StatelessWidget {
@@ -277,9 +381,7 @@ class _AvatarStats extends StatelessWidget {
           );
         }
         if (!snapshot.hasData) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          );
+          return const LoadingCard(height: 170);
         }
         final earnedBadges = snapshot.data!.badges
             .where((badge) => badge.earned)
@@ -293,27 +395,31 @@ class _AvatarStats extends StatelessWidget {
               children: [
                 _StatCard(
                   width: itemWidth,
-                  icon: Icons.auto_stories_outlined,
+                  icon: Icons.auto_stories_rounded,
                   label: 'Lessons completed',
                   value: '${profile.completedLessons}',
+                  tone: IconBadgeTone.red,
                 ),
                 _StatCard(
                   width: itemWidth,
-                  icon: Icons.workspace_premium_outlined,
+                  icon: Icons.workspace_premium_rounded,
                   label: 'Badges earned',
                   value: '$earnedBadges',
+                  tone: IconBadgeTone.gold,
                 ),
                 _StatCard(
                   width: itemWidth,
-                  icon: Icons.local_fire_department_outlined,
+                  icon: Icons.local_fire_department_rounded,
                   label: 'Daily streak',
                   value: '${profile.streak}',
+                  tone: IconBadgeTone.red,
                 ),
                 _StatCard(
                   width: itemWidth,
-                  icon: Icons.stars_outlined,
+                  icon: Icons.stars_rounded,
                   label: 'Current level',
                   value: '${profile.userLevel}',
+                  tone: IconBadgeTone.gold,
                 ),
               ],
             );
@@ -330,12 +436,14 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    required this.tone,
   });
 
   final double width;
   final IconData icon;
   final String label;
   final String value;
+  final IconBadgeTone tone;
 
   @override
   Widget build(BuildContext context) {
@@ -343,16 +451,23 @@ class _StatCard extends StatelessWidget {
       width: width,
       child: LearnLiteCard(
         padding: const EdgeInsets.all(14),
-        child: Column(
+        child: Row(
           children: [
-            Icon(icon, color: AppColors.primary),
-            const SizedBox(height: 6),
-            Text(value, style: Theme.of(context).textTheme.titleLarge),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: AppColors.gray),
+            IconBadge(icon: icon, tone: tone, size: 40),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(value, style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    label,
+                    maxLines: 2,
+                    style: Theme.of(context).textTheme.labelSmall
+                        ?.copyWith(color: AppColors.inkSoft),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -374,11 +489,14 @@ class _LockedItems extends StatelessWidget {
       _ => 'Backgrounds are locked',
     };
     return LearnLiteCard(
-      backgroundColor: AppColors.cream,
       child: Column(
         children: [
-          const Icon(Icons.lock_outline, color: AppColors.gray, size: 30),
-          const SizedBox(height: 8),
+          const IconBadge(
+            icon: Icons.lock_outline_rounded,
+            tone: IconBadgeTone.cream,
+            size: 48,
+          ),
+          const SizedBox(height: 10),
           Text(title, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 4),
           Text(

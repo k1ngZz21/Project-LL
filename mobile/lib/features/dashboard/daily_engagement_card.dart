@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/icon_badge.dart';
 import '../../widgets/learnlite_card.dart';
+import '../../widgets/learnlite_progress_indicator.dart';
+import '../../widgets/loading_indicator.dart';
+import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
 
 class DailyEngagementCard extends StatelessWidget {
@@ -21,11 +25,7 @@ class DailyEngagementCard extends StatelessWidget {
       future: rewardsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const LearnLiteCard(
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-          );
+          return const LoadingCard(height: 168);
         }
         if (snapshot.hasError) {
           return LearnLiteCard(
@@ -41,36 +41,53 @@ class DailyEngagementCard extends StatelessWidget {
           );
         }
         final overview = snapshot.data!;
+        final textTheme = Theme.of(context).textTheme;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             LearnLiteCard(
-              backgroundColor: AppColors.lightPink,
+              backgroundColor: AppColors.charcoal,
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(
-                        Icons.local_fire_department_outlined,
-                        color: AppColors.primary,
-                        size: 30,
+                      const IconBadge(
+                        icon: Icons.local_fire_department_rounded,
+                        tone: IconBadgeTone.dark,
+                        size: 40,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          'Learning streak',
-                          style: Theme.of(context).textTheme.titleMedium,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Learning streak',
+                              style: textTheme.titleMedium?.copyWith(
+                                color: AppColors.white,
+                              ),
+                            ),
+                            Text(
+                              'Best streak: ${overview.longestStreak} '
+                              '${overview.longestStreak == 1 ? 'day' : 'days'}',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: AppColors.white.withValues(alpha: 0.65),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       Text(
                         '${overview.streak} ${overview.streak == 1 ? 'day' : 'days'}',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(color: AppColors.primary),
+                        style: textTheme.titleLarge?.copyWith(
+                          color: AppColors.gold,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -78,124 +95,125 @@ class DailyEngagementCard extends StatelessWidget {
                         _CalendarDay(day: day),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Best streak: ${overview.longestStreak} '
-                    '${overview.longestStreak == 1 ? 'day' : 'days'}',
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: AppColors.gray),
-                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 14),
-            Text('Daily Quests', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 10),
-            LearnLiteCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.task_alt, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          overview.dailyQuest.title,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ),
-                      Text(
-                        overview.dailyQuest.completed
-                            ? '+${overview.dailyQuest.xpAwarded} XP earned'
-                            : '${overview.dailyQuest.xpReward} XP',
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(color: AppColors.primary),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    overview.dailyQuest.description,
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: AppColors.gray),
-                  ),
-                  const SizedBox(height: 10),
-                  LinearProgressIndicator(
-                    value:
-                        overview.dailyQuest.progress /
-                        overview.dailyQuest.target,
-                    color: AppColors.primary,
-                    backgroundColor: AppColors.lightPink,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${overview.dailyQuest.progress} of '
-                    '${overview.dailyQuest.target} lessons',
-                    style: Theme.of(context).textTheme.labelSmall
-                        ?.copyWith(color: AppColors.gray),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 24),
+            const SectionHeader(title: 'Daily Quests'),
+            const SizedBox(height: 12),
+            _QuestRow(
+              icon: Icons.task_alt_rounded,
+              tone: IconBadgeTone.red,
+              title: overview.dailyQuest.title,
+              description: overview.dailyQuest.description,
+              reward: overview.dailyQuest.completed
+                  ? '+${overview.dailyQuest.xpAwarded} XP earned'
+                  : '${overview.dailyQuest.xpReward} XP',
+              done: overview.dailyQuest.completed,
+              progress: overview.dailyQuest.target == 0
+                  ? 0
+                  : overview.dailyQuest.progress / overview.dailyQuest.target,
+              progressLabel:
+                  '${overview.dailyQuest.progress} of '
+                  '${overview.dailyQuest.target} lessons',
             ),
-            const SizedBox(height: 14),
-            LearnLiteCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        overview.weeklyChest.unlocked
-                            ? Icons.inventory_2
-                            : Icons.inventory_2_outlined,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          overview.weeklyChest.title,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ),
-                      Text(
-                        overview.weeklyChest.unlocked
-                            ? '+${overview.weeklyChest.xpAwarded} XP earned'
-                            : '${overview.weeklyChest.xpReward} XP',
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(color: AppColors.primary),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    overview.weeklyChest.unlocked
-                        ? 'Weekly reward unlocked.'
-                        : overview.weeklyChest.description,
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: AppColors.gray),
-                  ),
-                  const SizedBox(height: 10),
-                  LinearProgressIndicator(
-                    value:
-                        overview.weeklyChest.progress /
-                        overview.weeklyChest.target,
-                    color: AppColors.primary,
-                    backgroundColor: AppColors.lightPink,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${overview.weeklyChest.progress} of '
-                    '${overview.weeklyChest.target} lessons this week',
-                    style: Theme.of(context).textTheme.labelSmall
-                        ?.copyWith(color: AppColors.gray),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 12),
+            _QuestRow(
+              icon: overview.weeklyChest.unlocked
+                  ? Icons.inventory_2
+                  : Icons.inventory_2_outlined,
+              tone: IconBadgeTone.gold,
+              title: overview.weeklyChest.title,
+              description: overview.weeklyChest.unlocked
+                  ? 'Weekly reward unlocked.'
+                  : overview.weeklyChest.description,
+              reward: overview.weeklyChest.unlocked
+                  ? '+${overview.weeklyChest.xpAwarded} XP earned'
+                  : '${overview.weeklyChest.xpReward} XP',
+              done: overview.weeklyChest.unlocked,
+              progress: overview.weeklyChest.target == 0
+                  ? 0
+                  : overview.weeklyChest.progress / overview.weeklyChest.target,
+              progressLabel:
+                  '${overview.weeklyChest.progress} of '
+                  '${overview.weeklyChest.target} lessons this week',
             ),
           ],
         );
       },
+    );
+  }
+}
+
+class _QuestRow extends StatelessWidget {
+  const _QuestRow({
+    required this.icon,
+    required this.tone,
+    required this.title,
+    required this.description,
+    required this.reward,
+    required this.done,
+    required this.progress,
+    required this.progressLabel,
+  });
+
+  final IconData icon;
+  final IconBadgeTone tone;
+  final String title;
+  final String description;
+  final String reward;
+  final bool done;
+  final double progress;
+  final String progressLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return LearnLiteCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconBadge(icon: icon, tone: tone),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: Text(title, style: textTheme.titleSmall)),
+                    const SizedBox(width: 8),
+                    StatusPill(
+                      label: reward,
+                      icon: done ? Icons.check_rounded : Icons.bolt_rounded,
+                      tone: done ? IconBadgeTone.red : IconBadgeTone.gold,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.inkSoft,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                LearnLiteProgressIndicator(
+                  progress: progress.clamp(0.0, 1.0),
+                  minHeight: 6,
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  progressLabel,
+                  style: textTheme.labelSmall?.copyWith(color: AppColors.gray),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -210,13 +228,13 @@ class _CalendarDay extends StatelessWidget {
     final background = day.active
         ? AppColors.primary
         : day.isToday
-        ? AppColors.white
+        ? AppColors.white.withValues(alpha: 0.08)
         : Colors.transparent;
     final foreground = day.active
         ? AppColors.white
         : day.isFuture
-        ? AppColors.gray.withValues(alpha: 0.6)
-        : AppColors.gray;
+        ? AppColors.white.withValues(alpha: 0.35)
+        : AppColors.white.withValues(alpha: 0.7);
     final dateText = day.date.day.toString();
     return Semantics(
       label:
@@ -224,27 +242,38 @@ class _CalendarDay extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            day.weekday,
-            style: Theme.of(context).textTheme.labelSmall
-                ?.copyWith(color: AppColors.gray),
+            day.weekday.length > 3 ? day.weekday.substring(0, 3) : day.weekday,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.white.withValues(alpha: 0.55),
+            ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 6),
           Container(
-            width: 30,
-            height: 30,
+            width: 32,
+            height: 32,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: background,
               shape: BoxShape.circle,
-              border: day.isToday ? Border.all(color: AppColors.primary) : null,
+              border: day.isToday
+                  ? Border.all(color: AppColors.gold, width: 1.5)
+                  : null,
             ),
-            child: Text(
-              dateText,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: foreground,
-                fontWeight: day.isToday ? FontWeight.w700 : FontWeight.normal,
-              ),
-            ),
+            child: day.active
+                ? const Icon(
+                    Icons.local_fire_department_rounded,
+                    size: 16,
+                    color: AppColors.gold,
+                  )
+                : Text(
+                    dateText,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: foreground,
+                      fontWeight: day.isToday
+                          ? FontWeight.w800
+                          : FontWeight.w600,
+                    ),
+                  ),
           ),
         ],
       ),

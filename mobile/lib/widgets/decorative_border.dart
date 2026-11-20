@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../app/app_colors.dart';
 
+/// The woven diamond border used under every LearnLite app bar
+/// (`AppBar(bottom: weaveAppBarBottom)`).
+const weaveAppBarBottom = PreferredSize(
+  preferredSize: Size.fromHeight(10),
+  child: DecorativeBorder(height: 10),
+);
+
 class DecorativeBorder extends StatelessWidget {
   const DecorativeBorder({
     this.color = AppColors.gold,

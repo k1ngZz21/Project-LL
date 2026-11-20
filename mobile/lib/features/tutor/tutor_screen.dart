@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../app/app_theme.dart';
+import '../../widgets/decorative_border.dart';
+import '../../widgets/icon_badge.dart';
 import '../../widgets/learnlite_card.dart';
 import '../../widgets/learnlite_text_field.dart';
-import '../../widgets/section_header.dart';
 import '../auth/auth_models.dart';
 import 'tutor_gateway.dart';
 
@@ -55,7 +57,12 @@ class _TutorScreenState extends State<TutorScreen> {
 
   Future<void> _send() async {
     final prompt = _inputController.text.trim();
-    if (prompt.isEmpty || _isSending || widget.isGuest) return;
+    if (prompt.isEmpty ||
+        _isSending ||
+        widget.isGuest ||
+        _gateway.configurationMessage != null) {
+      return;
+    }
     _inputController.clear();
     await _sendPrompt(prompt, addVisibleMessage: true);
   }
@@ -164,9 +171,8 @@ class _TutorScreenState extends State<TutorScreen> {
           if (_modelName case final model?)
             Text(
               model,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.gray,
-              ),
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: AppColors.gray),
             ),
         ],
       ),
@@ -178,6 +184,7 @@ class _TutorScreenState extends State<TutorScreen> {
             icon: const Icon(Icons.delete_sweep_outlined),
           ),
       ],
+      bottom: weaveAppBarBottom,
     ),
     body: SafeArea(
       child: Column(
@@ -221,18 +228,22 @@ class _TutorScreenState extends State<TutorScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.auto_awesome_outlined,
-              color: AppColors.primary,
-              size: 52,
+            const IconBadge(
+              icon: Icons.auto_awesome_rounded,
+              tone: IconBadgeTone.dark,
+              size: 72,
             ),
-            const SizedBox(height: 16),
-            const SectionHeader(title: 'Learn with the AI Tutor'),
+            const SizedBox(height: 18),
+            Text(
+              'Learn with the AI Tutor',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 10),
             Text(
               'Ask for help understanding a lesson or planning how to study. '
-              'The tutor uses the existing local Ollama service through the '
-              'LearnLite API; it does not invent dictionary entries.',
+              'The tutor runs on LearnLite\'s own local AI and never invents '
+              'Subanen words or dictionary entries.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -260,6 +271,9 @@ class _TutorScreenState extends State<TutorScreen> {
     top: false,
     child: Material(
       color: AppColors.white,
+      elevation: 6,
+      shadowColor: AppColors.shadow.withValues(alpha: 0.25),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         child: Row(
@@ -283,7 +297,14 @@ class _TutorScreenState extends State<TutorScreen> {
             IconButton.filled(
               key: const ValueKey('tutor-send'),
               tooltip: 'Send question',
-              onPressed: widget.isGuest || _isSending ? null : _send,
+              // Disabled while the Tutor is unavailable, so the button never
+              // looks usable when it cannot work.
+              onPressed:
+                  widget.isGuest ||
+                      _isSending ||
+                      _gateway.configurationMessage != null
+                  ? null
+                  : _send,
               icon: _isSending
                   ? const SizedBox.square(
                       dimension: 20,
@@ -322,8 +343,14 @@ class _MessageBubble extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: isLearner ? AppColors.primary : AppColors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: isLearner ? null : Border.all(color: AppColors.border),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(20),
+              topRight: const Radius.circular(20),
+              bottomLeft: Radius.circular(isLearner ? 20 : 6),
+              bottomRight: Radius.circular(isLearner ? 6 : 20),
+            ),
+            border: isLearner ? null : Border.all(color: AppColors.borderSoft),
+            boxShadow: AppShadows.card,
           ),
           child: SelectableText(
             message.content,

@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../app/app_theme.dart';
 import '../../app/responsive_layout.dart';
 import '../../core/learning_snapshot.dart';
 import 'daily_engagement_card.dart';
 import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/icon_badge.dart';
 import '../../widgets/learnlite_button.dart';
 import '../../widgets/learnlite_card.dart';
 import '../../widgets/learner_avatar.dart';
 import '../../widgets/learnlite_progress_indicator.dart';
+import '../../widgets/loading_indicator.dart';
+import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
 import '../content/content_gateway.dart';
@@ -89,15 +93,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final horizontalPadding = ResponsiveLayout.horizontalPadding(
           contentWidth,
         );
-        final columns = contentWidth >= 920 ? 4 : 2;
-        final metricWidth =
-            (contentWidth - (horizontalPadding * 2) - (16 * (columns - 1))) /
-            columns;
 
         return SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: horizontalPadding,
-            vertical: 24,
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            20,
+            horizontalPadding,
+            32,
           ),
           child: Center(
             child: ConstrainedBox(
@@ -105,79 +107,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 maxWidth: ResponsiveLayout.contentMaxWidth,
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _WelcomeCard(snapshot: widget.snapshot),
-                  const SizedBox(height: 28),
-                  const SectionHeader(title: 'Your learning snapshot'),
-                  const SizedBox(height: 14),
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
-                    children: [
-                      _MetricCard(
-                        width: metricWidth,
-                        icon: Icons.auto_stories_outlined,
-                        label: 'Lessons completed',
-                        value: '${widget.snapshot.completedLessons}',
-                      ),
-                      _MetricCard(
-                        width: metricWidth,
-                        icon: Icons.bolt_outlined,
-                        label: 'Experience points',
-                        value: '${widget.snapshot.xp}',
-                      ),
-                      _MetricCard(
-                        width: metricWidth,
-                        icon: Icons.local_fire_department_outlined,
-                        label: 'Learning streak',
-                        value: '${widget.snapshot.streak}',
-                      ),
-                      _MetricCard(
-                        width: metricWidth,
-                        icon: Icons.stars_outlined,
-                        label: 'Level',
-                        value: '${widget.snapshot.userLevel}',
-                      ),
-                    ],
+                  EntranceFade(
+                    child: _WelcomeCard(snapshot: widget.snapshot),
                   ),
-                  const SizedBox(height: 28),
-                  DailyEngagementCard(
-                    rewardsFuture: _rewardsFuture,
-                    onRetry: () {
-                      setState(() {
-                        _rewardsFuture = widget.gateway.fetchRewards();
-                      });
-                    },
+                  const SizedBox(height: 26),
+                  EntranceFade(
+                    delayIndex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SectionHeader(title: 'Your learning snapshot'),
+                        const SizedBox(height: 12),
+                        _SnapshotStrip(snapshot: widget.snapshot),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 28),
-                  LayoutBuilder(
-                    builder: (context, contentConstraints) {
-                      final continueLearning = _buildContinueLearning();
-                      final dailyWord = _buildDailyWord();
-                      if (contentConstraints.maxWidth >= 820) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 26),
+                  EntranceFade(
+                    delayIndex: 2,
+                    child: LayoutBuilder(
+                      builder: (context, contentConstraints) {
+                        final continueLearning = _buildContinueLearning();
+                        final dailyWord = _buildDailyWord();
+                        if (contentConstraints.maxWidth >= 820) {
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 3, child: continueLearning),
+                              const SizedBox(width: 20),
+                              Expanded(flex: 2, child: dailyWord),
+                            ],
+                          );
+                        }
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Expanded(flex: 3, child: continueLearning),
-                            const SizedBox(width: 20),
-                            Expanded(flex: 2, child: dailyWord),
+                            continueLearning,
+                            const SizedBox(height: 26),
+                            dailyWord,
                           ],
                         );
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          continueLearning,
-                          const SizedBox(height: 24),
-                          dailyWord,
-                        ],
-                      );
-                    },
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 26),
+                  EntranceFade(
+                    delayIndex: 3,
+                    child: DailyEngagementCard(
+                      rewardsFuture: _rewardsFuture,
+                      onRetry: () {
+                        setState(() {
+                          _rewardsFuture = widget.gateway.fetchRewards();
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 26),
                   _buildLearningModules(),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 26),
                   SectionHeader(
                     title: 'Latest badges',
                     trailing: TextButton(
@@ -185,19 +174,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: const Text('See all'),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   FutureBuilder<RewardsOverview>(
                     future: _rewardsFuture,
                     builder: (context, rewardsSnapshot) {
                       if (rewardsSnapshot.connectionState ==
                           ConnectionState.waiting) {
-                        return const LearnLiteCard(
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        );
+                        return const LoadingCard(height: 88);
                       }
                       if (rewardsSnapshot.hasError) {
                         return const _FeatureEmptyCard(
@@ -218,24 +201,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       }
 
                       return LearnLiteCard(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 6,
+                        ),
                         child: Column(
                           children: [
-                            for (final badge in earnedBadges)
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: const Icon(
-                                  Icons.workspace_premium_outlined,
-                                  color: AppColors.gold,
+                            for (
+                              var index = 0;
+                              index < earnedBadges.length;
+                              index++
+                            ) ...[
+                              if (index > 0) const Divider(),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
                                 ),
-                                title: Text(badge.title),
-                                subtitle: Text(badge.description),
+                                child: Row(
+                                  children: [
+                                    const IconBadge(
+                                      icon: Icons.workspace_premium_rounded,
+                                      tone: IconBadgeTone.gold,
+                                      size: 40,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            earnedBadges[index].title,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.titleSmall,
+                                          ),
+                                          Text(
+                                            earnedBadges[index].description,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: AppColors.inkSoft,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                            ],
                           ],
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 28),
                 ],
               ),
             ),
@@ -255,11 +276,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           future: _modulesFuture,
           builder: (context, modulesSnapshot) {
             if (modulesSnapshot.connectionState == ConnectionState.waiting) {
-              return const LearnLiteCard(
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
-              );
+              return const LoadingCard(height: 190);
             }
             if (modulesSnapshot.hasError) {
               return LearnLiteCard(
@@ -289,12 +306,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               return LearnLiteCard(
                 child: Column(
                   children: [
-                    const Icon(
-                      Icons.auto_stories_outlined,
-                      size: 32,
-                      color: AppColors.primary,
-                    ),
-                    const SizedBox(height: 10),
+                    const IconBadge(icon: Icons.auto_stories_rounded),
+                    const SizedBox(height: 12),
                     Text(
                       'No learning modules are available yet.',
                       textAlign: TextAlign.center,
@@ -305,7 +318,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       'Approved modules will appear here when content is uploaded.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium
-                          ?.copyWith(color: AppColors.gray),
+                          ?.copyWith(color: AppColors.inkSoft),
                     ),
                     const SizedBox(height: 16),
                     LearnLiteButton(
@@ -328,30 +341,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   );
             final hasStarted =
                 module.lastLessonIndex != null || module.completedLessons > 0;
+            final textTheme = Theme.of(context).textTheme;
             return LearnLiteCard(
-              backgroundColor: AppColors.creamSecondary,
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: const BoxDecoration(
-                          color: AppColors.lightPink,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.auto_stories_outlined,
-                          color: AppColors.primary,
-                        ),
+                      const IconBadge(
+                        icon: Icons.auto_stories_rounded,
+                        size: 52,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 14),
                       Expanded(
-                        child: Text(
-                          module.title,
-                          style: Theme.of(context).textTheme.titleMedium,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            StatusPill(
+                              label: hasStarted ? 'In progress' : 'Up next',
+                              tone: hasStarted
+                                  ? IconBadgeTone.red
+                                  : IconBadgeTone.gold,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(module.title, style: textTheme.titleMedium),
+                          ],
                         ),
                       ),
                     ],
@@ -360,18 +376,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 10),
                     Text(
                       module.description,
-                      style: Theme.of(context).textTheme.bodyMedium
-                          ?.copyWith(color: AppColors.gray),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.inkSoft,
+                      ),
                     ),
                   ],
-                  const SizedBox(height: 14),
-                  Text(
-                    '${module.completedLessons} of ${module.lessonCount} lessons',
-                    style: Theme.of(context).textTheme.labelLarge,
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${module.completedLessons} of ${module.lessonCount} lessons',
+                          style: textTheme.labelLarge,
+                        ),
+                      ),
+                      Text(
+                        '${(progress * 100).round()}%',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   LearnLiteProgressIndicator(progress: progress),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 18),
                   LearnLiteButton(
                     label: _isContinuingLearning
                         ? 'Opening lesson'
@@ -407,11 +438,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           future: vocabularyFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const LearnLiteCard(
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
-              );
+              return const LoadingCard(height: 200);
             }
             if (snapshot.hasError) {
               return const _DailyWordUnavailable();
@@ -452,13 +479,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: const Text('Explore all'),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             if (snapshot.connectionState == ConnectionState.waiting)
-              const LearnLiteCard(
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
-              )
+              const LoadingCard(height: 96)
             else if (snapshot.hasError)
               const _FeatureEmptyCard(
                 icon: Icons.cloud_off_outlined,
@@ -509,78 +532,224 @@ class _WelcomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.redDark, AppColors.primary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    final textTheme = Theme.of(context).textTheme;
+    final levelXp = snapshot.xp.remainder(100);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.raised,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.redDark, AppColors.primary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 26, 24, 22),
-              child: Row(
+          child: Stack(
+            children: [
+              // A large faint diamond: the woven motif as a watermark.
+              Positioned(
+                right: -64,
+                top: -56,
+                child: ExcludeSemantics(
+                  child: Transform.rotate(
+                    angle: 0.785398,
+                    child: Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: AppColors.gold.withValues(alpha: 0.13),
+                          width: 14,
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'WELCOME BACK',
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                color: AppColors.gold,
-                                letterSpacing: 1.4,
-                                fontWeight: FontWeight.w700,
+                        Row(
+                          children: [
+                            LearnerAvatar(
+                              imageUrl: snapshot.avatarUrl,
+                              size: 56,
+                              backgroundColor: AppColors.lightPink,
+                              borderColor: AppColors.gold,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'WELCOME BACK',
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: AppColors.gold,
+                                      letterSpacing: 1.6,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    'Welcome, ${snapshot.nickname ?? snapshot.fullName ?? 'learner'}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textTheme.titleLarge?.copyWith(
+                                      color: AppColors.white,
+                                      fontSize: 21,
+                                    ),
+                                  ),
+                                ],
                               ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 14),
                         Text(
                           'Ready for today’s lesson?',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(color: AppColors.white, fontSize: 26),
+                          style: textTheme.headlineSmall?.copyWith(
+                            color: AppColors.white,
+                          ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         Text(
                           'Build your Subanen language and culture skills, one step at a time.',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.white),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.white.withValues(alpha: 0.86),
+                          ),
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          'Welcome, ${snapshot.nickname ?? snapshot.fullName ?? 'learner'}',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(color: AppColors.white),
+                        Row(
+                          children: [
+                            Text(
+                              'Level ${snapshot.userLevel}',
+                              style: textTheme.labelLarge?.copyWith(
+                                color: AppColors.white,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '$levelXp / 100 XP',
+                              style: textTheme.labelMedium?.copyWith(
+                                color: AppColors.gold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        LearnLiteProgressIndicator(
+                          progress: levelXp / 100,
+                          color: AppColors.gold,
+                          backgroundColor: AppColors.darkBackground.withValues(
+                            alpha: 0.28,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Column(
-                    children: [
-                      LearnerAvatar(
-                        imageUrl: snapshot.avatarUrl,
-                        size: 68,
-                        backgroundColor: AppColors.lightPink,
-                      ),
-                      const SizedBox(height: 8),
-                      const Icon(
-                        Icons.auto_awesome,
-                        color: AppColors.gold,
-                        size: 20,
-                      ),
-                    ],
-                  ),
+                  const DecorativeBorder(color: AppColors.gold),
                 ],
               ),
-            ),
-            const DecorativeBorder(color: AppColors.gold),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Four compact statistics in one card: value first, label underneath.
+class _SnapshotStrip extends StatelessWidget {
+  const _SnapshotStrip({required this.snapshot});
+
+  final LearningSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      (Icons.auto_stories_rounded, '${snapshot.completedLessons}', 'Lessons done'),
+      (Icons.bolt_rounded, '${snapshot.xp}', 'XP'),
+      (
+        Icons.local_fire_department_rounded,
+        '${snapshot.streak}',
+        'Day streak',
+      ),
+      (Icons.stars_rounded, '${snapshot.userLevel}', 'Level'),
+    ];
+    return LearnLiteCard(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 6),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            for (var index = 0; index < items.length; index++) ...[
+              if (index > 0)
+                const VerticalDivider(width: 1, indent: 6, endIndent: 6),
+              Expanded(
+                child: _SnapshotStat(
+                  icon: items[index].$1,
+                  value: items[index].$2,
+                  label: items[index].$3,
+                  tone: index.isEven ? IconBadgeTone.red : IconBadgeTone.gold,
+                ),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SnapshotStat extends StatelessWidget {
+  const _SnapshotStat({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.tone,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+  final IconBadgeTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Semantics(
+      label: '$label: $value',
+      excludeSemantics: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconBadge(icon: icon, tone: tone, size: 34),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: textTheme.titleLarge?.copyWith(fontSize: 20),
+            ),
+          ),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.labelSmall?.copyWith(color: AppColors.inkSoft),
+          ),
+        ],
       ),
     );
   }
@@ -597,49 +766,43 @@ class _ModuleCategoryCard extends StatelessWidget {
     final progress = module.lessonCount == 0
         ? 0.0
         : (module.completedLessons / module.lessonCount).clamp(0.0, 1.0);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: LearnLiteCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.category_outlined, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      module.title,
-                      style: Theme.of(context).textTheme.titleMedium,
+    final textTheme = Theme.of(context).textTheme;
+    return LearnLiteCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          const IconBadge(icon: Icons.category_rounded, tone: IconBadgeTone.gold),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(module.title, style: textTheme.titleSmall),
+                if (module.description.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    module.description,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.inkSoft,
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: AppColors.gray),
                 ],
-              ),
-              if (module.description.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
+                LearnLiteProgressIndicator(progress: progress, minHeight: 6),
+                const SizedBox(height: 5),
                 Text(
-                  module.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall
-                      ?.copyWith(color: AppColors.gray),
+                  '${module.completedLessons}/${module.lessonCount} lessons',
+                  style: textTheme.labelSmall?.copyWith(color: AppColors.gray),
                 ),
               ],
-              const SizedBox(height: 14),
-              LearnLiteProgressIndicator(progress: progress),
-              const SizedBox(height: 6),
-              Text(
-                '${module.completedLessons}/${module.lessonCount} lessons',
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: AppColors.gray),
-              ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(width: 8),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.gray),
+        ],
       ),
     );
   }
@@ -652,62 +815,128 @@ class _DailyWordCard extends StatelessWidget {
   final VoidCallback onBrowse;
 
   @override
-  Widget build(BuildContext context) => LearnLiteCard(
-    backgroundColor: AppColors.creamSecondary,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.auto_awesome, color: AppColors.primary),
-            const SizedBox(width: 8),
-            Text(
-              'Today’s word',
-              style: Theme.of(context).textTheme.titleMedium,
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return LearnLiteCard(
+      backgroundColor: AppColors.charcoal,
+      padding: EdgeInsets.zero,
+      elevated: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: AppColors.gold,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Today’s word',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  word.subanen,
+                  style: textTheme.headlineMedium?.copyWith(
+                    color: AppColors.white,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _TranslationLine(label: 'English', value: word.english),
+                if (word.bisaya.trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _TranslationLine(label: 'Bisaya/Cebuano', value: word.bisaya),
+                ],
+                const SizedBox(height: 8),
+                const _TranslationLine(
+                  label: 'Filipino',
+                  value: 'Translation not yet available in the vocabulary data.',
+                  muted: true,
+                ),
+                if (word.topic.isNotEmpty ||
+                    word.module.isNotEmpty ||
+                    word.reviewStatus.trim().isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      if (word.topic.isNotEmpty || word.module.isNotEmpty)
+                        _DarkTag(
+                          icon: Icons.label_outline_rounded,
+                          label: [word.module, word.topic]
+                              .where((value) => value.trim().isNotEmpty)
+                              .join(' · '),
+                        ),
+                      if (word.reviewStatus.trim().isNotEmpty)
+                        _DarkTag(
+                          icon: Icons.fact_check_outlined,
+                          label: word.reviewStatus,
+                        ),
+                    ],
+                  ),
+                ],
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: onBrowse,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.gold,
+                    ),
+                    iconAlignment: IconAlignment.end,
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                    label: const Text('Browse vocabulary'),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text(
-          word.subanen,
-          style: Theme.of(context).textTheme.headlineSmall
-              ?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 12),
-        _TranslationLine(label: 'English', value: word.english),
-        if (word.bisaya.trim().isNotEmpty) ...[
-          const SizedBox(height: 8),
-          _TranslationLine(label: 'Bisaya/Cebuano', value: word.bisaya),
-        ],
-        const SizedBox(height: 8),
-        const _TranslationLine(
-          label: 'Filipino',
-          value: 'Translation not yet available in the vocabulary data.',
-        ),
-        if (word.topic.isNotEmpty || word.module.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(
-            [
-              word.module,
-              word.topic,
-            ].where((value) => value.trim().isNotEmpty).join(' · '),
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: AppColors.gray),
           ),
+          const DecorativeBorder(height: 8),
         ],
-        if (word.reviewStatus.trim().isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Chip(
-            visualDensity: VisualDensity.compact,
-            avatar: const Icon(Icons.fact_check_outlined, size: 16),
-            label: Text(word.reviewStatus),
-          ),
-        ],
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: onBrowse,
-            child: const Text('Browse vocabulary'),
+      ),
+    );
+  }
+}
+
+class _DarkTag extends StatelessWidget {
+  const _DarkTag({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    decoration: BoxDecoration(
+      color: AppColors.white.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(999),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: AppColors.gold),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -716,10 +945,15 @@ class _DailyWordCard extends StatelessWidget {
 }
 
 class _TranslationLine extends StatelessWidget {
-  const _TranslationLine({required this.label, required this.value});
+  const _TranslationLine({
+    required this.label,
+    required this.value,
+    this.muted = false,
+  });
 
   final String label;
   final String value;
+  final bool muted;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -729,11 +963,22 @@ class _TranslationLine extends StatelessWidget {
         width: 112,
         child: Text(
           label,
-          style: Theme.of(context).textTheme.labelMedium
-              ?.copyWith(color: AppColors.gray),
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: AppColors.white.withValues(alpha: 0.55),
+          ),
         ),
       ),
-      Expanded(child: Text(value)),
+      Expanded(
+        child: Text(
+          value,
+          style: TextStyle(
+            color: AppColors.white.withValues(alpha: muted ? 0.55 : 0.95),
+            fontSize: muted ? 13 : 15,
+            fontWeight: muted ? FontWeight.w400 : FontWeight.w600,
+            fontStyle: muted ? FontStyle.italic : FontStyle.normal,
+          ),
+        ),
+      ),
     ],
   );
 }
@@ -762,54 +1007,16 @@ class _FeatureEmptyCard extends StatelessWidget {
     padding: const EdgeInsets.all(16),
     child: Row(
       children: [
-        Icon(icon, color: AppColors.gray),
+        IconBadge(icon: icon, tone: IconBadgeTone.cream, size: 40),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(color: AppColors.gray),
+                ?.copyWith(color: AppColors.inkSoft),
           ),
         ),
       ],
     ),
   );
-}
-
-class _MetricCard extends StatelessWidget {
-  const _MetricCard({
-    required this.width,
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final double width;
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      child: LearnLiteCard(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 22, color: AppColors.primary),
-            const SizedBox(height: 14),
-            Text(value, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: AppColors.gray),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

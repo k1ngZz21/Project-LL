@@ -4,13 +4,66 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
 import '../../app/responsive_layout.dart';
+import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/icon_badge.dart';
 import '../../widgets/learnlite_card.dart';
+import '../../widgets/loading_indicator.dart';
+import '../../widgets/pressable.dart';
 import '../../widgets/learnlite_progress_indicator.dart';
 import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
 import '../content/content_gateway.dart';
 import 'lesson_screen.dart';
+
+/// A tappable tool shortcut shown on the Lessons screen (Dictionary,
+/// Offline downloads). At least 56 px tall, so it is an easy touch target.
+class _LessonToolCard extends StatelessWidget {
+  const _LessonToolCard({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.caption,
+    this.tone = IconBadgeTone.red,
+    super.key,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  final String caption;
+  final IconBadgeTone tone;
+
+  @override
+  Widget build(BuildContext context) => LearnLiteCard(
+    onTap: onTap,
+    padding: const EdgeInsets.all(14),
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 56),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconBadge(icon: icon, tone: tone, size: 40),
+          const SizedBox(height: 10),
+          Text(
+            label,
+            maxLines: 2,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            caption,
+            maxLines: 2,
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: AppColors.inkSoft),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
 class ModulesScreen extends StatefulWidget {
   const ModulesScreen({
@@ -18,6 +71,8 @@ class ModulesScreen extends StatefulWidget {
     required this.onProgressChanged,
     this.isGuest = false,
     this.onModuleSelected,
+    this.onOpenDictionary,
+    this.onOpenDownloads,
     super.key,
   });
 
@@ -25,6 +80,12 @@ class ModulesScreen extends StatefulWidget {
   final VoidCallback onProgressChanged;
   final bool isGuest;
   final ValueChanged<LearningModule>? onModuleSelected;
+
+  /// Opens the Dictionary. When null, the tool card is hidden.
+  final VoidCallback? onOpenDictionary;
+
+  /// Opens Offline downloads. When null, the tool card is hidden.
+  final VoidCallback? onOpenDownloads;
 
   @override
   State<ModulesScreen> createState() => _ModulesScreenState();
@@ -140,33 +201,32 @@ class _ModulesScreenState extends State<ModulesScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const SectionHeader(title: 'Learning Modules'),
-                          const SizedBox(height: 8),
+                          const SectionHeader(
+                            title: 'Learning Modules',
+                            subtitle:
+                                'Explore available language and culture lessons.',
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: const [
+                              StatusPill(
+                                icon: Icons.offline_pin_rounded,
+                                label:
+                                    'Lessons stored on this device work offline.',
+                              ),
+                            ],
+                          ),
                           if (widget.isGuest)
-                            const Padding(
-                              padding: EdgeInsets.only(bottom: 12),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 10),
                               child: Text(
                                 'Offline guest progress stays on this device and is not linked to Firebase.',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppColors.inkSoft),
                               ),
                             ),
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.offline_pin_outlined,
-                                  size: 18,
-                                  color: AppColors.gray,
-                                ),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Lessons stored on this device work offline.',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                           FutureBuilder<String?>(
                             future: _syncNoticeFuture,
                             builder: (context, notice) {
@@ -174,28 +234,76 @@ class _ModulesScreenState extends State<ModulesScreen> {
                                 return const SizedBox.shrink();
                               }
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: Text(
-                                  notice.data!,
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                  ),
+                                padding: const EdgeInsets.only(top: 10),
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.sync_problem_rounded,
+                                      size: 16,
+                                      color: AppColors.primary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        notice.data!,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: AppColors.primary,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               );
                             },
                           ),
-                          Text(
-                            'Explore available language and culture lessons.',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.gray),
-                          ),
+                          if (widget.onOpenDictionary != null ||
+                              widget.onOpenDownloads != null) ...[
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                if (widget.onOpenDictionary != null)
+                                  Expanded(
+                                    child: _LessonToolCard(
+                                      key: const ValueKey(
+                                        'lessons-open-dictionary',
+                                      ),
+                                      icon: Icons.translate_rounded,
+                                      label: 'Dictionary',
+                                      caption: 'Search Subanen words',
+                                      onTap: widget.onOpenDictionary!,
+                                    ),
+                                  ),
+                                if (widget.onOpenDictionary != null &&
+                                    widget.onOpenDownloads != null)
+                                  const SizedBox(width: 12),
+                                if (widget.onOpenDownloads != null)
+                                  Expanded(
+                                    child: _LessonToolCard(
+                                      key: const ValueKey(
+                                        'lessons-open-downloads',
+                                      ),
+                                      icon: Icons.download_for_offline_rounded,
+                                      label: 'Offline downloads',
+                                      caption: 'Content packs',
+                                      tone: IconBadgeTone.gold,
+                                      onTap: widget.onOpenDownloads!,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                           const SizedBox(height: 18),
                           TextField(
                             controller: _searchController,
                             onChanged: _searchChanged,
                             decoration: InputDecoration(
                               hintText: 'Search modules',
-                              prefixIcon: const Icon(Icons.search),
+                              prefixIcon: const Icon(Icons.search_rounded),
                               suffixIcon: _searchController.text.isEmpty
                                   ? null
                                   : IconButton(
@@ -211,14 +319,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
                           const SizedBox(height: 20),
                           if (snapshot.connectionState ==
                               ConnectionState.waiting)
-                            const Padding(
-                              padding: EdgeInsets.all(32),
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            )
+                            const LoadingCard(height: 150)
                           else if (snapshot.hasError)
                             _LoadError(
                               onRetry: () {
@@ -248,11 +349,15 @@ class _ModulesScreenState extends State<ModulesScreen> {
                               index < snapshot.data!.length;
                               index++
                             ) ...[
-                              _ModuleCard(
-                                number: index + 1,
-                                module: snapshot.data![index],
-                                showProgress: !widget.isGuest,
-                                onTap: () => _openModule(snapshot.data![index]),
+                              EntranceFade(
+                                delayIndex: index,
+                                child: _ModuleCard(
+                                  number: index + 1,
+                                  module: snapshot.data![index],
+                                  showProgress: !widget.isGuest,
+                                  onTap: () =>
+                                      _openModule(snapshot.data![index]),
+                                ),
                               ),
                               if (index < snapshot.data!.length - 1)
                                 const SizedBox(height: 14),
@@ -295,82 +400,155 @@ class _ModuleCard extends StatelessWidget {
         : module.completedLessons > 0
         ? 'In progress'
         : 'Not started';
+    final textTheme = Theme.of(context).textTheme;
+    final isComplete =
+        module.lessonCount > 0 && module.completedLessons == module.lessonCount;
     return Semantics(
       button: true,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+      child: LearnLiteCard(
         onTap: onTap,
-        child: LearnLiteCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 14, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      color: AppColors.lightPink,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      '$number',
-                      style: Theme.of(context).textTheme.titleMedium
-                          ?.copyWith(color: AppColors.primary),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      module.title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right, color: AppColors.gray),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                module.description,
-                style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: AppColors.gray),
-              ),
-              if (showProgress) ...[
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${module.lessonCount} ${module.lessonCount == 1 ? 'lesson' : 'lessons'}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _ModuleNumberTile(number: number),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'MODULE $number',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: AppColors.goldDeep,
+                                letterSpacing: 1.2,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(module.title, style: textTheme.titleMedium),
+                          ],
+                        ),
                       ),
-                    ),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.gray,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (module.description.isNotEmpty) ...[
+                    const SizedBox(height: 12),
                     Text(
-                      status,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: module.completedLessons > 0
-                            ? AppColors.primary
-                            : AppColors.gray,
+                      module.description,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.inkSoft,
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 8),
-                LearnLiteProgressIndicator(progress: progress),
-                const SizedBox(height: 5),
-                Text(
-                  '${module.completedLessons} of ${module.lessonCount} lessons completed',
-                  style: Theme.of(context).textTheme.bodySmall
-                      ?.copyWith(color: AppColors.gray),
-                ),
-              ],
-            ],
-          ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      StatusPill(
+                        icon: Icons.menu_book_rounded,
+                        label:
+                            '${module.lessonCount} ${module.lessonCount == 1 ? 'lesson' : 'lessons'}',
+                      ),
+                      const Spacer(),
+                      if (showProgress)
+                        StatusPill(
+                          icon: isComplete
+                              ? Icons.check_circle_rounded
+                              : module.completedLessons > 0
+                              ? Icons.timelapse_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          label: status,
+                          tone: isComplete
+                              ? IconBadgeTone.dark
+                              : module.completedLessons > 0
+                              ? IconBadgeTone.red
+                              : IconBadgeTone.cream,
+                        ),
+                    ],
+                  ),
+                  if (showProgress) ...[
+                    const SizedBox(height: 12),
+                    LearnLiteProgressIndicator(progress: progress),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${module.completedLessons} of ${module.lessonCount} lessons completed',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.gray,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+/// A red gradient tile with the module number and a small gold diamond.
+class _ModuleNumberTile extends StatelessWidget {
+  const _ModuleNumberTile({required this.number});
+
+  final int number;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 50,
+    height: 50,
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        colors: [AppColors.primary, AppColors.redDark],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.primary.withValues(alpha: 0.25),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned(
+          top: 6,
+          right: 6,
+          child: Transform.rotate(
+            angle: 0.785398,
+            child: Container(width: 6, height: 6, color: AppColors.gold),
+          ),
+        ),
+        Text(
+          '$number',
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _LoadError extends StatelessWidget {
@@ -466,52 +644,213 @@ class _ModuleDetailScreenState extends State<ModuleDetailScreen> {
           onPressed: _closeModule,
           icon: const Icon(Icons.arrow_back),
         ),
+        bottom: weaveAppBarBottom,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
-          Text(_module.description),
+          _ModuleHeroCard(module: _module),
           if (widget.isGuest) ...[
-            const SizedBox(height: 8),
-            const Text(
+            const SizedBox(height: 12),
+            Text(
               'Guest quizzes and progress are stored on this device and are not linked to Firebase.',
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: AppColors.inkSoft),
             ),
           ],
-          const SizedBox(height: 18),
+          const SizedBox(height: 24),
+          const SectionHeader(title: 'Lessons'),
+          const SizedBox(height: 12),
           if (_errorMessage != null)
-            Text(
-              _errorMessage!,
-              style: const TextStyle(color: AppColors.primary),
-            ),
-          if (_isLoading)
-            const LinearProgressIndicator(color: AppColors.primary),
-          for (final lesson in _module.lessons)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: LearnLiteCard(
-                padding: EdgeInsets.zero,
-                child: ListTile(
-                  leading: Icon(
-                    lesson.completed
-                        ? Icons.check_circle
-                        : Icons.play_circle_outline,
-                    color: lesson.completed
-                        ? AppColors.primary
-                        : AppColors.gray,
-                  ),
-                  title: Text(lesson.title),
-                  subtitle: Text(
-                    lesson.completed
-                        ? 'Completed'
-                        : _module.lastLessonIndex == lesson.index
-                        ? 'Resume'
-                        : 'Available',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _isLoading ? null : () => _openLesson(lesson),
+              child: Text(
+                _errorMessage!,
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: LinearProgressIndicator(),
+            ),
+          for (final lesson in _module.lessons)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _LessonRow(
+                lesson: lesson,
+                isResume:
+                    !lesson.completed &&
+                    _module.lastLessonIndex == lesson.index,
+                onTap: _isLoading ? null : () => _openLesson(lesson),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The dark module header: title, description and overall progress.
+class _ModuleHeroCard extends StatelessWidget {
+  const _ModuleHeroCard({required this.module});
+
+  final LearningModule module;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final progress = module.lessonCount == 0
+        ? 0.0
+        : (module.completedLessons / module.lessonCount).clamp(0.0, 1.0);
+    return LearnLiteCard(
+      backgroundColor: AppColors.charcoal,
+      padding: EdgeInsets.zero,
+      elevated: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const IconBadge(
+                  icon: Icons.auto_stories_rounded,
+                  tone: IconBadgeTone.dark,
+                  size: 46,
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  module.title,
+                  style: textTheme.headlineSmall?.copyWith(
+                    color: AppColors.white,
+                  ),
+                ),
+                if (module.description.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    module.description,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.white.withValues(alpha: 0.78),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Text(
+                      '${module.completedLessons} of ${module.lessonCount} lessons',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${(progress * 100).round()}%',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LearnLiteProgressIndicator(
+                  progress: progress,
+                  color: AppColors.gold,
+                  backgroundColor: AppColors.white.withValues(alpha: 0.12),
+                ),
+              ],
+            ),
+          ),
+          const DecorativeBorder(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+/// One lesson in a module: a step marker, the title and its status.
+class _LessonRow extends StatelessWidget {
+  const _LessonRow({
+    required this.lesson,
+    required this.isResume,
+    required this.onTap,
+  });
+
+  final ModuleLesson lesson;
+  final bool isResume;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final status = lesson.completed
+        ? 'Completed'
+        : isResume
+        ? 'Resume'
+        : 'Available';
+    return LearnLiteCard(
+      onTap: onTap,
+      padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
+      borderColor: isResume ? AppColors.primary.withValues(alpha: 0.4) : null,
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: lesson.completed
+                  ? AppColors.primary
+                  : isResume
+                  ? AppColors.lightPink
+                  : AppColors.creamSecondary,
+              shape: BoxShape.circle,
+            ),
+            child: lesson.completed
+                ? const Icon(
+                    Icons.check_rounded,
+                    color: AppColors.white,
+                    size: 22,
+                  )
+                : Text(
+                    '${lesson.index + 1}',
+                    style: TextStyle(
+                      color: isResume ? AppColors.primary : AppColors.inkSoft,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(lesson.title, style: textTheme.titleSmall),
+                const SizedBox(height: 2),
+                Text(
+                  status,
+                  style: textTheme.labelMedium?.copyWith(
+                    color: lesson.completed || isResume
+                        ? AppColors.primary
+                        : AppColors.inkSoft,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            isResume || !lesson.completed
+                ? Icons.play_circle_fill_rounded
+                : Icons.chevron_right_rounded,
+            color: isResume ? AppColors.primary : AppColors.gray,
+            size: isResume || !lesson.completed ? 30 : 24,
+          ),
         ],
       ),
     );

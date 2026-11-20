@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_colors.dart';
+import '../../app/app_theme.dart';
+import '../../widgets/decorative_border.dart';
+import '../../widgets/icon_badge.dart';
+import '../../widgets/learnlite_brand_mark.dart';
+import '../../widgets/learnlite_button.dart';
 import 'auth_gateway.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
@@ -87,63 +92,98 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.mark_email_unread_outlined,
-                  size: 52,
-                  color: AppColors.gold,
-                ),
+                const LearnLiteBrandMark(size: 56),
                 const SizedBox(height: 20),
-                Text(
-                  'Verify your email',
-                  style: Theme.of(context).textTheme.headlineSmall
-                      ?.copyWith(color: AppColors.white),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Verify ${widget.email} before continuing. Open the link in your inbox, or request a new verification email below.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium
-                      ?.copyWith(color: AppColors.white),
-                ),
-                if (_message != null) ...[
-                  const SizedBox(height: 16),
-                  Semantics(
-                    liveRegion: true,
-                    child: Text(
-                      _message!,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: _messageIsError
-                            ? AppColors.gold
-                            : AppColors.white,
-                      ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                  child: ColoredBox(
+                    color: AppColors.cream,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const DecorativeBorder(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(22, 26, 22, 18),
+                          child: Column(
+                            children: [
+                              const IconBadge(
+                                icon: Icons.mark_email_unread_rounded,
+                                size: 64,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Verify your email',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineSmall,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Verify ${widget.email} before continuing. Open the link in your inbox, or request a new verification email below.',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: AppColors.inkSoft),
+                              ),
+                              if (_message != null) ...[
+                                const SizedBox(height: 16),
+                                Semantics(
+                                  liveRegion: true,
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: _messageIsError
+                                          ? AppColors.lightPink
+                                          : AppColors.successSoft,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Text(
+                                      _message!,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: _messageIsError
+                                            ? AppColors.redDark
+                                            : AppColors.success,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 22),
+                              LearnLiteButton(
+                                onPressed: _isChecking
+                                    ? null
+                                    : _checkVerification,
+                                isLoading: _isChecking,
+                                icon: Icons.verified_rounded,
+                                label: "I've verified my email",
+                              ),
+                              const SizedBox(height: 10),
+                              LearnLiteButton(
+                                variant: LearnLiteButtonVariant.outlined,
+                                onPressed: _isSending ? null : _resend,
+                                icon: Icons.forward_to_inbox_rounded,
+                                label: _isSending
+                                    ? 'Sending…'
+                                    : 'Resend verification email',
+                              ),
+                              const SizedBox(height: 6),
+                              TextButton(
+                                onPressed: widget.onSignOut,
+                                child: const Text('Sign out'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _isChecking ? null : _checkVerification,
-                  child: _isChecking
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text("I've verified my email"),
-                ),
-                TextButton(
-                  onPressed: _isSending ? null : _resend,
-                  child: Text(
-                    _isSending ? 'Sending…' : 'Resend verification email',
-                  ),
-                ),
-                TextButton(
-                  onPressed: widget.onSignOut,
-                  child: const Text('Sign out'),
                 ),
               ],
             ),

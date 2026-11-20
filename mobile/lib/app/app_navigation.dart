@@ -67,69 +67,92 @@ class _AppShellState extends State<AppShell> {
     setState(() => _destination = destination);
   }
 
+  /// The tab a learner starts on: Home, or Lessons for offline guests.
+  AppDestination get _rootDestination =>
+      widget.isGuest ? AppDestination.learn : AppDestination.home;
+
   @override
   Widget build(BuildContext context) {
+    // System Back on a secondary tab returns to the first tab instead of
+    // closing the app; Back on the first tab leaves as usual.
+    return PopScope(
+      canPop: _destination == _rootDestination,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _selectDestination(_rootDestination);
+      },
+      child: _buildShell(context),
+    );
+  }
+
+  Widget _buildShell(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.darkBackground,
         foregroundColor: AppColors.gold,
+        titleTextStyle: const TextStyle(
+          color: AppColors.gold,
+          fontSize: 21,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
+        ),
         title: const Row(
           children: [
             LearnLiteBrandMark(size: 32),
-            SizedBox(width: 9),
+            SizedBox(width: 10),
             Text('LearnLite'),
           ],
         ),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(10),
-          child: DecorativeBorder(height: 10),
-        ),
+        bottom: weaveAppBarBottom,
         actions: [
-          IconButton(
-            tooltip: 'Open AI Tutor',
-            onPressed: _openTutor,
-            icon: const Icon(Icons.auto_awesome_outlined),
-          ),
-          PopupMenuButton<String>(
-            tooltip: 'More tools',
-            onSelected: (value) {
-              switch (value) {
-                case 'dictionary':
-                  _openDictionary();
-                case 'downloads':
-                  _openDownloads();
-              }
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem(
-                value: 'dictionary',
-                child: ListTile(
-                  leading: Icon(Icons.translate_outlined),
-                  title: Text('Dictionary'),
-                  contentPadding: EdgeInsets.zero,
-                ),
+          Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: IconButton(
+              tooltip: 'Open AI Tutor',
+              onPressed: _openTutor,
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.white.withValues(alpha: 0.08),
+                foregroundColor: AppColors.gold,
               ),
-              PopupMenuItem(
-                value: 'downloads',
-                child: ListTile(
-                  leading: Icon(Icons.download_for_offline_outlined),
-                  title: Text('Offline downloads'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
+              icon: const Icon(Icons.auto_awesome_rounded),
+            ),
           ),
           if (widget.isGuest)
             TextButton(
               onPressed: widget.onSignIn,
+              style: TextButton.styleFrom(foregroundColor: AppColors.gold),
               child: const Text('Sign in'),
             ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: SafeArea(child: _buildDestination(context)),
-      bottomNavigationBar: LearnLiteNavigationBar(
-        destination: _destination,
-        onDestinationSelected: _selectDestination,
+      body: SafeArea(
+        child: AnimatedSwitcher(
+          duration: MediaQuery.maybeDisableAnimationsOf(context) ?? false
+              ? Duration.zero
+              : const Duration(milliseconds: 220),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          child: KeyedSubtree(
+            key: ValueKey(_destination),
+            child: _buildDestination(context),
+          ),
+        ),
+      ),
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x145A3A1A),
+              blurRadius: 16,
+              offset: Offset(0, -4),
+            ),
+          ],
+        ),
+        child: LearnLiteNavigationBar(
+          destination: _destination,
+          onDestinationSelected: _selectDestination,
+        ),
       ),
     );
   }
@@ -158,6 +181,8 @@ class _AppShellState extends State<AppShell> {
         gateway: widget.authGateway,
         onProgressChanged: _reloadProfile,
         isGuest: widget.isGuest,
+        onOpenDictionary: _openDictionary,
+        onOpenDownloads: _openDownloads,
       ),
       AppDestination.quiz => _buildQuiz(),
       AppDestination.progress => ProgressScreen(
@@ -261,10 +286,7 @@ class _AppShellState extends State<AppShell> {
         builder: (_) => Scaffold(
           appBar: AppBar(
             title: Text(title),
-            bottom: const PreferredSize(
-              preferredSize: Size.fromHeight(10),
-              child: DecorativeBorder(height: 10),
-            ),
+            bottom: weaveAppBarBottom,
           ),
           body: SafeArea(child: child),
         ),
@@ -345,7 +367,10 @@ class _AppShellState extends State<AppShell> {
     Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (_) => Scaffold(
-          appBar: AppBar(title: const Text('Badges & Certificates')),
+          appBar: AppBar(
+            title: const Text('Badges & Certificates'),
+            bottom: weaveAppBarBottom,
+          ),
           body: RewardsScreen(gateway: widget.authGateway),
         ),
       ),
@@ -426,31 +451,31 @@ class LearnLiteNavigationBar extends StatelessWidget {
       destination: AppDestination.home,
       label: 'Home',
       icon: Icons.home_outlined,
-      selectedIcon: Icons.home,
+      selectedIcon: Icons.home_rounded,
     ),
     _NavigationItem(
       destination: AppDestination.learn,
       label: 'Lessons',
       icon: Icons.auto_stories_outlined,
-      selectedIcon: Icons.auto_stories,
+      selectedIcon: Icons.auto_stories_rounded,
     ),
     _NavigationItem(
       destination: AppDestination.quiz,
       label: 'Quiz',
       icon: Icons.quiz_outlined,
-      selectedIcon: Icons.quiz,
+      selectedIcon: Icons.quiz_rounded,
     ),
     _NavigationItem(
       destination: AppDestination.progress,
       label: 'Progress',
       icon: Icons.insights_outlined,
-      selectedIcon: Icons.insights,
+      selectedIcon: Icons.insights_rounded,
     ),
     _NavigationItem(
       destination: AppDestination.profile,
       label: 'Profile',
-      icon: Icons.person_outline,
-      selectedIcon: Icons.person,
+      icon: Icons.person_outline_rounded,
+      selectedIcon: Icons.person_rounded,
     ),
   ];
 

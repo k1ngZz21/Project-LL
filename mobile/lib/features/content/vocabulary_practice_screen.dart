@@ -4,8 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../app/app_colors.dart';
+import '../../core/display_format.dart';
+import '../../widgets/answer_option_tile.dart';
+import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/icon_badge.dart';
 import '../../widgets/learnlite_card.dart';
+import '../../widgets/learnlite_progress_indicator.dart';
+import '../../widgets/pressable.dart';
 import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
 import 'content_gateway.dart';
@@ -302,7 +308,10 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
     body: FutureBuilder<LocalVocabularyCatalog>(
       future: _catalogFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        // Keep showing the current cards while a refresh (after marking a
+        // word learned) is in flight, so the page does not jump to the top.
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           );
@@ -329,12 +338,28 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                   children: [
                     const SectionHeader(title: 'Practice from your workbooks'),
                     const SizedBox(height: 8),
-                    Text(
-                      'Cards and quiz answers come from the bundled vocabulary '
-                      'records. Source and review labels are shown; a workbook '
-                      'entry is not automatically a verified translation.',
-                      style: Theme.of(context).textTheme.bodyMedium
-                          ?.copyWith(color: AppColors.gray),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(
+                            Icons.info_outline_rounded,
+                            size: 16,
+                            color: AppColors.gray,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Cards and quiz answers come from the bundled vocabulary '
+                            'records. Source and review labels are shown; a workbook '
+                            'entry is not automatically a verified translation.',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppColors.inkSoft),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     SingleChildScrollView(
@@ -357,9 +382,10 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                     DropdownButtonFormField<String>(
                       key: const ValueKey('practice-category-filter'),
                       initialValue: _category,
+                      borderRadius: BorderRadius.circular(16),
                       decoration: const InputDecoration(
                         labelText: 'Category',
-                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.category_outlined),
                       ),
                       items: [
                         const DropdownMenuItem(
@@ -444,56 +470,46 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
   Widget _buildFlashcard(LocalVocabularyEntry entry, int count) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      Align(
-        alignment: Alignment.centerRight,
-        child: Text(
-          '${_cardIndex + 1} of $count',
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
+      Row(
+        children: [
+          Expanded(
+            child: LearnLiteProgressIndicator(
+              progress: count == 0 ? 0 : (_cardIndex + 1) / count,
+              minHeight: 6,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            '${_cardIndex + 1} of $count',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ],
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: 14),
       Semantics(
         button: true,
         label: _showSubanen
             ? 'Show the English meaning'
             : 'Reveal the Subanen form',
-        child: InkWell(
-          key: const ValueKey('practice-flashcard'),
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => setState(() => _showSubanen = !_showSubanen),
-          child: LearnLiteCard(
-            backgroundColor: _showSubanen
-                ? AppColors.darkBackground
-                : AppColors.white,
-            borderRadius: 20,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 36),
-            child: Column(
-              children: [
-                Text(
-                  _showSubanen ? 'Subanen form' : 'English meaning',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: _showSubanen ? AppColors.gold : AppColors.gray,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  _showSubanen ? entry.subanen : entry.english,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: _showSubanen ? AppColors.white : AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  _showSubanen
-                      ? 'Tap to see the English meaning'
-                      : 'Tap to reveal',
-                  style: TextStyle(
-                    color: _showSubanen ? AppColors.white : AppColors.gray,
-                  ),
-                ),
-              ],
+        child: Pressable(
+          child: InkWell(
+            key: const ValueKey('practice-flashcard'),
+            borderRadius: BorderRadius.circular(24),
+            onTap: () => setState(() => _showSubanen = !_showSubanen),
+            child: _FlipFlashcard(
+              showBack: _showSubanen,
+              front: _FlashcardFace(
+                label: 'English meaning',
+                word: entry.english,
+                hint: 'Tap to reveal',
+                dark: false,
+              ),
+              back: _FlashcardFace(
+                label: 'Subanen form',
+                word: entry.subanen,
+                hint: 'Tap to see the English meaning',
+                dark: true,
+              ),
             ),
           ),
         ),
@@ -539,28 +555,44 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
       Row(
         children: [
           Expanded(
-            child: OutlinedButton(
+            child: OutlinedButton.icon(
               onPressed: () => setState(() {
                 _cardIndex = (_cardIndex - 1 + count) % count;
                 _showSubanen = false;
               }),
-              child: const Text('Previous'),
+              icon: const Icon(Icons.arrow_back_rounded, size: 18),
+              label: const Text('Previous'),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: FilledButton(
+            child: FilledButton.icon(
               onPressed: () => setState(() {
                 _cardIndex = (_cardIndex + 1) % count;
                 _showSubanen = false;
               }),
-              child: const Text('Next card'),
+              iconAlignment: IconAlignment.end,
+              icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+              label: const Text('Next card'),
             ),
           ),
         ],
       ),
     ],
   );
+
+  AnswerOptionState _optionState(int index, LocalVocabularyEntry question) {
+    final isAnswer =
+        _choices[index].toLowerCase() == question.subanen.trim().toLowerCase();
+    if (_answerChecked) {
+      if (isAnswer) return AnswerOptionState.correct;
+      if (index == _selectedAnswer) return AnswerOptionState.incorrect;
+      return AnswerOptionState.disabled;
+    }
+    return index == _selectedAnswer
+        ? AnswerOptionState.selected
+        : AnswerOptionState.idle;
+  }
 
   Widget _buildQuiz(List<LocalVocabularyEntry> entries) {
     if (!_quizStarted) {
@@ -579,30 +611,56 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
     }
     if (_quizFinished) {
       return LearnLiteCard(
-        backgroundColor: AppColors.creamSecondary,
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
         child: Column(
           children: [
-            const Icon(
-              Icons.emoji_events_outlined,
-              color: AppColors.primary,
-              size: 44,
-            ),
-            const SizedBox(height: 10),
             Text(
               'Practice complete',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
-            const SizedBox(height: 6),
-            Text('$_correctAnswers of ${_quizEntries.length} correct'),
+            const SizedBox(height: 16),
+            ScoreRing(
+              progress: _quizEntries.isEmpty
+                  ? 0
+                  : _correctAnswers / _quizEntries.length,
+              center: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.emoji_events_rounded,
+                    color: AppColors.gold,
+                    size: 26,
+                  ),
+                  Text(
+                    '$_quizScore%',
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(color: AppColors.primary),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '$_correctAnswers of ${_quizEntries.length} correct',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             if (_quizEntries.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text('Score: $_quizScore%'),
-              const SizedBox(height: 4),
               Text(
-                _attemptSaved
+                'Score: $_quizScore%',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.inkSoft,
+                ),
+              ),
+              const SizedBox(height: 10),
+              StatusPill(
+                label: _attemptSaved
                     ? 'Result saved to your quiz history.'
                     : 'Your result has not been saved yet.',
-                style: Theme.of(context).textTheme.bodySmall,
+                icon: _attemptSaved
+                    ? Icons.cloud_done_outlined
+                    : Icons.hourglass_empty_rounded,
+                tone: _attemptSaved ? IconBadgeTone.gold : IconBadgeTone.cream,
               ),
               if (!_attemptSaved) ...[
                 const SizedBox(height: 10),
@@ -612,10 +670,14 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                 ),
               ],
             ],
-            const SizedBox(height: 14),
-            FilledButton(
-              onPressed: () => _startQuiz(entries),
-              child: const Text('Try another set'),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => _startQuiz(entries),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Try another set'),
+              ),
             ),
           ],
         ),
@@ -635,67 +697,113 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
             Expanded(
               child: Text(
                 'Question ${_quizIndex + 1} of ${_quizEntries.length}',
+                style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
-            Text('$_correctAnswers correct'),
+            StatusPill(
+              label: '$_correctAnswers correct',
+              icon: Icons.check_rounded,
+              tone: IconBadgeTone.gold,
+            ),
           ],
         ),
         const SizedBox(height: 10),
+        LearnLiteProgressIndicator(
+          progress: _quizEntries.isEmpty
+              ? 0
+              : (_quizIndex + (_answerChecked ? 1 : 0)) / _quizEntries.length,
+          minHeight: 6,
+        ),
+        const SizedBox(height: 14),
         LearnLiteCard(
-          backgroundColor: AppColors.lightPink,
+          backgroundColor: AppColors.charcoal,
+          padding: EdgeInsets.zero,
+          elevated: true,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Choose the Subanen form for'),
-              const SizedBox(height: 8),
-              Text(
-                question.english,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+                child: Column(
+                  children: [
+                    Text(
+                      'Choose the Subanen form for',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.gold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      question.english,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(color: AppColors.white),
+                    ),
+                  ],
                 ),
               ),
+              const DecorativeBorder(height: 8),
             ],
           ),
         ),
+        const SizedBox(height: 14),
         for (var index = 0; index < _choices.length; index++)
           Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: OutlinedButton(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: AnswerOptionTile(
               key: ValueKey('practice-choice-$index'),
-              onPressed: _answerChecked || _isSaving
+              index: index,
+              label: _choices[index],
+              state: _optionState(index, question),
+              onTap: _answerChecked || _isSaving
                   ? null
                   : () => setState(() {
                       _selectedAnswer = index;
                       _errorMessage = null;
                     }),
-              style: OutlinedButton.styleFrom(
-                backgroundColor:
-                    _answerChecked &&
-                        _choices[index].toLowerCase() ==
-                            question.subanen.trim().toLowerCase()
-                    ? const Color(0xFFD6F5DF)
-                    : _answerChecked && index == _selectedAnswer
-                    ? AppColors.lightPink
-                    : AppColors.white,
+            ),
+          ),
+        if (_answerChecked)
+          Semantics(
+            liveRegion: true,
+            child: Container(
+              margin: const EdgeInsets.only(top: 2),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: selectedIsCorrect
+                    ? AppColors.successSoft
+                    : AppColors.lightPink,
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(_choices[index]),
+              child: Row(
+                children: [
+                  Icon(
+                    selectedIsCorrect
+                        ? Icons.celebration_rounded
+                        : Icons.lightbulb_outline_rounded,
+                    color: selectedIsCorrect
+                        ? AppColors.success
+                        : AppColors.primary,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      selectedIsCorrect
+                          ? 'Correct. Your workbook record is marked as learned.'
+                          : 'Not quite. The source-list answer is ${question.subanen}.',
+                      style: TextStyle(
+                        color: selectedIsCorrect
+                            ? AppColors.success
+                            : AppColors.redDark,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         const SizedBox(height: 12),
-        if (_answerChecked)
-          Text(
-            selectedIsCorrect
-                ? 'Correct. Your workbook record is marked as learned.'
-                : 'Not quite. The source-list answer is ${question.subanen}.',
-            style: TextStyle(
-              color: selectedIsCorrect
-                  ? const Color(0xFF287A45)
-                  : AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        const SizedBox(height: 8),
         _SourceLabel(entry: question),
         const SizedBox(height: 12),
         FilledButton(
@@ -741,8 +849,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Quiz history', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
+          const SectionHeader(title: 'Quiz history'),
+          const SizedBox(height: 12),
           if (attempts.isEmpty)
             const EmptyState(
               icon: Icons.history_outlined,
@@ -761,7 +869,8 @@ class _VocabularyPracticeScreenState extends State<VocabularyPracticeScreen> {
                       '${attempt.totalQuestions} correct',
                     ),
                     subtitle: Text(
-                      '${attempt.category} · ${attempt.completedAt.toLocal()}',
+                      '${attempt.category} · '
+                      '${friendlyDateTime(attempt.completedAt)}',
                     ),
                     childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     children: [
@@ -796,20 +905,159 @@ class _SourceLabel extends StatelessWidget {
   final LocalVocabularyEntry entry;
 
   @override
-  Widget build(BuildContext context) => LearnLiteCard(
-    backgroundColor: AppColors.cream,
-    padding: const EdgeInsets.all(12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    decoration: BoxDecoration(
+      color: AppColors.creamSecondary.withValues(alpha: 0.6),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Row(
       children: [
-        Text(entry.reviewStatus, style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 3),
-        Text(
-          '${entry.sourceFile} · row ${entry.sourceRow}',
-          style: Theme.of(context).textTheme.bodySmall
-              ?.copyWith(color: AppColors.gray),
+        const Icon(Icons.fact_check_outlined, size: 18, color: AppColors.gray),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                entry.reviewStatus,
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${entry.sourceFile} · row ${entry.sourceRow}',
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: AppColors.gray),
+              ),
+            ],
+          ),
         ),
       ],
     ),
   );
+}
+
+/// Turns a flashcard over on the Y axis. Only one face is ever built, so
+/// the visible text is always the face the learner sees.
+class _FlipFlashcard extends StatelessWidget {
+  const _FlipFlashcard({
+    required this.showBack,
+    required this.front,
+    required this.back,
+  });
+
+  final bool showBack;
+  final Widget front;
+  final Widget back;
+
+  @override
+  Widget build(BuildContext context) {
+    final target = showBack ? pi : 0.0;
+    if (reduceMotionOf(context)) return showBack ? back : front;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: target),
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeInOutCubic,
+      builder: (context, angle, _) {
+        final showingBack = angle > pi / 2;
+        return Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.0012)
+            ..rotateY(angle),
+          child: showingBack
+              ? Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()..rotateY(pi),
+                  child: back,
+                )
+              : front,
+        );
+      },
+    );
+  }
+}
+
+class _FlashcardFace extends StatelessWidget {
+  const _FlashcardFace({
+    required this.label,
+    required this.word,
+    required this.hint,
+    required this.dark,
+  });
+
+  final String label;
+  final String word;
+  final String hint;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return LearnLiteCard(
+      backgroundColor: dark ? AppColors.charcoal : AppColors.white,
+      borderRadius: 24,
+      elevated: true,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (dark) const DecorativeBorder(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 200),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: textTheme.labelLarge?.copyWith(
+                      color: dark ? AppColors.gold : AppColors.inkSoft,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    word,
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineLarge?.copyWith(
+                      color: dark ? AppColors.white : AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.touch_app_outlined,
+                        size: 16,
+                        color: dark
+                            ? AppColors.white.withValues(alpha: 0.6)
+                            : AppColors.gray,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          hint,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: dark
+                                ? AppColors.white.withValues(alpha: 0.7)
+                                : AppColors.gray,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (!dark) const DecorativeBorder(height: 8),
+        ],
+      ),
+    );
+  }
 }

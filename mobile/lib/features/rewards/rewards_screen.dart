@@ -3,8 +3,12 @@ import 'package:printing/printing.dart';
 
 import '../../app/app_colors.dart';
 import '../../app/responsive_layout.dart';
+import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/icon_badge.dart';
 import '../../widgets/learnlite_card.dart';
+import '../../widgets/learnlite_progress_indicator.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/section_header.dart';
 import '../auth/auth_gateway.dart';
 
@@ -154,14 +158,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (snapshot.connectionState == ConnectionState.waiting)
-                          const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(32),
-                              child: CircularProgressIndicator(
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          )
+                          const LoadingCard(height: 160)
                         else if (snapshot.hasError)
                           _RewardsLoadError(
                             onRetry: () => setState(() {
@@ -187,15 +184,76 @@ class _RewardsScreenState extends State<RewardsScreen> {
 
   Widget _buildBadgeCollection(RewardsOverview overview) {
     final earnedCount = overview.badges.where((badge) => badge.earned).length;
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        LearnLiteCard(
+          backgroundColor: AppColors.charcoal,
+          padding: EdgeInsets.zero,
+          elevated: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    ScoreRing(
+                      progress: overview.badges.isEmpty
+                          ? 0
+                          : earnedCount / overview.badges.length,
+                      size: 84,
+                      color: AppColors.gold,
+                      trackColor: AppColors.white.withValues(alpha: 0.1),
+                      center: const Icon(
+                        Icons.workspace_premium_rounded,
+                        color: AppColors.gold,
+                        size: 34,
+                      ),
+                    ),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$earnedCount of ${overview.badges.length}',
+                            style: textTheme.headlineSmall?.copyWith(
+                              color: AppColors.white,
+                            ),
+                          ),
+                          Text(
+                            'badges earned',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: AppColors.white.withValues(alpha: 0.7),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          StatusPill(
+                            icon: Icons.verified_rounded,
+                            label:
+                                '${overview.certificates.length} '
+                                '${overview.certificates.length == 1 ? 'certificate' : 'certificates'}',
+                            tone: IconBadgeTone.dark,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const DecorativeBorder(height: 8),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
         SectionHeader(
           title: 'Your badges',
           trailing: Text(
             '$earnedCount of ${overview.badges.length} earned',
             style: Theme.of(context).textTheme.labelLarge
-                ?.copyWith(color: AppColors.gray),
+                ?.copyWith(color: AppColors.inkSoft),
           ),
         ),
         const SizedBox(height: 14),
@@ -268,39 +326,18 @@ class _BadgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final medalColor = badge.earned ? AppColors.gold : const Color(0xFFDCD6CC);
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: LearnLiteCard(
+    return LearnLiteCard(
+          onTap: onTap,
           padding: const EdgeInsets.all(14),
-          backgroundColor: badge.earned ? AppColors.white : AppColors.cream,
+          elevated: true,
+          backgroundColor: AppColors.white,
+          borderColor: badge.earned
+              ? AppColors.gold.withValues(alpha: 0.55)
+              : null,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: medalColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      offset: const Offset(0, 3),
-                      blurRadius: 0,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.star_rounded,
-                  size: 24,
-                  color: AppColors.white,
-                ),
-              ),
+              _BadgeMedal(earned: badge.earned),
               const SizedBox(height: 10),
               Text(
                 badge.title,
@@ -316,31 +353,73 @@ class _BadgeCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               if (!badge.earned) ...[
-                LinearProgressIndicator(
-                  value: badge.target == 0
+                LearnLiteProgressIndicator(
+                  progress: badge.target == 0
                       ? 0
                       : (badge.progress / badge.target).clamp(0.0, 1.0),
-                  color: AppColors.primary,
-                  backgroundColor: AppColors.lightPink,
+                  minHeight: 6,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   'Locked · ${badge.progress} of ${badge.target}',
                   style: Theme.of(context).textTheme.labelSmall
                       ?.copyWith(color: AppColors.gray),
                 ),
               ] else
-                Text(
-                  'Earned',
-                  style: Theme.of(context).textTheme.labelMedium
-                      ?.copyWith(color: AppColors.primary),
+                const StatusPill(
+                  label: 'Earned',
+                  icon: Icons.check_rounded,
+                  tone: IconBadgeTone.gold,
                 ),
             ],
           ),
-        ),
-      ),
     );
   }
+}
+
+/// A diamond medal (the weave motif): gold when earned, muted with a
+/// lock when not.
+class _BadgeMedal extends StatelessWidget {
+  const _BadgeMedal({required this.earned});
+
+  final bool earned;
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+    dimension: 58,
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        Transform.rotate(
+          angle: 0.785398,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: earned
+                  ? const LinearGradient(
+                      colors: [AppColors.gold, Color(0xFFE0A800)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: earned ? null : AppColors.creamSecondary,
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(
+                color: earned ? AppColors.primary : AppColors.border,
+                width: 2.5,
+              ),
+            ),
+          ),
+        ),
+        Icon(
+          earned ? Icons.star_rounded : Icons.lock_rounded,
+          size: earned ? 24 : 18,
+          color: earned ? AppColors.darkBackground : AppColors.gray,
+        ),
+      ],
+    ),
+  );
 }
 
 class _CertificateCard extends StatelessWidget {
@@ -361,15 +440,15 @@ class _CertificateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LearnLiteCard(
+      borderColor: AppColors.gold.withValues(alpha: 0.55),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.workspace_premium_outlined,
-                color: AppColors.primary,
-                size: 32,
+              const IconBadge(
+                icon: Icons.workspace_premium_rounded,
+                tone: IconBadgeTone.dark,
               ),
               const SizedBox(width: 12),
               Expanded(
