@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
 
 import '../../app/app_colors.dart';
 import '../../core/offline_content_store.dart';
+import '../../core/vocabulary_pdf.dart';
 import '../../core/user_message.dart';
 import '../../widgets/decorative_border.dart';
 import '../../widgets/empty_state.dart';
@@ -77,6 +79,35 @@ class _OfflineContentScreenState extends State<OfflineContentScreen> {
       if (mounted) setState(() => _errorMessage = error.message);
     } finally {
       if (mounted) setState(() => _busyPackId = null);
+    }
+  }
+
+  /// Opens (print/preview, which includes "Save as PDF") or shares a saved
+  /// PDF pack. Both work offline because the bytes are on the device.
+  Future<void> _openPdf(ContentPackDescriptor pack, {bool share = false}) async {
+    setState(() => _errorMessage = null);
+    try {
+      final bytes = await widget.gateway.fetchResourceBytes(
+        vocabularyPdfResourceKey,
+      );
+      if (share) {
+        await Printing.sharePdf(bytes: bytes, filename: vocabularyPdfResourceKey);
+      } else {
+        await Printing.layoutPdf(
+          name: vocabularyPdfResourceKey,
+          onLayout: (_) async => bytes,
+        );
+      }
+    } on Object catch (error) {
+      if (mounted) {
+        setState(
+          () => _errorMessage = userMessage(
+            error,
+            fallback: 'The word list could not be opened. Remove it and '
+                'download it again.',
+          ),
+        );
+      }
     }
   }
 
@@ -215,6 +246,12 @@ class _OfflineContentScreenState extends State<OfflineContentScreen> {
                             isBusy: _busyPackId == pack.id,
                             onDownload: () => _download(pack),
                             onRemove: () => _remove(pack),
+                            onOpen: pack.type == 'pdf'
+                                ? () => _openPdf(pack)
+                                : null,
+                            onShare: pack.type == 'pdf'
+                                ? () => _openPdf(pack, share: true)
+                                : null,
                             formatSize: _formatSize,
                           ),
                           const SizedBox(height: 12),
@@ -239,13 +276,23 @@ class _PackCard extends StatelessWidget {
     required this.onDownload,
     required this.onRemove,
     required this.formatSize,
+    this.onOpen,
+    this.onShare,
   });
 
   final ContentPackDescriptor pack;
   final bool isBusy;
   final VoidCallback onDownload;
   final VoidCallback onRemove;
+  final VoidCallback? onOpen;
+  final VoidCallback? onShare;
   final String Function(int bytes) formatSize;
+
+  String get _kind => switch (pack.type) {
+    'dictionary' => 'Dictionary',
+    'pdf' => 'Word list PDF, made from the workbooks',
+    _ => 'Learning module',
+  };
 
   @override
   Widget build(BuildContext context) => LearnLiteCard(
@@ -253,12 +300,14 @@ class _PackCard extends StatelessWidget {
     child: Row(
       children: [
         IconBadge(
-          icon: pack.type == 'dictionary'
-              ? Icons.menu_book_rounded
-              : Icons.auto_stories_rounded,
-          tone: pack.type == 'dictionary'
-              ? IconBadgeTone.gold
-              : IconBadgeTone.red,
+          icon: switch (pack.type) {
+            'dictionary' => Icons.menu_book_rounded,
+            'pdf' => Icons.picture_as_pdf_rounded,
+            _ => Icons.auto_stories_rounded,
+          },
+          tone: pack.type == 'module'
+              ? IconBadgeTone.red
+              : IconBadgeTone.gold,
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -268,7 +317,9 @@ class _PackCard extends StatelessWidget {
               Text(pack.title, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 3),
               Text(
-                '${pack.type == 'dictionary' ? 'Dictionary' : 'Learning module'} · ${formatSize(pack.sizeBytes)}',
+                pack.downloaded || pack.sizeBytes > 0
+                    ? '$_kind · ${formatSize(pack.sizeBytes)}'
+                    : _kind,
                 style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(color: AppColors.gray),
               ),
@@ -291,10 +342,21 @@ class _PackCard extends StatelessWidget {
           PopupMenuButton<String>(
             tooltip: 'Downloaded pack options',
             onSelected: (value) {
-              if (value == 'remove') onRemove();
+              switch (value) {
+                case 'open':
+                  onOpen?.call();
+                case 'share':
+                  onShare?.call();
+                case 'remove':
+                  onRemove();
+              }
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'remove', child: Text('Remove download')),
+            itemBuilder: (context) => [
+              if (onOpen != null)
+                const PopupMenuItem(value: 'open', child: Text('Open')),
+              if (onShare != null)
+                const PopupMenuItem(value: 'share', child: Text('Share or save')),
+              const PopupMenuItem(value: 'remove', child: Text('Remove download')),
             ],
             child: const StatusPill(
               icon: Icons.check_circle_rounded,

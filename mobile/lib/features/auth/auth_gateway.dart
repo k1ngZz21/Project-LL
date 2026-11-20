@@ -10,8 +10,11 @@ import 'package:flutter/foundation.dart'
         defaultTargetPlatform,
         kIsWeb,
         kReleaseMode,
-        TargetPlatform;
+        TargetPlatform,
+        visibleForTesting;
 import 'package:pdf/widgets.dart' as pw;
+
+import '../../core/vocabulary_pdf.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
@@ -62,10 +65,37 @@ class FirebaseAuthGateway
       return await user.getIdToken();
     } on FirebaseAuthException catch (error) {
       throw AuthFailure(
-        _firebaseErrorMessage(error.code),
-        isOffline: error.code == 'network-request-failed',
+        _firebaseErrorMessage(_codeOf(error)),
+        isOffline: _codeOf(error) == 'network-request-failed',
       );
     }
+  }
+
+  /// `--dart-define=LEARNLITE_AUTH_EMULATOR=host:port` points a debug or
+  /// profile build at the local Firebase Auth emulator, so registration and
+  /// sign-in can be tested with throwaway accounts. Release builds ignore it.
+  static const authEmulatorAddress = String.fromEnvironment(
+    'LEARNLITE_AUTH_EMULATOR',
+  );
+
+  static ({String host, int port})? parseEmulatorAddress(
+    String value, {
+    bool releaseMode = kReleaseMode,
+  }) {
+    if (releaseMode || value.trim().isEmpty) return null;
+    final separator = value.lastIndexOf(':');
+    if (separator <= 0) return null;
+    final port = int.tryParse(value.substring(separator + 1));
+    if (port == null || port <= 0 || port > 65535) return null;
+    return (host: value.substring(0, separator).trim(), port: port);
+  }
+
+  static Future<void> useAuthEmulatorIfRequested(FirebaseAuth auth) async {
+    final address = parseEmulatorAddress(authEmulatorAddress);
+    if (address == null) return;
+    await auth.useAuthEmulator(address.host, address.port);
+    debugPrint('LearnLite: using the Firebase Auth emulator at '
+        '${address.host}:${address.port}');
   }
 
   static Future<AuthGateway> initialize() async {
@@ -120,6 +150,7 @@ class FirebaseAuthGateway
       authError =
           'Firebase initialization failed (${error.code}). Check the LearnLite Firebase options and Android package registration.';
     }
+    if (auth != null) await useAuthEmulatorIfRequested(auth);
     timer
       ..lap('firebase init')
       ..report();
@@ -270,14 +301,14 @@ class FirebaseAuthGateway
       await user.reauthenticateWithCredential(credential);
       await user.updatePassword(newPassword);
     } on FirebaseAuthException catch (error) {
-      if (error.code == 'wrong-password' ||
-          error.code == 'invalid-credential' ||
-          error.code == 'invalid-login-credentials') {
+      if (_codeOf(error) == 'wrong-password' ||
+          _codeOf(error) == 'invalid-credential' ||
+          _codeOf(error) == 'invalid-login-credentials') {
         throw const AuthFailure('Your current password is incorrect.');
       }
       throw AuthFailure(
-        _firebaseErrorMessage(error.code),
-        isOffline: error.code == 'network-request-failed',
+        _firebaseErrorMessage(_codeOf(error)),
+        isOffline: _codeOf(error) == 'network-request-failed',
       );
     }
   }
@@ -322,8 +353,8 @@ class FirebaseAuthGateway
         await user.updateDisplayName(fullName);
       } on FirebaseAuthException catch (error) {
         throw AuthFailure(
-          _firebaseErrorMessage(error.code),
-          isOffline: error.code == 'network-request-failed',
+          _firebaseErrorMessage(_codeOf(error)),
+          isOffline: _codeOf(error) == 'network-request-failed',
         );
       }
     }
@@ -629,7 +660,17 @@ class FirebaseAuthGateway
     final packs = await downloadedContentPacks();
     final downloadedIds = packs.map((item) => item.id).toSet();
     final modules = await _database.modules(uid: null);
+    final wordList = packs
+        .where((pack) => pack.id == vocabularyPdfPackId)
+        .firstOrNull;
     return [
+      wordList ??
+          const ContentPackDescriptor(
+            id: vocabularyPdfPackId,
+            type: 'pdf',
+            title: vocabularyPdfTitle,
+            sizeBytes: 0,
+          ),
       ...modules.map((module) {
         final id = 'module:${module['id']}';
         return ContentPackDescriptor(
@@ -641,13 +682,28 @@ class FirebaseAuthGateway
         );
       }),
       ...packs.where(
-        (pack) => !modules.any((module) => pack.id == 'module:${module['id']}'),
+        (pack) =>
+            pack.id != vocabularyPdfPackId &&
+            !modules.any((module) => pack.id == 'module:${module['id']}'),
       ),
     ];
   }
 
   @override
   Future<void> downloadContentPack(String id) async {
+    if (id == vocabularyPdfPackId) {
+      final bytes = await buildVocabularyPdf(
+        await _database.vocabularyCatalog(),
+      );
+      await _database.savePack({
+        'id': vocabularyPdfPackId,
+        'type': 'pdf',
+        'title': vocabularyPdfTitle,
+        'data': {'file_name': vocabularyPdfResourceKey},
+        'media': {vocabularyPdfResourceKey: base64Encode(bytes)},
+      });
+      return;
+    }
     if (id == 'dictionary') {
       final entries = await _database.adminVocabulary();
       final verified = entries
@@ -740,7 +796,7 @@ class FirebaseAuthGateway
         );
       }
     } on FirebaseAuthException catch (error) {
-      throw AuthFailure(_firebaseErrorMessage(error.code));
+      throw AuthFailure(_firebaseErrorMessage(_codeOf(error)));
     }
   }
 
@@ -962,18 +1018,18 @@ class FirebaseAuthGateway
         } on FirebaseAuthException {
           throw AuthFailure(
             'Your account was created, but Firebase could not send the verification email. Your session is still active; request another email from the verification screen.',
-            isOffline: error.code == 'network-request-failed',
+            isOffline: _codeOf(error) == 'network-request-failed',
           );
         }
         throw AuthFailure(
-          'Your account was created, but the verification email could not be sent. ${_verificationErrorMessage(error.code)}',
-          isOffline: error.code == 'network-request-failed',
+          'Your account was created, but the verification email could not be sent. ${_verificationErrorMessage(_codeOf(error))}',
+          isOffline: _codeOf(error) == 'network-request-failed',
         );
       }
     } on FirebaseAuthException catch (error) {
       throw AuthFailure(
-        _firebaseErrorMessage(error.code),
-        isOffline: error.code == 'network-request-failed',
+        _firebaseErrorMessage(_codeOf(error)),
+        isOffline: _codeOf(error) == 'network-request-failed',
       );
     } on DatabaseException {
       throw const AuthFailure(
@@ -1021,8 +1077,8 @@ class FirebaseAuthGateway
       );
     } on FirebaseAuthException catch (error) {
       throw AuthFailure(
-        _firebaseErrorMessage(error.code),
-        isOffline: error.code == 'network-request-failed',
+        _firebaseErrorMessage(_codeOf(error)),
+        isOffline: _codeOf(error) == 'network-request-failed',
       );
     } on DatabaseException {
       throw const AuthFailure(
@@ -1038,10 +1094,10 @@ class FirebaseAuthGateway
     try {
       await auth.sendPasswordResetEmail(email: email.trim().toLowerCase());
     } on FirebaseAuthException catch (error) {
-      if (error.code == 'user-not-found') return;
+      if (_codeOf(error) == 'user-not-found') return;
       throw AuthFailure(
-        _firebaseErrorMessage(error.code),
-        isOffline: error.code == 'network-request-failed',
+        _firebaseErrorMessage(_codeOf(error)),
+        isOffline: _codeOf(error) == 'network-request-failed',
       );
     }
   }
@@ -1068,8 +1124,8 @@ class FirebaseAuthGateway
       await refreshedUser.sendEmailVerification();
     } on FirebaseAuthException catch (error) {
       throw AuthFailure(
-        _verificationErrorMessage(error.code),
-        isOffline: error.code == 'network-request-failed',
+        _verificationErrorMessage(_codeOf(error)),
+        isOffline: _codeOf(error) == 'network-request-failed',
       );
     }
   }
@@ -1089,8 +1145,8 @@ class FirebaseAuthGateway
       return auth.currentUser?.emailVerified ?? refreshedUser.emailVerified;
     } on FirebaseAuthException catch (error) {
       throw AuthFailure(
-        _verificationErrorMessage(error.code),
-        isOffline: error.code == 'network-request-failed',
+        _verificationErrorMessage(_codeOf(error)),
+        isOffline: _codeOf(error) == 'network-request-failed',
       );
     }
   }
@@ -1102,7 +1158,7 @@ class FirebaseAuthGateway
     try {
       await auth.signOut();
     } on FirebaseAuthException catch (error) {
-      throw AuthFailure(_firebaseErrorMessage(error.code));
+      throw AuthFailure(_firebaseErrorMessage(_codeOf(error)));
     }
   }
 
@@ -1329,8 +1385,42 @@ class FirebaseAuthGateway
     'requires-recent-login' =>
       'Sign in again before changing your account details.',
     'too-many-requests' => 'Too many attempts. Wait a little and try again.',
-    _ => 'Firebase sign-in could not be completed. Please try again.',
+    _ => _unmappedFirebaseError(code),
   };
+
+  String _unmappedFirebaseError(String code) {
+    debugPrint('LearnLite: unmapped Firebase Auth error code "$code"');
+    return 'Firebase sign-in could not be completed. Please try again.';
+  }
+
+  /// Some platform paths report a lost connection as `unknown` or
+  /// `internal-error` instead of `network-request-failed` (seen on Android
+  /// when the auth server refuses the connection). Those are treated as
+  /// offline so learners get the offline guidance, not a vague failure.
+  @visibleForTesting
+  static String normalizedAuthErrorCode(String code, String? message) {
+    if (code == 'unknown' || code == 'internal-error') {
+      final text = (message ?? '').toLowerCase();
+      if (_networkErrorText.hasMatch(text)) return 'network-request-failed';
+    }
+    return code;
+  }
+
+  static final _networkErrorText = RegExp(
+    r'network|connect|unreachable|timed? ?out|timeout|unable to resolve host|'
+    r'failed to resolve|socket|i/o error|no address associated',
+  );
+
+  static String _codeOf(FirebaseAuthException error) {
+    final code = normalizedAuthErrorCode(error.code, error.message);
+    if (code != error.code) {
+      debugPrint('LearnLite: Firebase Auth "${error.code}" treated as offline '
+          '(${error.message})');
+    } else if (code == 'unknown') {
+      debugPrint('LearnLite: Firebase Auth "unknown": ${error.message}');
+    }
+    return code;
+  }
 
   String _verificationErrorMessage(String code) => switch (code) {
     'network-request-failed' =>

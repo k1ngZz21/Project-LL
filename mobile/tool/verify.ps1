@@ -29,7 +29,7 @@ Write-Host "Source: $source"
 Write-Host "Copy:   $target"
 New-Item -ItemType Directory -Force $target | Out-Null
 
-foreach ($dir in 'lib', 'test', 'assets', 'android') {
+foreach ($dir in 'lib', 'test', 'integration_test', 'assets', 'android') {
     $from = Join-Path $source $dir
     if (-not (Test-Path $from)) { continue }
     # /MIR mirrors into the temp copy only. Build outputs are excluded.

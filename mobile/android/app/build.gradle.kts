@@ -8,11 +8,19 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Release signing. The owner keeps the upload keystore and creates
-// android/key.properties (git-ignored) with storeFile, storePassword, keyAlias
-// and keyPassword. Without that file, release builds use the debug key so
-// local test builds still work; such APKs are for testing only.
-val keystorePropertiesFile = rootProject.file("key.properties")
+// Release signing. key.properties (storeFile, storePassword, keyAlias,
+// keyPassword) is looked up in this order:
+//   1. the path in the LEARNLITE_KEY_PROPERTIES environment variable,
+//   2. %USERPROFILE%\.learnlite-signing\key.properties (created by
+//      tool/create_release_keystore.ps1; outside OneDrive and git),
+//   3. android/key.properties (git-ignored).
+// Without one, release builds use the debug key so local test builds still
+// work; such APKs are for testing only and a warning is printed.
+val keystorePropertiesFile = listOfNotNull(
+    System.getenv("LEARNLITE_KEY_PROPERTIES")?.let { file(it) },
+    File(System.getProperty("user.home"), ".learnlite-signing/key.properties"),
+    rootProject.file("key.properties"),
+).firstOrNull { it.exists() } ?: rootProject.file("key.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) {
         FileInputStream(keystorePropertiesFile).use { load(it) }
@@ -60,6 +68,12 @@ android {
             signingConfig = if (keystorePropertiesFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
+                if (gradle.startParameter.taskNames.any { it.contains("Release") }) {
+                    logger.warn(
+                        "LearnLite: no release key.properties found; this release " +
+                            "build is signed with the DEBUG key (testing only).",
+                    )
+                }
                 signingConfigs.getByName("debug")
             }
         }
